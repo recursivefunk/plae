@@ -1,0 +1,71 @@
+@charset "utf-8";
+/* CSS Document */
+	#swagg-player{
+		text-align:center;
+		width:370px;
+		height:270px;
+		padding-left:5px;
+		background-color:#FFF;
+		color:#000;
+		border:#F93 solid thick;
+		font: 100% Verdana, Arial, Helvetica, sans-serif;
+		font-size:12px;
+	}
+	.fancy {
+		-webkit-transition:All 1s ease-in-out;
+		-moz-transition:All 1s ease-in-out;
+		-o-transition:All 1s ease-in-out;
+	}
+	.fancy:hover{
+		-webkit-transform: rotate(360deg);
+		-moz-transform: rotate(360deg);
+		-o-transform: rotate(360deg);
+	}
+	#wrapper {
+		width:180px; 
+		height:5px; 
+		margin-left:auto;
+		margin-right:auto;
+		background-color:#CCC;	
+	}
+	#bar {
+		width:0px; 
+		height:5px; 
+		background-color:#F93;	
+	}
+	#controls{
+		width:200px;
+		margin-left:auto;
+		margin-right:auto;
+	}
+	#slider {
+		width:200px;
+		float:right;
+		margin-right:30px;
+		position:relative;
+	}
+	
+	#controls a{
+		padding:5px;
+	}
+	
+	#info{
+		margin-left:auto;
+		margin-right:auto;
+		width:80%;
+	}
+	#art{
+
+	}
+	#album-art {
+		margin-left:auto;
+		margin-right:auto;
+		width:100px;
+		height:100px;
+		text-align:center;
+		display:block;
+	}
+
+	.border {
+		border:#F00 thin solid;	
+	}

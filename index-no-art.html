@@ -1,0 +1,26 @@
+<link rel="stylesheet" type="text/css" href="css/swaggplayer-no-art.css" />
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<br /><br/> <br/><br /><br/><br/>
+<div id="swagg-player"><br />
+    <div id="controls">
+		<a  id="play-link" href="#"><img src="images/play.png" id="play" border="0"/></a>
+		<a  id="back-link" href="#"><img src="images/back.png" id="back" border="0"/></a>
+		<a  id="skip-link" href="#"><img src="images/skip.png" id="skip" border="0"/></a>
+		<a  id="stop-link" href="#"><img src="images/stop.png" id="stop" border="0"/></a>
+  	</div><br />
+	<label id="info"><p></label><br />
+</div>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.min.js"></script>
+<script type="text/javascript" src="js/soundmanager2.js"></script>
+<script type="text/javascript" src="js/jquery-swagg-player.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+	$('#swagg-player').SwaggPlayer({
+					data: 'json/songs.json',
+					buttonsDir: 'images/',
+					useArt: false,
+					ataFormat: "json"
+	});
+});  
+</script>

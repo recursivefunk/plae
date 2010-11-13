@@ -1,0 +1,28 @@
+@charset "utf-8";
+/* CSS Document */
+	#swagg-player{
+		text-align:center;
+		width:300px;
+		height:150px;
+		padding-left:5px;
+		padding-right:5px;
+		border:#F90 thick solid;
+		color:#000;
+		font: 100% Verdana, Arial, Helvetica, sans-serif;
+		font-size:15px;
+	}
+	
+	#controls{
+		width:200px;
+		margin-left:auto;
+		margin-right:auto;
+	}
+	#controls a{
+		padding:5px;
+	}
+	
+	#info{
+		margin-left:auto;
+		margin-right:auto;
+	}
+
