@@ -14,6 +14,7 @@
    - Progress bar added
    - Fixed potential play/pause bug
    - Improved caching to speed up performance
+   - Made button dom element IDs configurable
    
  */
 
@@ -57,11 +58,7 @@
 					
 				BrowserDetect.init(); // determine which browser we're dealing with
 				
-				var format;
-				if (config.dataFormat)
-					format = config.dataFormat;
-				else
-					format = "json";
+				var format = (config.dataFormat !== undefined) ? config.dataFormat : "json";
 					
 				// Get songs from JSON or XML document						   
 				$.ajax({
@@ -96,15 +93,16 @@
 				
 				var initButtons = function() {
 					console.log("Swagg Player::Initializing button event hooks");
+					var inst = INSTANCE;
 					i = INSTANCE.img;
-					var $play = $('#play');
-					var $skip = $('#skip');
-					var $stop = $('#stop');
-					var $back = $('#back');
-					var $playlink = $('#play-link');
-					var $skiplink = $('#skip-link');
-					var $stoplink = $('#stop-link');
-					var $backlink = $('#back-link');
+					var $play = (inst.config.play !== undefined) ? inst.config.play : $('#play');
+					var $skip = (inst.config.skip !== undefined) ? inst.config.skip : $('#skip');
+					var $stop = (inst.config.stop !== undefined) ? inst.config.stop : $('#stop');
+					var $back = (inst.config.back !== undefined) ? inst.config.back : $('#back');
+					var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
+					var $skiplink = (inst.config.skiplink !== undefined) ? inst.config.skiplink : $('#skip-link');
+					var $stoplink = (inst.config.stoplink !== undefined) ? inst.config.stoplink : $('#stop-link');
+					var $backlink = (inst.config.backlink !== undefined) ? inst.config.backlink : $('#back-link');
 					// ======================= mouse event hooks for play button ===========================
 					$playlink.click(function() {
 						 play(INSTANCE.curr_song);
@@ -255,8 +253,9 @@
 			
 			// toggles the play/pause button to pause
 			function buttonPauseState() {
+				var inst = INSTANCE;
 				var i = INSTANCE.img;
-				var $play = $('#play');
+				var $play = (inst.config.play !== undefined) ? inst.config.play : $('#play');
 				var $playlink = $('#play-link');
 				
 				$play.attr('src', i[2].src);
@@ -271,9 +270,10 @@
 			
 			// toggles the play/pause button to the play state
 			function buttonPlayState() {
+				var inst = INSTANCE;
 				var i = INSTANCE.img;
-				var $play = $('#play');
-				var $playlink = $('#play-link');
+				var $play = (inst.config.play !== undefined) ? inst.config.play : $('#play');
+				var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
 				
 				$play.attr('src', i[0].src);
 				
@@ -371,7 +371,6 @@
 			// switches to the currently playing song's album art using fancy jquery slide effect
 			function switchArt(track, afterEffect){
 				var $art = $('#art');
-				// $art.removeClass('fancy'); experimental CSS class for CSS3 transitions and animations
 				$art.hide('slide', function() {
 					$art.attr('src',INSTANCE.songs[track].image.src);
 					$art.show('slide', afterEffect); 
@@ -396,7 +395,6 @@
 			function stopMusic(track) {
 				var localSoundManager = soundManager;
 				localSoundManager.stopAll();
-				//INSTANCE.soundObjs[track] = localSoundManager.load(track.toString());
 				resetProgressBar();
 			}
 			
