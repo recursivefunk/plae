@@ -1,4 +1,4 @@
-/*!
+/*
    Swagg Player: Music Player for the web
    --------------------------------------------
    http://johnny-ray.com/blog/?page_id=70
@@ -72,7 +72,7 @@
 							console.log("Swagg Player::Using JSON...");
 							var size = data.length;
 							
-							// append an IDs to the songs - make configurable in the future
+							// preload song album art and append an IDs to the songs - make configurable in the future
 							// to avoid having to loop through JSON array
 							for(var i = 0; i < size; i++){
 								data[i].image = new Image();
