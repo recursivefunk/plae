@@ -23,15 +23,14 @@
 <script type="text/javascript">
 $(document).ready(function(){ 
 	$('#swagg-player').SwaggPlayer({
-					xml: 'xml/songs.xml', // deprecated DO NOT USE
-					data: 'json/songs.json',
-					buttonsDir: 'images/',
-					useArt: true,
-					dataFormat: "json", // json or text/xml
-					play_: $('#playbutton'),
-					skip_: $('#skipbutton'),
-					back_: $('#backbutton'),
-					stop_: $('#stopbutton')
+					data: 'json/songs.json',	// optional - highly recommended for AJAX request to grab your songs
+					buttonsDir: 'images/',		// required - tells swagg player where to find your buttons
+					useArt: true,				// optional - using album? defaults to true
+					dataFormat: "json", 		// json or text/xml
+					play_: $('#playbutton'), 	// optional - points to play button defaults to $('#play')
+					skip_: $('#skipbutton'), 	// optional - points to skip button defaults to $('#skip)
+					back_: $('#backbutton'), 	// optional - points to back button defaults to $('#back')
+					stop_: $('#stopbutton') 	// optional - points to stop button defaults to $('#stop')
 	});
 });  
 </script>
