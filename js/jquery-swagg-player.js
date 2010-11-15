@@ -157,7 +157,7 @@
 					});
 					
 					// media key event hooks
-					/*
+					
 					$(document).keydown(function(e) {
 
 						if (!e) e=window.event;
@@ -193,7 +193,7 @@
 								return false;
 								break;	
 						}
-					});*/
+					});
 				}
 				
 				// Safari HTML5 audio bug. ignore HTML5 audio if Safari
