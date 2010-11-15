@@ -48,28 +48,32 @@
 				if (!config.buttonsDir)
 					config.buttonsDir = 'images/';
 					
-				if (config.images)
-					INSTANCE.img = images;
-					
-				loadImages(config); // preload button images
+				// shared images
+				INSTANCE.img = (config.images !== undefined) ? config.images : new Array();	
+						
+				// preload button images
+				loadImages(config); 
 				
-				if (!config.data)
-					config.data = 'json/songs.json';
+				// type of data to fetch - xml or json
+				var data = (config.data !== undefined) ? config.data : 'json/songs.json';
 					
-				BrowserDetect.init(); // determine which browser we're dealing with
+				// determine which browser we're dealing with
+				BrowserDetect.init(); 
 				
 				var format = (config.dataFormat !== undefined) ? config.dataFormat : "json";
 					
 				// Get songs from JSON or XML document						   
 				$.ajax({
 					type: "GET",
-					url: config.data,
+					url: data,
 					dataType: format,
 					success: function(data){
 						if (format === "json") {
 							console.log("Swagg Player::Using JSON...");
 							var size = data.length;
 							
+							// append an IDs to the songs - make configurable in the future
+							// to avoid having to loop through JSON array
 							for(var i = 0; i < size; i++){
 								data[i].image = new Image();
 								data[i].image.src = data[i].thumb;
@@ -91,14 +95,15 @@
 					}
 				});
 				
+				// event hooks for control buttons
 				var initButtons = function() {
 					console.log("Swagg Player::Initializing button event hooks");
 					var inst = INSTANCE;
 					i = INSTANCE.img;
-					var $play = (inst.config.play !== undefined) ? inst.config.play : $('#play');
-					var $skip = (inst.config.skip !== undefined) ? inst.config.skip : $('#skip');
-					var $stop = (inst.config.stop !== undefined) ? inst.config.stop : $('#stop');
-					var $back = (inst.config.back !== undefined) ? inst.config.back : $('#back');
+					var $play = (inst.config.play_ !== undefined) ? inst.config.play_ : $('#play');
+					var $skip = (inst.config.skip_ !== undefined) ? inst.config.skip_ : $('#skip');
+					var $stop = (inst.config.stop_ !== undefined) ? inst.config.stop_ : $('#stop');
+					var $back = (inst.config.back_ !== undefined) ? inst.config.back_ : $('#back');
 					var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
 					var $skiplink = (inst.config.skiplink !== undefined) ? inst.config.skiplink : $('#skip-link');
 					var $stoplink = (inst.config.stoplink !== undefined) ? inst.config.stoplink : $('#stop-link');
@@ -151,6 +156,8 @@
 						 $back.attr('src', i[8].src);
 					});
 					
+					// media key event hooks
+					/*
 					$(document).keydown(function(e) {
 
 						if (!e) e=window.event;
@@ -186,13 +193,15 @@
 								return false;
 								break;	
 						}
-					});
+					});*/
 				}
 				
-				if (BrowserDetect.browser !== 'Safari') { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
+				// Safari HTML5 audio bug. ignore HTML5 audio if Safari
+				if (BrowserDetect.browser !== 'Safari') { 
 					soundManager.useHTML5Audio = true;
 				}
 				
+				// configure soundManager, create song objects, and hook event listener actions
 				soundManager.createSongs = function() {
 					if(INSTANCE.songs[0] !== undefined) {
 						var songs_ = INSTANCE.songs;
@@ -217,7 +226,8 @@
 							temp.load();
 						} // end for
 						if (config.useArt === true) {
-							$('#art').attr('src',songs_[INSTANCE.curr_song].image.src); // initialize first song album art
+							// initialize first song album art
+							$('#art').attr('src',songs_[INSTANCE.curr_song].image.src); 
 						}
 						showSongInfo();
 					}
@@ -230,20 +240,20 @@
 				} // end soundManager onload function
 			}
 				
-			// plays the current track
+			// Plays a song based on the ID
 			function play(track) {
 				console.log('Swagg Player::playing track: ' + track);
 				var target = soundManager.getSoundById(track.toString());
 				
-				if (target.paused === true) {
+				if (target.paused === true) { // if current track is paused, unpause
 					console.log('Swagg Player::unpausing');
 					target.resume();
 				}
-				else {
+				else { // track is not paused
 					console.log('Swagg Player::playing from beginning');
-					if (target.playState === 1)
+					if (target.playState === 1) // if track is already playing, pause it
 						target.pause();
-					else {
+					else { // track is is not playing (it's in a stopped or uninitialized stated, play it
 						target.play();
 					}
 				}
@@ -255,7 +265,7 @@
 			function buttonPauseState() {
 				var inst = INSTANCE;
 				var i = INSTANCE.img;
-				var $play = (inst.config.play !== undefined) ? inst.config.play : $('#play');
+				var $play = (inst.config.play_ !== undefined) ? inst.config.play_ : $('#play');
 				var $playlink = $('#play-link');
 				
 				$play.attr('src', i[2].src);
@@ -272,7 +282,7 @@
 			function buttonPlayState() {
 				var inst = INSTANCE;
 				var i = INSTANCE.img;
-				var $play = (inst.config.play !== undefined) ? inst.config.play : $('#play');
+				var $play = (inst.config.play_ !== undefined) ? inst.config.play_ : $('#play');
 				var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
 				
 				$play.attr('src', i[0].src);
@@ -285,7 +295,7 @@
 				});
 			}
 			
-			// displays artist [song title]
+			// displays artist and song title
 			function showSongInfo(){
 				var loc_inst = INSTANCE;
 				var song_ = loc_inst.songs[loc_inst.curr_song];
@@ -300,9 +310,16 @@
 					var duration = soundobj.duration;
 				}
 				
-				var pos = soundobj.position;
-				var factor = pos/duration;
+				var pos = soundobj.position; // get current position of currently playing song
+				
+				// ratio of (current position / total duration of song)
+				var factor = pos/duration; 
+				
+				// width of progress bar
 				var a = parseFloat($('#wrapper').css('width'));
+				
+				// set width of inner progress bar equal to the width equivelant of the
+				// current position
 				var t = a*factor;
 				$('#bar').css('width', t);
 			}
@@ -321,6 +338,7 @@
 				stopMusic(t);
 				inst.curr_song = t;
 				
+				// if using album art, use art transition
 				if (inst.config.useArt === true) {
 					var afterEffect = function() {
 						resetProgressBar();
@@ -329,6 +347,7 @@
 					}
 					switchArt(t, afterEffect);
 				} // end if
+				// if not using album art, just go to the next song
 				else {						
 					showSongInfo();
 					play(t);
@@ -354,6 +373,7 @@
 				}
 				stopMusic(t);
 				inst.curr_song = t;
+				// if using album art, use art transition
 				if (inst.config.useArt === true) {
 					var afterEffect = function() {
 						resetProgressBar();
@@ -362,6 +382,7 @@
 					}
 					switchArt(t, afterEffect);
 				} // end if
+				// if not using album art, just go to the next song
 				else {
 						showSongInfo();
 						play(t);

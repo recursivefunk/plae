@@ -6,10 +6,10 @@
 		<img src="loading.gif" id="art" border="0"/>
     </div><br/><br/>
     <div id="controls">
-		<a  id="play-link" href="#"><img src="images/play.png" id="play__" border="0"/></a>
-		<a  id="back-link" href="#"><img src="images/back.png" id="back" border="0"/></a>
-		<a  id="skip-link" href="#"><img src="images/skip.png" id="skip" border="0"/></a>
-		<a  id="stop-link" href="#"><img src="images/stop.png" id="stop" border="0"/></a>
+		<a  id="play-link" href="#"><img src="images/play.png" id="playbutton" border="0"/></a>
+		<a  id="back-link" href="#"><img src="images/back.png" id="backbutton" border="0"/></a>
+		<a  id="skip-link" href="#"><img src="images/skip.png" id="skipbutton" border="0"/></a>
+		<a  id="stop-link" href="#"><img src="images/stop.png" id="stopbutton" border="0"/></a>
   	</div><br /><br/>
     <div id="wrapper">
     	<div id="bar"></div>
@@ -28,7 +28,10 @@ $(document).ready(function(){
 					buttonsDir: 'images/',
 					useArt: true,
 					dataFormat: "json", // json or text/xml
-					play: $('#play__')
-					});
+					play_: $('#playbutton'),
+					skip_: $('#skipbutton'),
+					back_: $('#backbutton'),
+					stop_: $('#stopbutton')
+	});
 });  
 </script>
