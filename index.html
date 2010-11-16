@@ -22,15 +22,16 @@
 <script type="text/javascript" src="js/jquery-swagg-player.js"></script>
 <script type="text/javascript">
 $(document).ready(function(){ 
+
 	$('#swagg-player').SwaggPlayer({
 					data: 'json/songs.json',	// optional - highly recommended for AJAX request to grab your songs
 					buttonsDir: 'images/',		// required - tells swagg player where to find your buttons
 					useArt: true,				// optional - using album? defaults to true
 					dataFormat: "json", 		// json or text/xml
-					play_: $('#playbutton'), 	// optional - points to play button defaults to $('#play')
-					skip_: $('#skipbutton'), 	// optional - points to skip button defaults to $('#skip)
-					back_: $('#backbutton'), 	// optional - points to back button defaults to $('#back')
-					stop_: $('#stopbutton') 	// optional - points to stop button defaults to $('#stop')
+					play: $('#playbutton'), 	// optional - points to play button (image) defaults to $('#play')
+					skip: $('#skipbutton'), 	// optional - points to skip button (image) defaults to $('#skip)
+					back: $('#backbutton'), 	// optional - points to back button (image) defaults to $('#back')
+					stop: $('#stopbutton') 	// optional - points to stop button (image) defaults to $('#stop')
 	});
 });  
 </script>
