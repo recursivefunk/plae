@@ -24,14 +24,14 @@
 $(document).ready(function(){ 
 
 	$('#swagg-player').SwaggPlayer({
-					data: 'json/songs.json',	// optional - highly recommended for AJAX request to grab your songs
-					buttonsDir: 'images/',		// required - tells swagg player where to find your buttons
-					useArt: true,				// optional - using album? defaults to true
-					dataFormat: "json", 		// json or text/xml
-					play: $('#playbutton'), 	// optional - points to play button (image) defaults to $('#play')
-					skip: $('#skipbutton'), 	// optional - points to skip button (image) defaults to $('#skip)
-					back: $('#backbutton'), 	// optional - points to back button (image) defaults to $('#back')
-					stop: $('#stopbutton') 	// optional - points to stop button (image) defaults to $('#stop')
+					data: 'json/songs.json',		// optional - highly recommended for AJAX request to grab your songs
+					buttonsDir: 'images/',			// required - tells swagg player where to find your buttons
+					useArt: true,					// optional - using album? defaults to true
+					dataFormat: "json", 			// json or text/xml
+					playButt: $('#playbutton'), 	// optional - points to play button (image) defaults to $('#play')
+					skipButt: $('#skipbutton'), 	// optional - points to skip button (image) defaults to $('#skip)
+					backButt: $('#backbutton'), 	// optional - points to back button (image) defaults to $('#back')
+					stopButt: $('#stopbutton') 		// optional - points to stop button (image) defaults to $('#stop')
 	});
 });  
 </script>

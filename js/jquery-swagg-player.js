@@ -9,12 +9,12 @@
 
    v0.8.5.2
    
-   Change Log v8.5.2
-   - Major code refactoring
+   Change Log v8.5.2.1
+   - Combined skip and skipBack methods into one: direction denoted by flag
  */
 
 (function ($){
-		/*global soundManager: false, setInterval: false, console: false */
+		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false */
 		var PROPS = {
 						songs : {},
 						song: {
@@ -33,6 +33,7 @@
 
 		var swagg = {
 			init : function(config) {
+				soundManager.url = 'swf';
 				PROPS.config = config;
 				if (!config.buttonsDir) {
 					config.buttonsDir = 'images/';
@@ -90,17 +91,17 @@
 					console.log("Swagg Player::Initializing button event hooks");
 					var inst = PROPS;
 					var i = PROPS.img;
-					var $play = (inst.config.play !== undefined) ? inst.config.play : $('#play');
-					var $skip = (inst.config.skip !== undefined) ? inst.config.skip : $('#skip');
-					var $stop = (inst.config.stop !== undefined) ? inst.config.stop : $('#stop');
-					var $back = (inst.config.back !== undefined) ? inst.config.back : $('#back');
+					var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
+					var $skip = (inst.config.skipButt !== undefined) ? inst.config.skipButt : $('#skip');
+					var $stop = (inst.config.stopButt !== undefined) ? inst.config.stopButt : $('#stop');
+					var $back = (inst.config.backButt !== undefined) ? inst.config.backButt : $('#back');
 					var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
 					var $skiplink = (inst.config.skiplink !== undefined) ? inst.config.skiplink : $('#skip-link');
 					var $stoplink = (inst.config.stoplink !== undefined) ? inst.config.stoplink : $('#stop-link');
 					var $backlink = (inst.config.backlink !== undefined) ? inst.config.backlink : $('#back-link');
 					// ======================= mouse event hooks for play button ===========================
 					$playlink.click(function() {
-						 swagg.play(PROPS.curr_song);
+						 swagg.play('playlink click', PROPS.curr_song);
 						 return false;
 					});
 					$playlink.mouseover(function() {
@@ -112,7 +113,7 @@
 					
 					// =================== mouse event hooks for skip button =========================
 					$skiplink.click(function() {
-						 swagg.skip();
+						 swagg.skip(1);
 						 return false;
 					});
 					$skiplink.mouseover(function() {
@@ -136,7 +137,7 @@
 					
 					// =================== mouse event hooks for back button =========================
 					$backlink.click(function() {
-						 swagg.skipBack();
+						 swagg.skip(0);
 						 return false;
 					});
 					$backlink.mouseover(function() {
@@ -146,15 +147,14 @@
 						 $back.attr('src', i[8].src);
 					});
 					
-					// media key event hooks
-					
+					// media key event hooks				
 					$(document).keydown(function(e) {
 
 						if (!e) e=window.event;
 					
 							switch(e.which) {
 							  case 179:
-								swagg.play(PROPS.curr_song);
+								swagg.play('Media key event switch',PROPS.curr_song);
 								return false;
 						
 							  case 178:
@@ -162,11 +162,11 @@
 								return false;
 						
 							  case 176:
-								swagg.skip();
+								swagg.skip(1);
 								return false;
 						
 							  case 177:
-								swagg.skipBack();
+								swagg.skip(0);
 								return false;
 								
 							case 175:
@@ -200,7 +200,7 @@
 							temp = localSoundManager.createSound({	// create sound objects to hook event handlers
 								id: i.toString(),					// to button states
 								url: songs_[i].url,
-								onfinish: swagg.skip,
+								onfinish: function(){swagg.skip(1)},
 								onplay: swagg.buttonPauseState,
 								onpause: swagg.buttonPlayState,
 								onstop: swagg.buttonPlayState,
@@ -225,16 +225,16 @@
 			},
 			
 			// Plays a song based on the ID
-			play : function(track){
-				console.log('Swagg Player::playing track: ' + track);
+			play : function(caller, track){
+				console.log('Swagg Player::playing track: ' + track + '. Oh and ' + caller + ' called me!');
 				var target = soundManager.getSoundById(track.toString());
 				
 				if (target.paused === true) { // if current track is paused, unpause
-					console.log('Swagg Player::unpausing');
+					console.log('Swagg Player::Unpausing song');
 					target.resume();
 				}
 				else { // track is not paused
-					console.log('Swagg Player::playing from beginning');
+					console.log('Swagg Player::Playing song from beginning');
 					if (target.playState === 1) // if track is already playing, pause it
 						target.pause();
 					else { // track is is not playing (it's in a stopped or uninitialized stated, play it
@@ -249,7 +249,7 @@
 			buttonPauseState : function() {
 				var inst = PROPS;
 				var i = PROPS.img;
-				var $play = (inst.config.play !== undefined) ? inst.config.play : $('#play');
+				var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
 				var $playlink = $('#play-link');
 				
 				$play.attr('src', i[2].src);
@@ -266,7 +266,7 @@
 			buttonPlayState : function(){
 				var inst = PROPS;
 				var i = PROPS.img;
-				var $play = (inst.config.play !== undefined) ? inst.config.play : $('#play');
+				var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
 				var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
 				
 				$play.attr('src', i[0].src);
@@ -278,48 +278,33 @@
 					$play.attr('src', i[1].src);
 				});	
 			},
-			
-			// Goes to the previous song. if the currently playing song is the first
-			// song, it goes to the last song in the list			
-			skipBack : function() {
-				var inst = PROPS;
-				var t = inst.curr_song;
-				if (t == 0){
-					t = inst.songs.length - 1;	
-				}
-				else{
-					t = t - 1;	
-				}
-				swagg.stopMusic(t);
-				inst.curr_song = t;
-				
-				// if using album art, use art transition
-				if (inst.config.useArt === true) {
-					var afterEffect = function() {
-						swagg.resetProgressBar();
-						swagg.showSongInfo();
-						swagg.play(t);
-					}
-					swagg.switchArt(t, afterEffect);
-				} // end if
-				// if not using album art, just go to the next song
-				else {						
-					swagg.showSongInfo();
-					swagg.play(t);
-				} // end else	
-			},
 		
 			// Skips to the next song. If currently playing song is the last song in the list
 			// it goes back to the first song
-			skip : function(){
+			skip : function(direction){
 				var inst = PROPS;
-				var songs_ = inst.songs;	
+				//var songs_ = inst.songs;	
 				var t = inst.curr_song;
-				if (t < songs_.length){
-					if (t == songs_.length - 1)
-						t = 0;
-					else
-						t = t+1;
+				
+				if (direction === 1) { // skip forward
+					if (t < inst.songs.length){
+						if (t == inst.songs.length - 1)
+							t = 0;
+						else
+							t = t+1;
+					}
+				}
+				else if (direction === 0) { // skip back
+					if (t === 0){
+						t = inst.songs.length - 1;	
+					}
+					else{
+						t = t - 1;	
+					}
+				}
+				else {
+					console.log('SwaggPlayer::Something went wrong with the skip direction flag: ' + direction);
+					return false;	
 				}
 				swagg.stopMusic(t);
 				inst.curr_song = t;
@@ -328,27 +313,30 @@
 					var afterEffect = function() {
 						swagg.resetProgressBar();
 						swagg.showSongInfo();
-						swagg.play(t);
+						swagg.play('skip',t);
 					}
 					swagg.switchArt(t, afterEffect);
 				} // end if
 				// if not using album art, just go to the next song
 				else {
 						swagg.showSongInfo();
-						swagg.play(t);
+						swagg.play('skip',t);
 				} // end else	
 			},
 			
+			// Resets the progress bar back to the beginning
 			resetProgressBar : function(){
 				$('#bar').css('width', 0);
 			},	
 			
+			// Stops the specified song
 			stopMusic : function(track) {
 				var localSoundManager = soundManager;
 				localSoundManager.stopAll();
 				swagg.resetProgressBar();	
 			},
 			
+			// Preloads button images
 			loadImages : function(config) {		
 				var pathtobutts = config.buttonsDir;
 				var img = PROPS.img;
@@ -384,6 +372,8 @@
 				img[9].src = pathtobutts + 'back-over.png';
 			},
 			
+			// Parses the response XML from the AJAX request and converts
+			// the data into JSON format
 			parseXML : function(xml) {
 				var local_song = PROPS.song;
 				var temp;
@@ -418,12 +408,14 @@
 				} // end else
 			},
 			
+			// Increases the volume of the specified song
 			volUp : function(track) {
 				var sound = soundManager.getSoundById(track.toString());
 				var curr_vol = sound.volume;
 				soundManager.setVolume(track.toString(), curr_vol + vol_interval);	
 			},
 			
+			// Decreases the volume of the specified song
 			volDown : function(track) {
 				var sound = soundManager.getSoundById(track.toString());
 				var curr_vol = sound.volume;
@@ -447,7 +439,8 @@
 					var duration = soundobj.duration;
 				}
 				
-				var pos = soundobj.position; // get current position of currently playing song
+				// get current position of currently playing song
+				var pos = soundobj.position; 
 				
 				// ratio of (current position / total duration of song)
 				var factor = pos/duration; 
@@ -469,8 +462,9 @@
 			}
 		};
 		
-			var BrowserDetect = {
-		
+			
+		// BROWSER DETECT SCRIPT FROM: http://www.quirksmode.org/js/detect.html	
+		var BrowserDetect = {
 				init: function () {
 					this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
 					this.version = this.searchVersion(navigator.userAgent)
@@ -497,7 +491,7 @@
 					return parseFloat(dataString.substring(index+this.versionSearchString.length+1));
 				},
 			
-			dataBrowser: [
+				dataBrowser: [
 					{
 						string: navigator.userAgent,
 						subString: "Chrome",
@@ -584,10 +578,9 @@
 						identity: "Linux"
 					}
 				]
-			};
+		};
 				
 		$.fn.SwaggPlayer = function(options) {
-			soundManager.url = 'swf';
 			swagg.init(options);
 		};
 })(jQuery);
