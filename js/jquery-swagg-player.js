@@ -7,10 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.2
+   v0.8.5.2.2
    
-   Change Log v8.5.2.1
-   - Combined skip and skipBack methods into one: direction denoted by flag
+   Change Log v8.5.2.2
+   - Combined playButtonState & pauseButtonState methods into one: direction denoted by flag
  */
 
 (function ($){
@@ -201,10 +201,10 @@
 								id: i.toString(),					// to button states
 								url: songs_[i].url,
 								onfinish: function(){swagg.skip(1)},
-								onplay: swagg.buttonPauseState,
-								onpause: swagg.buttonPlayState,
-								onstop: swagg.buttonPlayState,
-								onresume: swagg.buttonPauseState,
+								onplay: function(){swagg.playPauseButtonState(0);},
+								onpause: function(){swagg.playPauseButtonState(1);},
+								onstop: function(){swagg.playPauseButtonState(1);},
+								onresume: function(){swagg.playPauseButtonState(0);},
 								whileplaying: function(){swagg.progress(this);}
 							});
 							temp.load();
@@ -246,11 +246,12 @@
 			},
 			
 			// toggles the play/pause button to pause
+			/*
 			buttonPauseState : function() {
 				var inst = PROPS;
 				var i = PROPS.img;
 				var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
-				var $playlink = $('#play-link');
+				var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
 				
 				$play.attr('src', i[2].src);
 				
@@ -260,23 +261,39 @@
 				$playlink.mouseover(function() {
 					$play.attr('src', i[3].src);
 				});	
-			},
+			},*/
 			
 			// toggles the play/pause button to the play state
-			buttonPlayState : function(){
+			playPauseButtonState : function(state){
 				var inst = PROPS;
 				var i = PROPS.img;
 				var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
 				var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
 				
-				$play.attr('src', i[0].src);
-				
-				$playlink.mouseout(function() {
+				if (state === 1 ) {
 					$play.attr('src', i[0].src);
-				});
-				$playlink.mouseover(function() {
-					$play.attr('src', i[1].src);
-				});	
+					
+					$playlink.mouseout(function() {
+						$play.attr('src', i[0].src);
+					});
+					$playlink.mouseover(function() {
+						$play.attr('src', i[1].src);
+					});	
+				}
+				else if (state === 0) {
+					$play.attr('src', i[2].src);
+					
+					$playlink.mouseout(function() {
+						$play.attr('src', i[2].src);
+					});
+					$playlink.mouseover(function() {
+						$play.attr('src', i[3].src);
+					});	
+				}
+				else {
+					console.log('Swagg Player::Invalid button state! : ' + state);	
+					return false;
+				}
 			},
 		
 			// Skips to the next song. If currently playing song is the last song in the list
