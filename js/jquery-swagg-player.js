@@ -9,7 +9,7 @@
 
    v0.8.5.2.2
    
-   Change Log v8.5.2.2
+   Change Log v0.8.5.2.2
    - Combined playButtonState & pauseButtonState methods into one: direction denoted by flag
  */
 
@@ -245,24 +245,6 @@
 				swagg.showSongInfo();
 			},
 			
-			// toggles the play/pause button to pause
-			/*
-			buttonPauseState : function() {
-				var inst = PROPS;
-				var i = PROPS.img;
-				var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
-				var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
-				
-				$play.attr('src', i[2].src);
-				
-				$playlink.mouseout(function() {
-					$play.attr('src', i[2].src);
-				});
-				$playlink.mouseover(function() {
-					$play.attr('src', i[3].src);
-				});	
-			},*/
-			
 			// toggles the play/pause button to the play state
 			playPauseButtonState : function(state){
 				var inst = PROPS;
@@ -270,7 +252,7 @@
 				var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
 				var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
 				
-				if (state === 1 ) {
+				if (state === 1 ) { // play state
 					$play.attr('src', i[0].src);
 					
 					$playlink.mouseout(function() {
@@ -280,7 +262,7 @@
 						$play.attr('src', i[1].src);
 					});	
 				}
-				else if (state === 0) {
+				else if (state === 0) { // pause state
 					$play.attr('src', i[2].src);
 					
 					$playlink.mouseout(function() {
@@ -290,7 +272,7 @@
 						$play.attr('src', i[3].src);
 					});	
 				}
-				else {
+				else { // invalid state
 					console.log('Swagg Player::Invalid button state! : ' + state);	
 					return false;
 				}
@@ -319,8 +301,8 @@
 						t = t - 1;	
 					}
 				}
-				else {
-					console.log('SwaggPlayer::Something went wrong with the skip direction flag: ' + direction);
+				else { // invalid flag
+					console.log('SwaggPlayer::Invalid skip direction flag: ' + direction);
 					return false;	
 				}
 				swagg.stopMusic(t);

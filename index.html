@@ -22,12 +22,11 @@
 <script type="text/javascript" src="js/jquery-swagg-player.js"></script>
 <script type="text/javascript">
 $(document).ready(function(){ 
-
 	$('#swagg-player').SwaggPlayer({
-					data: 'json/songs.json',		// optional - highly recommended for AJAX request to grab your songs
+					data: 'json/songs.json',		// REQUIRED - path to your songs file XML or JSON
 					buttonsDir: 'images/',			// required - tells swagg player where to find your buttons
 					useArt: true,					// optional - using album? defaults to true
-					dataFormat: "json", 			// json or text/xml
+					dataFormat: "json", 			// optional - highly recommended for AJAX request to grab your songs
 					playButt: $('#playbutton'), 	// optional - points to play button (image) defaults to $('#play')
 					skipButt: $('#skipbutton'), 	// optional - points to skip button (image) defaults to $('#skip)
 					backButt: $('#backbutton'), 	// optional - points to back button (image) defaults to $('#back')
