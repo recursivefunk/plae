@@ -7,28 +7,28 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.2.3
+   v0.8.5.2.4
    
-   Change Log v0.8.5.3
-   - Added support for playlists
+   Change Log v0.8.5.4
+   - Removed the option to use xml for the songs document. json only.
  */
 
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false */
 		var PROPS = {
-						songs : {},
-						song: {
-								id: '',
-								title: '',
-								url: '',
-								artist: '',
-								thumb: '',
-								duration: '',
-								img: {}
-							},
-						    config: {},
-							img: {},
-							curr_song: 0 
+			songs : {},
+			song: {
+				id: '',
+				title: '',
+				url: '',
+				artist: '',
+				thumb: '',
+				duration: '',
+				img: {}
+			},
+			config: {},
+			img: {},
+			curr_song: 0 
 		};	
 
 		var swagg = {
@@ -45,40 +45,29 @@
 				// preload button images
 				swagg.loadImages(config); 
 				
-				// type of data to fetch - xml or json
+				// path to song data - json file
 				var data = (config.data !== undefined) ? config.data : 'json/songs.json';
 					
 				// determine which browser we're dealing with
 				BrowserDetect.init(); 
-				
-				var format = (config.dataFormat !== undefined) ? config.dataFormat : "json";
 					
-				// Get songs from JSON or XML document						   
+				// Get songs from JSON document						   
 				$.ajax({
 					type: "GET",
 					url: data,
-					dataType: format,
+					dataType: 'json',
 					success: function(data){
-						if (format === "json") {
-							console.log("Swagg Player::Using JSON...");
-							var size = data.length;
-							
-							// preload song album art and append an IDs to the songs - make configurable in the future
-							// to avoid having to loop through JSON array
-							for (var i = 0; i < size; i++) {
-								data[i].image = new Image();
-								data[i].image.src = data[i].thumb;
-								data[i].id = i.toString();
-							}
-							PROPS.songs = data;
+						console.log("Swagg Player::Successfully fetched JSON...");
+						var size = data.length;
+						
+						// preload song album art and append an IDs to the songs - make configurable in the future
+						// to avoid having to loop through JSON array
+						for (var i = 0; i < size; i++) {
+							data[i].image = new Image();
+							data[i].image.src = data[i].thumb;
+							data[i].id = i.toString();
 						}
-						else if (format === "text/xml" || format === "xml"){
-							console.log("Swagg Player::Parsing XML. You should think about switching to JSON, it's much faster!");
-							parseXml(data);
-						}
-						else {
-							console.log("Swagg Player::Couldn't determine data type!");	
-						}
+						PROPS.songs = data;
 					},
 					error: function(xhr, ajaxOptions, thrownError){
 						console.log("Swagg Player::There was a problem fetching your songs from the server: " + thrownError);
@@ -408,42 +397,6 @@
 				
 				img[9] = new Image();
 				img[9].src = pathtobutts + 'back-over.png';
-			},
-			
-			// Parses the response XML from the AJAX request and converts
-			// the data into JSON format
-			parseXML : function(xml) {
-				var local_song = PROPS.song;
-				var temp;
-				var songs_ = PROPS.songs;
-				var i = 0;
-				if (BrowserDetect.browser === "Explorer" && BrowserDetect.version != '9') {
-					$(xml).filter("song").each(function()
-					{
-						local_song.id = $(this).attr("id");
-						local_song.title = $(this).attr("track");
-						local_song.url = $(this).attr("url");
-						local_song.artist = $(this).attr("artist");
-						local_song.image = new Image();
-						local_song.image.src = $(this).attr("thumb"); 
-						songs_[i] = jQuery.extend(true, {}, local_song);
-						i = i + 1;
-					});
-				} // end if
-				else {
-					$(xml).find("song").each(function()
-					{
-						local_song.id = $(this).attr("id");
-						local_song.title = $(this).attr("track");
-						local_song.url = $(this).attr("url");
-						local_song.artist = $(this).attr("artist");
-						local_song.image = new Image();
-						local_song.image.src = $(this).attr("thumb"); 
-						local_song.duration = $(this).attr("duration");
-						songs_[i] = jQuery.extend(true, {}, local_song);
-						i = i + 1;
-					});
-				} // end else
 			},
 			
 			// Increases the volume of the specified song

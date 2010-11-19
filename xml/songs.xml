@@ -1,5 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<songs>
-	<song url='sound/1.mp3' artist='artist' track='audio1' thumb='images/median.jpg'/>
-	<song url='sound/2.mp3' artist='artist2' track='audio2'  thumb='images/windowseat.jpg'/>
-</songs>
