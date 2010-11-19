@@ -25,4 +25,27 @@
 		margin-left:auto;
 		margin-right:auto;
 	}
+	/* playlist */
+	.playlist-item {
+		font-family: "Trebuchet MS", "Bitstream Vera Serif", Utopia, "Times New Roman", times, serif;
+		border-top:#000 2px solid;
+		width:100%;
+		background-color:#FFF;
+		color:#F60;
+		display:block;
+	}
+	.border {
+		border:#000 3px solid;	
+	}
+	.playlist-item a {
+		text-decoration:none;
+		color:#000;
+	}
+	#list {
+		width:290px; 
+		margin-left:auto; 
+		margin-right:auto; 
+		border-bottom:#000 
+		2px solid; text-align:center;	
+	}
 

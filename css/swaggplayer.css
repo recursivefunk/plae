@@ -11,22 +11,16 @@
 		font: 100% Verdana, Arial, Helvetica, sans-serif;
 		font-size:12px;
 	}
-	.fancy {
-		-webkit-transition:All 1s ease-in-out;
-		-moz-transition:All 1s ease-in-out;
-		-o-transition:All 1s ease-in-out;
-	}
-	.fancy:hover{
-		-webkit-transform: rotate(360deg);
-		-moz-transform: rotate(360deg);
-		-o-transform: rotate(360deg);
-	}
 	#wrapper {
 		width:180px; 
 		height:5px; 
 		margin-left:auto;
 		margin-right:auto;
 		background-color:#CCC;	
+	}
+	.list-over {
+		font-weight:bold;	
+		background-color:#F93;
 	}
 	#bar {
 		width:0px; 
@@ -38,13 +32,6 @@
 		margin-left:auto;
 		margin-right:auto;
 	}
-	#slider {
-		width:200px;
-		float:right;
-		margin-right:30px;
-		position:relative;
-	}
-	
 	#controls a{
 		padding:5px;
 	}
@@ -54,9 +41,8 @@
 		margin-right:auto;
 		width:80%;
 	}
-	#art{
-
-	}
+	#label{display:block;}
+	
 	#album-art {
 		margin-left:auto;
 		margin-right:auto;
@@ -65,7 +51,28 @@
 		text-align:center;
 		display:block;
 	}
-
 	.border {
 		border:#F00 thin solid;	
+	}
+		.playlist-item {
+		font-family: "Trebuchet MS", "Bitstream Vera Serif", Utopia, "Times New Roman", times, serif;
+		border-top:#000 2px solid;
+		width:100%;
+		background-color:#FFF;
+		color:#F60;
+		display:block;
+	}
+	.border {
+		border:#000 3px solid;	
+	}
+	.playlist-item a {
+		text-decoration:none;
+		color:#000;
+	}
+	#list {
+		width:350px; 
+		margin-left:auto; 
+		margin-right:auto; 
+		border-bottom:#000 
+		2px solid; text-align:center;	
 	}

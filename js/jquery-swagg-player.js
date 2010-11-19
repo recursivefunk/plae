@@ -7,10 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.2.2
+   v0.8.5.2.3
    
-   Change Log v0.8.5.2.2
-   - Combined playButtonState & pauseButtonState methods into one: direction denoted by flag
+   Change Log v0.8.5.3
+   - Added support for playlists
  */
 
 (function ($){
@@ -70,7 +70,6 @@
 								data[i].image.src = data[i].thumb;
 								data[i].id = i.toString();
 							}
-							
 							PROPS.songs = data;
 						}
 						else if (format === "text/xml" || format === "xml"){
@@ -208,6 +207,10 @@
 								whileplaying: function(){swagg.progress(this);}
 							});
 							temp.load();
+							if (PROPS.config.playList !== undefined) {
+								temp.id = i.toString();
+								swagg.createElement(temp);
+							}
 						} // end for
 						if (config.useArt === true) {
 							// initialize first song album art
@@ -243,6 +246,43 @@
 				}
 				
 				swagg.showSongInfo();
+			},
+			
+			// Dynamically creates playlist items as songs are loaded
+			createElement : function(soundobj){
+				var song = PROPS.songs[parseInt(soundobj.id)];
+				var el = '<div class="playlist-item" id="item-' + soundobj.id + '" rel="' + soundobj.id + '"><a href="#">"' + song.title + '"' + ' - ' + song.artist + '</a></div>';
+				PROPS.config.playList.append(el);
+				
+				var id = 'item-' + soundobj.id;
+				var div = $('#' + id);
+				
+				div.mouseover(function(){
+					$(this).css('font-weight', 'bold');
+					$(this).css('background-color', '#F93');
+				});
+				div.mouseout(function(){
+					$(this).css('font-weight', 'normal');
+					$(this).css('background-color', '#FFF');
+				});
+				
+				div.click(function(){
+					var track = parseFloat($(this).attr('rel'));
+					swagg.stopMusic(PROPS.curr_song);
+					var afterEffect = function() {
+						swagg.showSongInfo();
+						swagg.play('switchArt - by way of createElement',track);
+					}			
+					PROPS.curr_song = track;
+					if (PROPS.config.useArt === true) {
+						swagg.switchArt(track, afterEffect);
+					}
+					else {
+						swagg.showSongInfo();
+						swagg.play('switchArt - by way of createElement',track);	
+					}
+					return false;			
+				});
 			},
 			
 			// toggles the play/pause button to the play state
@@ -310,7 +350,6 @@
 				// if using album art, use art transition
 				if (inst.config.useArt === true) {
 					var afterEffect = function() {
-						swagg.resetProgressBar();
 						swagg.showSongInfo();
 						swagg.play('skip',t);
 					}
