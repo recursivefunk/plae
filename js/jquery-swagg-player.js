@@ -7,10 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.2.4
+   v0.8.5.2.5
    
-   Change Log v0.8.5.4
-   - Removed the option to use xml for the songs document. json only.
+   Change Log v0.8.5.2.5
+   - Progress bar indicates bytes loaded progress (buffer)
  */
 
 (function ($){
@@ -354,6 +354,7 @@
 			// Resets the progress bar back to the beginning
 			resetProgressBar : function(){
 				$('#bar').css('width', 0);
+				$('#loaded').css('width', 0);
 			},	
 			
 			// Stops the specified song
@@ -434,15 +435,19 @@
 				var pos = soundobj.position; 
 				
 				// ratio of (current position / total duration of song)
-				var factor = pos/duration; 
+				var pos_ratio = pos/duration; 
 				
 				// width of progress bar
-				var a = parseFloat($('#wrapper').css('width'));
+				var wrapper_width = parseFloat($('#wrapper').css('width'));
+				
+				var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
+				var loaded = wrapper_width * loaded_ratio;
 				
 				// set width of inner progress bar equal to the width equivelant of the
 				// current position
-				var t = a*factor;
-				$('#bar').css('width', t);	
+				var t = wrapper_width*pos_ratio;
+				$('#bar').css('width', t);
+				$('#loaded').css('width', loaded);	
 			},
 			
 			// displays artist and song title

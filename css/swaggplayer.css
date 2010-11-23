@@ -22,10 +22,15 @@
 		font-weight:bold;	
 		background-color:#F93;
 	}
+	#loaded {
+		width:0px; 
+		height:5px; 
+		background-color:#FC6;
+	}
 	#bar {
 		width:0px; 
 		height:5px; 
-		background-color:#F93;	
+		background-color:#F93;
 	}
 	#controls{
 		width:200px;

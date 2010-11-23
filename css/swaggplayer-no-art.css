@@ -25,6 +25,23 @@
 		margin-left:auto;
 		margin-right:auto;
 	}
+	#wrapper {
+		width:180px; 
+		height:5px; 
+		margin-left:auto;
+		margin-right:auto;
+		background-color:#CCC;	
+	}
+	#loaded {
+		width:0px; 
+		height:5px; 
+		background-color:#FC6;
+	}
+	#bar {
+		width:0px; 
+		height:5px; 
+		background-color:#F93;
+	}
 	/* playlist */
 	.playlist-item {
 		font-family: "Trebuchet MS", "Bitstream Vera Serif", Utopia, "Times New Roman", times, serif;
