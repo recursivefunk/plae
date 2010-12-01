@@ -3,10 +3,10 @@
 <br /><br/> <br/><br /><br/><br/>
 <div id="swagg-player"><br />
     <div id="controls">
-		<a  id="play-link" href="#"><img src="images/play.png" id="play" border="0"/></a>
-		<a  id="back-link" href="#"><img src="images/back.png" id="back" border="0"/></a>
-		<a  id="skip-link" href="#"><img src="images/skip.png" id="skip" border="0"/></a>
-		<a  id="stop-link" href="#"><img src="images/stop.png" id="stop" border="0"/></a>
+		<a  id="play-link" href="#"><img src="images/play.png" id="playbutton" border="0"/></a>
+		<a  id="back-link" href="#"><img src="images/back.png" id="backbutton" border="0"/></a>
+		<a  id="skip-link" href="#"><img src="images/skip.png" id="skipbutton" border="0"/></a>
+		<a  id="stop-link" href="#"><img src="images/stop.png" id="stopbutton" border="0"/></a>
   	</div><br />
     <div id="wrapper">
     	<div id="loaded">
@@ -17,22 +17,65 @@
     <div id="list"></div>
 </div>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.min.js"></script>
-<script type="text/javascript" src="js/soundmanager2.js"></script>
-<script type="text/javascript" src="js/jquery-swagg-player.js"></script>
+<script type="text/javascript" src="js/jquery-1.4.3.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.1.min.js"></script>
 <script type="text/javascript">
-$(document).ready(function(){ 
-	$('#swagg-player').SwaggPlayer({
-					data: 'json/songs.json',	// REQUIRED - path to your songs file XML or JSON
-					buttonsDir: 'images/',		// required - tells swagg player where to find your buttons
-					useArt: false,				// optional - using album? defaults to true
-					//dataFormat: "json", 		DEPRECEATED // optional - highly recommended for AJAX request to grab your songs
-					playButt: $('#play'), 		// optional - points to play button (image) defaults to $('#play')
-					skipButt: $('#skip'), 		// optional - points to skip button (image) defaults to $('#skip)
-					backButt: $('#back'), 		// optional - points to back button (image) defaults to $('#back')
-					stopButt: $('#stop'), 		// optional - points to stop button (image) defaults to $('#stop')
-					playList: $('#list')
-	});
-});  
+// configurable options coming soon so that script can be referenced externally
+var SwaggLoader = {
+		sound_manager:
+		{
+			init: function()
+			{
+				if(jQuery)
+				{
+					clearInterval(SwaggLoader.sound_interval);
+					console.log('Swagg Player::jQuery Loaded. Loading Sound Manager.');
+					
+					var sm_script = $('<script>');
+					sm_script.attr( 'type', 'text/javascript');
+					sm_script.attr('src', 'js/soundmanager2.js');
+					sm_script.attr('async', 'true');
+					sm_script.attr('id','soundManagerTag');
+					$('head').append(sm_script);
+					
+					var swagg_script = $('<script>');
+					swagg_script.attr( 'type', 'text/javascript');
+					swagg_script.attr('src', 'js/jquery-swagg-player.js');
+					swagg_script.attr('async', 'true');
+					$('head').append(swagg_script);
+				}
+			}
+		},
+		
+		swaggPlayer:
+		{
+			init: function()
+			{
+				if(soundManager)
+				{
+					clearInterval(SwaggLoader.swagg_interval);
+					soundManager.url = 'swf';		
+					console.log('Swagg Player::Sound Manager Loaded. Loading Swagg Player.');
+						$('#swagg-player').SwaggPlayer({
+							data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
+							buttonsDir: 'images/',			// required - tells swagg player where to find your buttons
+							useArt: false,					// optional - using album? defaults to true
+							playButt: $('#playbutton'), 	// optional - points to play button (image) defaults to $('#play')
+							skipButt: $('#skipbutton'), 	// optional - points to skip button (image) defaults to $('#skip)
+							backButt: $('#backbutton'), 	// optional - points to back button (image) defaults to $('#back')
+							stopButt: $('#stopbutton'), 	// optional - points to stop button (image) defaults to $('#stop')
+							playList: $('#list')			// optional - don't set if you do not wish to have a playlist
+						});	
+				}
+			}
+		},
+		sound_interval:undefined,
+		swagg_interval:undefined,
+
+		loadSwagg : function(){
+			SwaggLoader.sound_interval = setInterval("SwaggLoader.sound_manager.init()", 50);
+			SwaggLoader.swagg_interval = setInterval("SwaggLoader.swaggPlayer.init()", 50);
+		}
+}
+	SwaggLoader.loadSwagg();
 </script>

@@ -41,6 +41,8 @@
 		width:0px; 
 		height:5px; 
 		background-color:#F93;
+		float:left;
+		margin-left:0;
 	}
 	/* playlist */
 	.playlist-item {

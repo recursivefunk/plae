@@ -24,20 +24,63 @@
 <br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <script type="text/javascript" src="js/jquery-1.4.3.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.1.min.js"></script>
-<script type="text/javascript" src="js/soundmanager2.js"></script>
-<script type="text/javascript" src="js/jquery-swagg-player.js"></script>
 <script type="text/javascript">
-$(document).ready(function(){ 
-	$('#swagg-player').SwaggPlayer({
-					data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
-					buttonsDir: 'images/',			// required - tells swagg player where to find your buttons
-					useArt: true,					// optional - using album? defaults to true
-//					dataFormat: "text/xml", 		DEPRECATED // optional - highly recommended for AJAX request to grab your songs
-					playButt: $('#playbutton'), 	// optional - points to play button (image) defaults to $('#play')
-					skipButt: $('#skipbutton'), 	// optional - points to skip button (image) defaults to $('#skip)
-					backButt: $('#backbutton'), 	// optional - points to back button (image) defaults to $('#back')
-					stopButt: $('#stopbutton'), 	// optional - points to stop button (image) defaults to $('#stop')
-					playList: $('#list')			// optional - don't set if you do not wish to have a playlist
-	});
-});  
+// configurable options coming soon so that script can be referenced externally
+var SwaggLoader = {
+		sound_manager:
+		{
+			init: function()
+			{
+				if(jQuery)
+				{
+					clearInterval(SwaggLoader.sound_interval);
+					console.log('Swagg Player::jQuery Loaded. Loading Sound Manager.');
+					
+					var sm_script = $('<script>');
+					sm_script.attr( 'type', 'text/javascript');
+					sm_script.attr('src', 'js/soundmanager2.js');
+					sm_script.attr('async', 'true');
+					sm_script.attr('id','soundManagerTag');
+					$('head').append(sm_script);
+					
+					var swagg_script = $('<script>');
+					swagg_script.attr( 'type', 'text/javascript');
+					swagg_script.attr('src', 'js/jquery-swagg-player.js');
+					swagg_script.attr('async', 'true');
+					$('head').append(swagg_script);
+				}
+			}
+		},
+		
+		swaggPlayer:
+		{
+			init: function()
+			{
+				if(soundManager)
+				{
+					clearInterval(SwaggLoader.swagg_interval);
+					soundManager.url = 'swf';		
+					console.log('Swagg Player::Sound Manager Loaded. Loading Swagg Player.');
+						$('#swagg-player').SwaggPlayer({
+							data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
+							buttonsDir: 'images/',			// required - tells swagg player where to find your buttons
+							useArt: true,					// optional - using album? defaults to true
+							playButt: $('#playbutton'), 	// optional - points to play button (image) defaults to $('#play')
+							skipButt: $('#skipbutton'), 	// optional - points to skip button (image) defaults to $('#skip)
+							backButt: $('#backbutton'), 	// optional - points to back button (image) defaults to $('#back')
+							stopButt: $('#stopbutton'), 	// optional - points to stop button (image) defaults to $('#stop')
+							playList: $('#list')			// optional - don't set if you do not wish to have a playlist
+						});	
+				}
+			}
+		},
+		sound_interval:undefined,
+		swagg_interval:undefined,
+
+		loadSwagg : function(){
+			SwaggLoader.sound_interval = setInterval("SwaggLoader.sound_manager.init()", 50);
+			SwaggLoader.swagg_interval = setInterval("SwaggLoader.swaggPlayer.init()", 50);
+		}
+}
+	SwaggLoader.loadSwagg();
 </script>

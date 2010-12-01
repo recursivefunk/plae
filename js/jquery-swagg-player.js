@@ -7,10 +7,11 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.2.5
+   v0.8.5.3.0
    
-   Change Log v0.8.5.2.5
-   - Progress bar indicates bytes loaded progress (buffer)
+   Change Log v0.8.5.3.0
+   - Added asynchronous script loader
+   - Added version and change log object
  */
 
 (function ($){
@@ -32,8 +33,18 @@
 		};	
 
 		var swagg = {
+			
+			version : '0.8.5.3.0',
+			
+			changelog : {
+				changes:[
+					'Added asynchronous script loader',
+					'Added version and change log object'
+				]	
+			},
+			
 			init : function(config) {
-				soundManager.url = 'swf';
+				//soundManager.url = 'swf';
 				PROPS.config = config;
 				if (!config.buttonsDir) {
 					config.buttonsDir = 'images/';
