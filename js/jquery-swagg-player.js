@@ -7,11 +7,12 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.3.0
+   v0.8.5.4.0
    
-   Change Log v0.8.5.3.0
-   - Added asynchronous script loader
-   - Added version and change log object
+   Change Log v0.8.5.4.0
+   - Added option to use text based buttons (makes startup faster!)
+   - Externalized loader script
+   - Removed version and change log object
  */
 
 (function ($){
@@ -25,7 +26,7 @@
 				artist: '',
 				thumb: '',
 				duration: '',
-				img: {}
+				img: []
 			},
 			config: {},
 			img: {},
@@ -34,27 +35,23 @@
 		};	
 
 		var swagg = {
-			
-			version : '0.8.5.3.0',
-			
-			changelog : {
-				changes:[
-					'Added asynchronous script loader',
-					'Added version and change log object'
-				]	
-			},
-			
 			init : function(config) {
 				PROPS.config = config;
-				if (!config.buttonsDir) {
-					config.buttonsDir = 'images/';
-				}
 					
-				// button images
-				PROPS.img = [];	
-						
-				// preload button images
-				swagg.loadImages(config); 
+				// check if we're using button images. if so, preload them. if not, ignore.
+				if (config.buttonImages === undefined || config.buttonImages === true) {
+					config.buttonImages = true;
+					if (!config.buttonsDir) {
+						config.buttonsDir = 'images/';
+					}	
+					// preload button images
+					swagg.loadImages(config); 	
+				}
+				else {
+					config.buttonImages === false;	
+				}
+	
+				
 				
 				// path to song data - json file
 				var data = (config.data !== undefined) ? config.data : 'json/songs.json';
@@ -98,52 +95,52 @@
 					var $skiplink = (inst.config.skiplink !== undefined) ? inst.config.skiplink : $('#skip-link');
 					var $stoplink = (inst.config.stoplink !== undefined) ? inst.config.stoplink : $('#stop-link');
 					var $backlink = (inst.config.backlink !== undefined) ? inst.config.backlink : $('#back-link');
-					// ======================= mouse event hooks for play button ===========================
-					$playlink.click(function() {
+					
+					if(inst.config.buttonImages === true) {
+						$playlink.mouseover(function() {
+							 $play.attr('src', i[1].src);
+						});
+						$playlink.mouseout(function() {
+							 $play.attr('src', i[0].src);
+						});
+						$skiplink.mouseover(function() {
+						 	$skip.attr('src', i[5].src);
+						});
+						$skiplink.mouseout(function() {
+							 $skip.attr('src', i[4].src);
+						});
+						$stoplink.mouseover(function() {
+							 $stop.attr('src', i[7].src);
+						});
+						$stoplink.mouseout(function() {
+							 $stop.attr('src', i[6].src);
+						});
+						$backlink.mouseover(function() {
+							 $back.attr('src', i[9].src);
+						});
+						$backlink.mouseout(function() {
+							 $back.attr('src', i[8].src);
+						});
+					}
+					
+					$play.click(function() {
 						 swagg.play('playlink click', PROPS.curr_song);
 						 return false;
 					});
-					$playlink.mouseover(function() {
-						 $play.attr('src', i[1].src);
-					});
-					$playlink.mouseout(function() {
-						 $play.attr('src', i[0].src);
-					});
 					
-					// =================== mouse event hooks for skip button =========================
-					$skiplink.click(function() {
+					$skip.click(function() {
 						 swagg.skip(1);
 						 return false;
 					});
-					$skiplink.mouseover(function() {
-						 $skip.attr('src', i[5].src);
-					});
-					$skiplink.mouseout(function() {
-						 $skip.attr('src', i[4].src);
-					});
-					
-					// =================== mouse event hooks for stop button =========================
-					$stoplink.click(function() {
+
+					$stop.click(function() {
 						 swagg.stopMusic(PROPS.curr_song.toString());
 						 return false;
 					});
-					$stoplink.mouseover(function() {
-						 $stop.attr('src', i[7].src);
-					});
-					$stoplink.mouseout(function() {
-						 $stop.attr('src', i[6].src);
-					});
-					
-					// =================== mouse event hooks for back button =========================
-					$backlink.click(function() {
+
+					$back.click(function() {
 						 swagg.skip(0);
 						 return false;
-					});
-					$backlink.mouseover(function() {
-						 $back.attr('src', i[9].src);
-					});
-					$backlink.mouseout(function() {
-						 $back.attr('src', i[8].src);
 					});
 					
 					// media key event hooks				
@@ -295,24 +292,34 @@
 				var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
 				
 				if (state === 1 ) { // play state
-					$play.attr('src', i[0].src);
-					
-					$playlink.mouseout(function() {
+					if(inst.config.buttonImages === true) {
 						$play.attr('src', i[0].src);
-					});
-					$playlink.mouseover(function() {
-						$play.attr('src', i[1].src);
-					});	
+						
+						$playlink.mouseout(function() {
+							$play.attr('src', i[0].src);
+						});
+						$playlink.mouseover(function() {
+							$play.attr('src', i[1].src);
+						});
+					}
+					else {
+						$play.html('play');	
+					}
 				}
 				else if (state === 0) { // pause state
-					$play.attr('src', i[2].src);
-					
-					$playlink.mouseout(function() {
+					if(inst.config.buttonImages === true) {
 						$play.attr('src', i[2].src);
-					});
-					$playlink.mouseover(function() {
-						$play.attr('src', i[3].src);
-					});	
+						
+						$playlink.mouseout(function() {
+							$play.attr('src', i[2].src);
+						});
+						$playlink.mouseover(function() {
+							$play.attr('src', i[3].src);
+						});	
+					}
+					else {
+						$play.html('pause');	
+					}
 				}
 				else { // invalid state
 					console.log('Swagg Player::Invalid button state! : ' + state);	
@@ -381,39 +388,44 @@
 			},
 			
 			// Preloads button images
-			loadImages : function(config) {		
-				var pathtobutts = config.buttonsDir;
-				var img = PROPS.img;
-				
-				img[0] = new Image();
-				img[0].src = pathtobutts + 'play.png';
-				
-				img[1] = new Image();
-				img[1].src = pathtobutts + 'play-over.png';
-				
-				img[2] = new Image();
-				img[2].src = pathtobutts + 'pause.png';
-				
-				img[3] = new Image();
-				img[3].src = pathtobutts + 'pause-over.png';
-				
-				img[4] = new Image();
-				img[4].src = pathtobutts + 'skip.png';
-				
-				img[5] = new Image();
-				img[5].src = pathtobutts + 'skip-over.png';
-				
-				img[6] = new Image();
-				img[6].src = pathtobutts + 'stop.png';
-				
-				img[7] = new Image();
-				img[7].src = pathtobutts + 'stop-over.png';
-				
-				img[8] = new Image();
-				img[8].src = pathtobutts + 'back.png';
-				
-				img[9] = new Image();
-				img[9].src = pathtobutts + 'back-over.png';
+			loadImages : function(config) {
+				if (config.buttonImages === true) {		
+					var pathtobutts = config.buttonsDir;
+					var img = PROPS.img;
+					
+					img[0] = new Image();
+					img[0].src = pathtobutts + 'play.png';
+					
+					img[1] = new Image();
+					img[1].src = pathtobutts + 'play-over.png';
+					
+					img[2] = new Image();
+					img[2].src = pathtobutts + 'pause.png';
+					
+					img[3] = new Image();
+					img[3].src = pathtobutts + 'pause-over.png';
+					
+					img[4] = new Image();
+					img[4].src = pathtobutts + 'skip.png';
+					
+					img[5] = new Image();
+					img[5].src = pathtobutts + 'skip-over.png';
+					
+					img[6] = new Image();
+					img[6].src = pathtobutts + 'stop.png';
+					
+					img[7] = new Image();
+					img[7].src = pathtobutts + 'stop-over.png';
+					
+					img[8] = new Image();
+					img[8].src = pathtobutts + 'back.png';
+					
+					img[9] = new Image();
+					img[9].src = pathtobutts + 'back-over.png';
+				}
+				else {
+					console.log('Swagg Player::You\'ve specified no button images yet, you\'ve given me an images directory! Ignoring...');	
+				}
 			},
 			
 			// Increases the volume of the specified song

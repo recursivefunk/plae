@@ -30,59 +30,12 @@
 </body>
 <script type="text/javascript" src="js/jquery-1.4.3.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.1.min.js"></script>
+<script type="text/javascript" src="js/swaggloader.js"></script>
 <script type="text/javascript">
-var SwaggLoader = {
-		swaggProps:{},
-		sound_manager:
-		{
-			init: function()
-			{
-				if(jQuery)
-				{
-					clearInterval(SwaggLoader.sound_interval);
-					console.log('Swagg Player::jQuery Loaded. Loading Sound Manager.');
-					
-					var sm_script = $('<script>');
-					sm_script.attr( 'type', 'text/javascript');
-					sm_script.attr('src', 'js/soundmanager2.js');
-					sm_script.attr('async', 'true');
-					sm_script.attr('id','soundManagerTag');
-					$('head').append(sm_script);
-					
-					var swagg_script = $('<script>');
-					swagg_script.attr( 'type', 'text/javascript');
-					swagg_script.attr('src', 'js/jquery-swagg-player.js');
-					swagg_script.attr('async', 'true');
-					$('head').append(swagg_script);
-				}
-			}
-		},
-		
-		swaggPlayer:
-		{
-			init: function()
-			{
-				if(soundManager)
-				{
-					clearInterval(SwaggLoader.swagg_interval);
-					soundManager.url = 'swf';		
-					console.log('Swagg Player::Sound Manager Loaded. Loading Swagg Player.');
-						$('#swagg-player').SwaggPlayer(SwaggLoader.swaggProps);	
-				}
-			}
-		},
-		sound_interval:null,
-		swagg_interval:null,
-
-		loadSwagg : function(props){
-			SwaggLoader.swaggProps = props;
-			SwaggLoader.sound_interval = setInterval("SwaggLoader.sound_manager.init()", 50);
-			SwaggLoader.swagg_interval = setInterval("SwaggLoader.swaggPlayer.init()", 50);
-		}
-}
+$(document).ready(function(){
 	SwaggLoader.loadSwagg({
 		data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
-		buttonsDir: 'images/',			// required - tells swagg player where to find your buttons
+		buttonsDir: 'images/',			// optional - tells swagg player where to find your buttons
 		useArt: false,					// optional - using album? defaults to true
 		playButt: $('#playbutton'), 	// optional - points to play button (image) defaults to $('#play')
 		skipButt: $('#skipbutton'), 	// optional - points to skip button (image) defaults to $('#skip)
@@ -90,5 +43,6 @@ var SwaggLoader = {
 		stopButt: $('#stopbutton'), 	// optional - points to stop button (image) defaults to $('#stop')
 		playList: $('#list')			// optional - don't set if you do not wish to have a playlist
 	});
+});
 </script>
 </html>
