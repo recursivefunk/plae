@@ -34,17 +34,16 @@ var SwaggLoader = {
 		{
 			init: function()
 			{
-				if(soundManager)
+				if(soundManager && soundManager !== null)
 				{
-					clearInterval(SwaggLoader.swagg_interval);
-					soundManager.url = 'swf';		
+					clearInterval(SwaggLoader.swagg_interval);		
 					console.log('Swagg Player::Sound Manager Loaded. Loading Swagg Player.');
 						$('#swagg-player').SwaggPlayer(SwaggLoader.swaggProps);	
 				}
 			}
 		},
-		sound_interval:null,
-		swagg_interval:null,
+		sound_interval:-1,
+		swagg_interval:-1,
 
 		loadSwagg : function(props){
 			SwaggLoader.swaggProps = props;

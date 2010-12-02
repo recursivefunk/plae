@@ -7,12 +7,12 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.4.0
+   v0.8.5.4.1
    
-   Change Log v0.8.5.4.0
-   - Added option to use text based buttons (makes startup faster!)
-   - Externalized loader script
-   - Removed version and change log object
+   Change Log v0.8.5.4.1
+   - Fixed flash loading bug within webkit based browsers
+   - Prepended text in front of song IDs to surpress warnings
+   - Text based loading indicator for users not using album art
  */
 
 (function ($){
@@ -31,7 +31,8 @@
 			config: {},
 			img: {},
 			curr_song: 0,
-			vol_interval: 5 
+			vol_interval: 5,
+			interval_id: -1 
 		};	
 
 		var swagg = {
@@ -134,7 +135,7 @@
 					});
 
 					$stop.click(function() {
-						 swagg.stopMusic(PROPS.curr_song.toString());
+						 swagg.stopMusic(PROPS.curr_song);
 						 return false;
 					});
 
@@ -186,7 +187,7 @@
 					if(PROPS.songs[0] !== undefined) {
 						var songs_ = PROPS.songs;
 						console.log("Swagg Player::Songs loaded. Creating sound objects for Sound Manager...");
-						clearInterval(interval_id);
+						clearInterval(PROPS.interval_id);
 						var localSoundManager = soundManager;
 						localSoundManager.useFastPolling = true;
 						localSoundManager.useHighPerformance = true;
@@ -194,8 +195,9 @@
 						var temp;
 						for (var i = 0, end = songs_.length; i < end; i++) {
 							temp = localSoundManager.createSound({	// create sound objects to hook event handlers
-								id: i.toString(),					// to button states
+								id: 'song-' + i.toString(),			// to button states
 								url: songs_[i].url,
+								autoLoad: true,
 								onfinish: function(){swagg.skip(1)},
 								onplay: function(){swagg.playPauseButtonState(0);},
 								onpause: function(){swagg.playPauseButtonState(1);},
@@ -203,9 +205,8 @@
 								onresume: function(){swagg.playPauseButtonState(0);},
 								whileplaying: function(){swagg.progress(this);}
 							});
-							temp.load();
 							if (PROPS.config.playList !== undefined) {
-								temp.id = i.toString();
+								temp.id = 'song-' + i.toString();
 								swagg.createElement(temp);
 							}
 						} // end for
@@ -219,15 +220,30 @@
 			
 				// init soundManager
 				soundManager.onload =  function() {
-					interval_id = setInterval('soundManager.createSongs()', 5); // try to init sound manager every 5 milliseconds in case songs AJAX callback
+					PROPS.interval_id = setInterval('soundManager.createSongs()', 5); // try to init sound manager every 5 milliseconds in case songs AJAX callback
 																				// has not completed execution	
 				}; // end soundManager onload function	
+				
+				// if there's an error loading sound manager, try a reboot
+				soundManager.onerror = function() {
+				  console.log('Swagg::Player an error has occured with loading Sound Manager! Rebooting...');
+				  soundManager.flashLoadTimeout = 0;
+				  clearInterval(PROPS.interval_id);
+				  soundManager.url = 'swf';
+				  setTimeout(soundManager.reboot,20);
+				  setTimeout(function() {
+					if (!soundManager.supported()) {
+					  console.log('Something went wrong with loading Sound Manager. No tunes for you!');
+					}
+				  },1500);
+				}
 			},
 			
 			// Plays a song based on the ID
 			play : function(caller, track){
-				console.log('Swagg Player::playing track: ' + track + '. Oh and ' + caller + ' called me!');
-				var target = soundManager.getSoundById(track.toString());
+				var sound_id = 'song-' + track
+				console.log('Swagg Player::playing track: ' + sound_id + '. Oh and ' + caller + ' called me!');
+				var target = soundManager.getSoundById(sound_id);
 				
 				if (target.paused === true) { // if current track is paused, unpause
 					console.log('Swagg Player::Unpausing song');
@@ -249,7 +265,7 @@
 			
 			// Dynamically creates playlist items as songs are loaded
 			createElement : function(soundobj){
-				var song = PROPS.songs[parseInt(soundobj.id)];
+				var song = PROPS.songs[parseInt(soundobj.id.split('-')[1])];
 				var el = '<div class="playlist-item" id="item-' + soundobj.id + '" rel="' + soundobj.id + '"><a href="#">"' + song.title + '"' + ' - ' + song.artist + '</a></div>';
 				PROPS.config.playList.append(el);
 				
@@ -266,7 +282,7 @@
 				});
 				
 				div.click(function(){
-					var track = parseFloat($(this).attr('rel'));
+					var track = parseFloat($(this).attr('rel').split('-')[1]);
 					swagg.stopMusic(PROPS.curr_song);
 					var afterEffect = function() {
 						swagg.showSongInfo();
@@ -430,13 +446,15 @@
 			
 			// Increases the volume of the specified song
 			volume : function(track, flag) {
-				var sound = soundManager.getSoundById(track.toString());
+				var sound_id = 'song-' + track
+				var sound = soundManager.getSoundById(sound_id);
+				
 				var curr_vol = sound.volume;
 				if (flag === 1) {
-					soundManager.setVolume(track.toString(), curr_vol + PROPS.vol_interval);
+					soundManager.setVolume(sound_id, curr_vol + PROPS.vol_interval);
 				}
 				else if (flag === 0) {
-					soundManager.setVolume(track.toString(), curr_vol - PROPS.vol_interval);
+					soundManager.setVolume(sound_id, curr_vol - PROPS.vol_interval);
 				}
 				else {
 					console.log('Swagg Player::Invalid volume flag!');	
@@ -445,6 +463,7 @@
 			
 			// switches to the currently playing song's album art using fancy jquery slide effect
 			switchArt : function(track, afterEffect) {
+				var sound_id = 'song-' + track
 				var $art = $('#art');
 				$art.hide('slide', function() {
 					$art.attr('src',PROPS.songs[track].image.src);
@@ -608,6 +627,9 @@
 		};
 				
 		$.fn.SwaggPlayer = function(options) {
+			soundManager.url = 'swf';
+			soundManager.useFlashBlock = true;
+			soundManager.flashLoadTimeout = 5000;
 			swagg.init(options);
 		};
 })(jQuery);

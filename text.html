@@ -9,44 +9,47 @@
 		text-decoration:none;
 		}
 	#swagg-player{
+		padding-left:5px;
 		margin-left:auto; 
 		margin-right:auto;
 		width:300px;
+		height:80px;
+		background-color:#000;
 	}
 	#controls {
 		font-size:24px;
 		display:block;
 	}
 	#controls a:nth-child(even){
-		color:#F90;
+		color:#F00;
 	}
 	#controls a:nth-child(odd){
-		color:#000;	
+		color:#FFF;	
 	}
 	#wrapper {
 		width:180px; 
 		height:5px; 
 		margin-left:auto;
 		margin-right:auto;
-		background-color:#CCC;	
+		background-color:#FFF;
 		float:left;
 		display:block;
 	}
 	#loaded {
 		width:0px; 
 		height:5px; 
-		background-color:#FC6;
+		background-color:#F66;
 		float:left;
 	}
 	#bar {
 		width:0px; 
 		height:5px; 
-		background-color:#F93;
+		background-color:#F00;
 		float:left;
 		margin-left:0;
 	}
 	.spacer{height:100px;}
-	label{width:300px;}
+	label{width:300px; color:#F00;}
 </style>
 </head>
 <body>
@@ -60,7 +63,7 @@
     		<div id="bar"></div>
     	</div>
     </div>
-    <label id="info"></label>
+    <label id="info">Loading...</label>
 </div>
 <div class="spacer"></div>
 </body>
