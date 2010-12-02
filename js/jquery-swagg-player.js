@@ -29,7 +29,8 @@
 			},
 			config: {},
 			img: {},
-			curr_song: 0 
+			curr_song: 0,
+			vol_interval: 5 
 		};	
 
 		var swagg = {
@@ -44,7 +45,6 @@
 			},
 			
 			init : function(config) {
-				//soundManager.url = 'swf';
 				PROPS.config = config;
 				if (!config.buttonsDir) {
 					config.buttonsDir = 'images/';
@@ -169,11 +169,11 @@
 								return false;
 								
 							case 175:
-								swagg.volUp(PROPS.curr_song);
+								swagg.volume(PROPS.curr_song, 1);
 								return false;
 						
 							case 174:
-								swagg.volDown(PROPS.curr_song);
+								swagg.volume(PROPS.curr_song, 0);
 								return false;
 						}
 					});
@@ -237,10 +237,12 @@
 					target.resume();
 				}
 				else { // track is not paused
-					console.log('Swagg Player::Playing song from beginning');
-					if (target.playState === 1) // if track is already playing, pause it
+					if (target.playState === 1) {// if track is already playing, pause it
+						console.log('Swagg Player::Pausing current track');
 						target.pause();
+					}
 					else { // track is is not playing (it's in a stopped or uninitialized stated, play it
+						console.log('Swagg Player::Playing current track from beginning');
 						target.play();
 					}
 				}
@@ -364,15 +366,18 @@
 			
 			// Resets the progress bar back to the beginning
 			resetProgressBar : function(){
+				console.log('Swagg Player::stopMusic()');
 				$('#bar').css('width', 0);
 				$('#loaded').css('width', 0);
 			},	
 			
 			// Stops the specified song
 			stopMusic : function(track) {
+				console.log('Swagg Player::stopMusic()');
 				var localSoundManager = soundManager;
 				localSoundManager.stopAll();
 				swagg.resetProgressBar();	
+				console.log('progress bar reset!');
 			},
 			
 			// Preloads button images
@@ -412,17 +417,18 @@
 			},
 			
 			// Increases the volume of the specified song
-			volUp : function(track) {
+			volume : function(track, flag) {
 				var sound = soundManager.getSoundById(track.toString());
 				var curr_vol = sound.volume;
-				soundManager.setVolume(track.toString(), curr_vol + vol_interval);	
-			},
-			
-			// Decreases the volume of the specified song
-			volDown : function(track) {
-				var sound = soundManager.getSoundById(track.toString());
-				var curr_vol = sound.volume;
-				soundManager.setVolume(track.toString(), curr_vol - vol_interval);
+				if (flag === 1) {
+					soundManager.setVolume(track.toString(), curr_vol + PROPS.vol_interval);
+				}
+				else if (flag === 0) {
+					soundManager.setVolume(track.toString(), curr_vol - PROPS.vol_interval);
+				}
+				else {
+					console.log('Swagg Player::Invalid volume flag!');	
+				}
 			},
 			
 			// switches to the currently playing song's album art using fancy jquery slide effect
@@ -459,6 +465,8 @@
 				var t = wrapper_width*pos_ratio;
 				$('#bar').css('width', t);
 				$('#loaded').css('width', loaded);	
+					
+					
 			},
 			
 			// displays artist and song title
