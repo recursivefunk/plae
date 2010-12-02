@@ -1,0 +1,27 @@
+.code-bold {
+	font-weight:normal;
+	font-style: normal; 
+	line-height:normal; 
+	font-family: 'CodeBold', sans-serif;	
+}
+.code-light {
+	font-weight:normal;
+	font-style: normal; 
+	line-height:normal; 
+	font-family: 'CodeRegular', sans-serif;	
+}
+
+@font-face {
+	font-family: 'CodeRegular';
+	src: url('code-light.otf');
+	url('code-light.otf') format('otf');
+	font-weight: normal;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'CodeBold';
+	src: url('code-bold.otf');
+	url('code-bold.otf') format('otf');
+	font-weight: normal;
+	font-style: normal;
+}

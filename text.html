@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<link rel="stylesheet" type="text/css" href="css/font2.css" />
+<style>
+	a {
+		text-decoration:none;
+		}
+	#swagg-player{
+		margin-left:auto; 
+		margin-right:auto;
+		width:300px;
+	}
+	#controls {
+		font-size:24px;
+		display:block;
+	}
+	#controls a:nth-child(even){
+		color:#F90;
+	}
+	#controls a:nth-child(odd){
+		color:#000;	
+	}
+	#wrapper {
+		width:180px; 
+		height:5px; 
+		margin-left:auto;
+		margin-right:auto;
+		background-color:#CCC;	
+		float:left;
+		display:block;
+	}
+	#loaded {
+		width:0px; 
+		height:5px; 
+		background-color:#FC6;
+		float:left;
+	}
+	#bar {
+		width:0px; 
+		height:5px; 
+		background-color:#F93;
+		float:left;
+		margin-left:0;
+	}
+	.spacer{height:100px;}
+	label{width:300px;}
+</style>
+</head>
+<body>
+<div class="spacer"></div>
+<div id="swagg-player" class="code-bold">
+	<div id="controls">
+    	<a id="back" href="#">back</a><a id="play" href="#">play</a><a id="skip" href="#">skip</a><a id="stop" href="#">stop</a>
+    </div>
+    <div id="wrapper">
+    	<div id="loaded">
+    		<div id="bar"></div>
+    	</div>
+    </div>
+    <label id="info"></label>
+</div>
+<div class="spacer"></div>
+</body>
+<script type="text/javascript" src="js/jquery-1.4.3.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.1.min.js"></script>
+<script type="text/javascript" src="js/swaggloader.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	SwaggLoader.loadSwagg({
+		data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
+		buttonsDir: 'images/',			// optional - tells swagg player where to find your button images
+		useArt: false,					// optional - using album? defaults to true
+		buttonImages: false				// optional - use to specify if you're using images for buttons or text (defaults to true)
+	});
+});
+</script>
+</html>
