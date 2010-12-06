@@ -76,6 +76,10 @@
 		text-decoration:none;
 		color:#000;
 	}
+	.playlist-item:hover {
+		font-weight:bold;	
+		background-color:#F60;
+	}
 	#list {
 		width:350px; 
 		margin-left:auto; 

@@ -10,6 +10,7 @@
 		}
 	#swagg-player{
 		padding-left:5px;
+		padding-top:5px;
 		margin-left:auto; 
 		margin-right:auto;
 		width:300px;
@@ -49,7 +50,26 @@
 		margin-left:0;
 	}
 	.spacer{height:100px;}
-	label{width:300px; color:#F00;}
+	label{width:300px; color:#FFF;}
+	.playlist-item a {
+		text-decoration:none;
+		color:#000;
+	}
+	#list {
+		width:300px; 
+		margin-left:auto; 
+		margin-right:auto; 
+		2px solid; text-align:center;	
+	}
+	.playlist-item:hover {
+		font-weight:bold;	
+		background-color:#F00;
+	}
+	
+	.playlist-item {
+		border-bottom:#000 thin solid;
+		font-size:16px;
+	}
 </style>
 </head>
 <body>
@@ -63,8 +83,9 @@
     		<div id="bar"></div>
     	</div>
     </div>
-    <label id="info">Loading...</label>
+    <label id="info"></label>
 </div>
+<div id="list" class="code-bold"></div> 
 <div class="spacer"></div>
 </body>
 <script type="text/javascript" src="js/jquery-1.4.3.min.js"></script>
@@ -76,7 +97,8 @@ $(document).ready(function(){
 		data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
 		buttonsDir: 'images/',			// optional - tells swagg player where to find your button images
 		useArt: false,					// optional - using album? defaults to true
-		buttonImages: false				// optional - use to specify if you're using images for buttons or text (defaults to true)
+		buttonImages: false	,			// optional - use to specify if you're using images for buttons or text (defaults to true)
+		playList: $('#list')			// optional - don't set if you do not wish to have a playlist
 	});
 });
 </script>

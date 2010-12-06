@@ -7,16 +7,30 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.4.1
+   v0.8.5.4.2
    
-   Change Log v0.8.5.4.1
-   - Fixed flash loading bug within webkit based browsers
-   - Prepended text in front of song IDs to surpress warnings
-   - Text based loading indicator for users not using album art
+   Change Log v0.8.5.4.2
+   - Added a logger object
+   - Used jQuery data API to store song information within playlist
  */
 
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false */
+		var SwaggLog = {
+			error: function(errMsg){
+				console.log('Swagg Player::Error::' + errMsg);	
+			},
+			info: function(info){
+				console.log('Swagg Player::Info::' + info);	
+			},
+			warn: function(warning) {
+				console.log('Swagg Player::Warning::' + warning);	
+			},
+			echo: function(func, propName, propVal) {
+				console.log('Swagg Player::Echo::From ' + func + ': ' + propName + '=' + propVal );	
+			}
+		};
+		
 		var PROPS = {
 			songs : {},
 			song: {
@@ -66,7 +80,7 @@
 					url: data,
 					dataType: 'json',
 					success: function(data){
-						console.log("Swagg Player::Successfully fetched JSON...");
+						SwaggLog.info('Successfully fetched JSON...');
 						var size = data.length;
 						
 						// preload song album art and append an IDs to the songs - make configurable in the future
@@ -79,74 +93,92 @@
 						PROPS.songs = data;
 					},
 					error: function(xhr, ajaxOptions, thrownError){
-						console.log("Swagg Player::There was a problem fetching your songs from the server: " + thrownError);
+						SwaggLog.error('There was a problem fetching your songs from the server: ' + thrownError);
 					}
 				});
 				
 				// event hooks for control buttons
 				var initButtons = function() {
-					console.log("Swagg Player::Initializing button event hooks");
+					SwaggLog.info('Initializing button event hooks');
 					var inst = PROPS;
-					var i = PROPS.img;
+					var _images = inst.config.buttonImages === true;
+					var i = inst.img;
 					var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
 					var $skip = (inst.config.skipButt !== undefined) ? inst.config.skipButt : $('#skip');
 					var $stop = (inst.config.stopButt !== undefined) ? inst.config.stopButt : $('#stop');
 					var $back = (inst.config.backButt !== undefined) ? inst.config.backButt : $('#back');
-					var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
-					var $skiplink = (inst.config.skiplink !== undefined) ? inst.config.skiplink : $('#skip-link');
-					var $stoplink = (inst.config.stoplink !== undefined) ? inst.config.stoplink : $('#stop-link');
-					var $backlink = (inst.config.backlink !== undefined) ? inst.config.backlink : $('#back-link');
 					
-					if(inst.config.buttonImages === true) {
-						$playlink.mouseover(function() {
-							 $play.attr('src', i[1].src);
-						});
-						$playlink.mouseout(function() {
-							 $play.attr('src', i[0].src);
-						});
-						$skiplink.mouseover(function() {
-						 	$skip.attr('src', i[5].src);
-						});
-						$skiplink.mouseout(function() {
-							 $skip.attr('src', i[4].src);
-						});
-						$stoplink.mouseover(function() {
-							 $stop.attr('src', i[7].src);
-						});
-						$stoplink.mouseout(function() {
-							 $stop.attr('src', i[6].src);
-						});
-						$backlink.mouseover(function() {
-							 $back.attr('src', i[9].src);
-						});
-						$backlink.mouseout(function() {
-							 $back.attr('src', i[8].src);
-						});
-					}
-					
-					$play.click(function() {
-						 swagg.play('playlink click', PROPS.curr_song);
-						 return false;
+					$play.bind({
+						click: function() {
+							 swagg.play('playlink click', PROPS.curr_song);
+							 return false;
+						},
+						mouseover: function() {
+							if (_images === true) {
+								$play.attr('src', i[1].src);	
+							}
+						},
+						mouseout: function() {
+							if (_images === true) {
+								$play.attr('src', i[0].src);	
+							}
+						}
 					});
 					
-					$skip.click(function() {
-						 swagg.skip(1);
-						 return false;
+					$skip.bind({
+						click: function() {
+							swagg.skip(1);
+							return false;
+						},
+						mouseover: function() {
+							if (_images === true) {
+								$skip.attr('src', i[5].src);
+							}
+						},
+						mouseout: function() {
+							if (_images === true) {
+								$skip.attr('src', i[4].src);	
+							}
+						}
 					});
 
-					$stop.click(function() {
-						 swagg.stopMusic(PROPS.curr_song);
-						 return false;
+					$stop.bind({
+						click: function() {
+							swagg.stopMusic(PROPS.curr_song);
+							return false;
+						},
+						mouseover: function() {
+							if (_images === true) {
+								$stop.attr('src', i[7].src);
+							}
+						},
+						mouseout: function() {
+							if (_images === true) {
+								$stop.attr('src', i[6].src);
+							}
+						}
 					});
 
-					$back.click(function() {
-						 swagg.skip(0);
-						 return false;
+					$back.bind({
+						click: function() {
+							swagg.skip(0);
+							return false;
+						},
+						mouseover: function() {
+							if (_images === true) {
+								$back.attr('src', i[9].src);
+							}
+						},
+						mouseout: function() {
+							if (_images === true) {
+								$back.attr('src', i[8].src);
+							}
+						}
 					});
 					
 					// media key event hooks				
 					$(document).keydown(function(e) {
-
+	
 						if (!e) e=window.event;
 					
 							switch(e.which) {
@@ -184,10 +216,10 @@
 				
 				// configure soundManager, create song objects, and hook event listener actions
 				soundManager.createSongs = function() {
+					SwaggLog.info('createSongs()');
 					if(PROPS.songs[0] !== undefined) {
-						var songs_ = PROPS.songs;
-						console.log("Swagg Player::Songs loaded. Creating sound objects for Sound Manager...");
 						clearInterval(PROPS.interval_id);
+						var songs_ = PROPS.songs;
 						var localSoundManager = soundManager;
 						localSoundManager.useFastPolling = true;
 						localSoundManager.useHighPerformance = true;
@@ -226,14 +258,14 @@
 				
 				// if there's an error loading sound manager, try a reboot
 				soundManager.onerror = function() {
-				  console.log('Swagg::Player an error has occured with loading Sound Manager! Rebooting...');
+				  SwaggLog.error('An error has occured with loading Sound Manager! Rebooting...');
 				  soundManager.flashLoadTimeout = 0;
 				  clearInterval(PROPS.interval_id);
 				  soundManager.url = 'swf';
 				  setTimeout(soundManager.reboot,20);
 				  setTimeout(function() {
 					if (!soundManager.supported()) {
-					  console.log('Something went wrong with loading Sound Manager. No tunes for you!');
+					  SwaggLog.error('Something went wrong with loading Sound Manager. No tunes for you!');
 					}
 				  },1500);
 				}
@@ -242,51 +274,44 @@
 			// Plays a song based on the ID
 			play : function(caller, track){
 				var sound_id = 'song-' + track
-				console.log('Swagg Player::playing track: ' + sound_id + '. Oh and ' + caller + ' called me!');
+				SwaggLog.info('Playing track: ' + sound_id + '. Oh and ' + caller + ' called me!');
 				var target = soundManager.getSoundById(sound_id);
 				
 				if (target.paused === true) { // if current track is paused, unpause
-					console.log('Swagg Player::Unpausing song');
+					SwaggLog.info('Unpausing song');
 					target.resume();
 				}
 				else { // track is not paused
 					if (target.playState === 1) {// if track is already playing, pause it
-						console.log('Swagg Player::Pausing current track');
+						SwaggLog.info('Pausing current track');
 						target.pause();
 					}
 					else { // track is is not playing (it's in a stopped or uninitialized stated, play it
-						console.log('Swagg Player::Playing current track from beginning');
+						SwaggLog.info('Playing current track from beginning');
 						target.play();
 					}
 				}
-				
 				swagg.showSongInfo();
 			},
 			
 			// Dynamically creates playlist items as songs are loaded
 			createElement : function(soundobj){
+				SwaggLog.info('createElement()');
 				var song = PROPS.songs[parseInt(soundobj.id.split('-')[1])];
-				var el = '<div class="playlist-item" id="item-' + soundobj.id + '" rel="' + soundobj.id + '"><a href="#">"' + song.title + '"' + ' - ' + song.artist + '</a></div>';
+				var el = '<div class="playlist-item" id="item-' + soundobj.id + '><a href="#">' + song.title + ' - ' + song.artist + '</a></div>';
 				PROPS.config.playList.append(el);
 				
 				var id = 'item-' + soundobj.id;
 				var div = $('#' + id);
-				
-				div.mouseover(function(){
-					$(this).css('font-weight', 'bold');
-					$(this).css('background-color', '#F93');
-				});
-				div.mouseout(function(){
-					$(this).css('font-weight', 'normal');
-					$(this).css('background-color', '#FFF');
-				});
+				div.data("song", song);
+				SwaggLog.info(div.data("song"));
 				
 				div.click(function(){
-					var track = parseFloat($(this).attr('rel').split('-')[1]);
+					var track = $(this).data("song").id;
 					swagg.stopMusic(PROPS.curr_song);
 					var afterEffect = function() {
 						swagg.showSongInfo();
-						swagg.play('switchArt - by way of createElement',track);
+						swagg.play('switchArt() - by way of createElement',track);
 					}			
 					PROPS.curr_song = track;
 					if (PROPS.config.useArt === true) {
@@ -294,7 +319,7 @@
 					}
 					else {
 						swagg.showSongInfo();
-						swagg.play('switchArt - by way of createElement',track);	
+						swagg.play('switchArt() - by way of createElement',track);	
 					}
 					return false;			
 				});
@@ -302,50 +327,48 @@
 			
 			// toggles the play/pause button to the play state
 			playPauseButtonState : function(state){
+				SwaggLog.info('PlayButtonState() state: ' + state);
 				var inst = PROPS;
-				var i = PROPS.img;
+				var i = inst.img;
+				var out, over;
 				var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
-				var $playlink = (inst.config.playlink !== undefined) ? inst.config.playlink : $('#play-link');
 				
 				if (state === 1 ) { // play state
-					if(inst.config.buttonImages === true) {
-						$play.attr('src', i[0].src);
-						
-						$playlink.mouseout(function() {
-							$play.attr('src', i[0].src);
-						});
-						$playlink.mouseover(function() {
-							$play.attr('src', i[1].src);
-						});
-					}
-					else {
-						$play.html('play');	
+					out = 0;
+					over = 1;
+					if (inst.config.buttonImages === false) {
+						$play.html('play');
 					}
 				}
 				else if (state === 0) { // pause state
-					if(inst.config.buttonImages === true) {
-						$play.attr('src', i[2].src);
-						
-						$playlink.mouseout(function() {
-							$play.attr('src', i[2].src);
-						});
-						$playlink.mouseover(function() {
-							$play.attr('src', i[3].src);
-						});	
-					}
-					else {
-						$play.html('pause');	
+					out = 2; 
+					over = 3;
+					if (inst.config.buttonImages === false) {
+						$play.html('pause');
 					}
 				}
 				else { // invalid state
-					console.log('Swagg Player::Invalid button state! : ' + state);	
+					SwaggLog.error('Invalid button state! : ' + state);	
 					return false;
+				};
+				if (inst.config.buttonImages === true) {
+					$play.attr('src', i[out].src);
+
+					$play.bind({
+						mouseout: function(){
+							$play.attr('src', i[out].src);
+						},
+						mouseover: function(){
+							$play.attr('src', i[over].src);
+						}	
+					});
 				}
 			},
 		
 			// Skips to the next song. If currently playing song is the last song in the list
 			// it goes back to the first song
 			skip : function(direction){
+				SwaggLog.info('skip()');
 				var inst = PROPS;
 				//var songs_ = inst.songs;	
 				var t = inst.curr_song;
@@ -367,7 +390,7 @@
 					}
 				}
 				else { // invalid flag
-					console.log('SwaggPlayer::Invalid skip direction flag: ' + direction);
+					SwaggLog.error('Invalid skip direction flag: ' + direction);
 					return false;	
 				}
 				swagg.stopMusic(t);
@@ -389,22 +412,20 @@
 			
 			// Resets the progress bar back to the beginning
 			resetProgressBar : function(){
-				console.log('Swagg Player::stopMusic()');
 				$('#bar').css('width', 0);
 				$('#loaded').css('width', 0);
 			},	
 			
 			// Stops the specified song
 			stopMusic : function(track) {
-				console.log('Swagg Player::stopMusic()');
-				var localSoundManager = soundManager;
-				localSoundManager.stopAll();
+				SwaggLog.info('stopMusic()');
+				soundManager.stopAll();
 				swagg.resetProgressBar();	
-				console.log('progress bar reset!');
 			},
 			
 			// Preloads button images
 			loadImages : function(config) {
+				SwaggLog.info('loadImages()');
 				if (config.buttonImages === true) {		
 					var pathtobutts = config.buttonsDir;
 					var img = PROPS.img;
