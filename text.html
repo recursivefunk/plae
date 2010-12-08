@@ -5,8 +5,9 @@
 <title></title>
 <link rel="stylesheet" type="text/css" href="css/font2.css" />
 <style>
-	a {
+	#swagg-player a {
 		text-decoration:none;
+		color:#999;
 		}
 	#swagg-player{
 		padding-left:5px;
@@ -15,60 +16,62 @@
 		margin-right:auto;
 		width:300px;
 		height:80px;
-		background-color:#000;
+		background-color:#FFF;
 	}
 	#controls {
 		font-size:24px;
 		display:block;
+		color:#999;
 	}
-	#controls a:nth-child(even){
-		color:#F00;
-	}
-	#controls a:nth-child(odd){
-		color:#FFF;	
+	#controls a:hover {
+		color:#09F;
 	}
 	#wrapper {
 		width:180px; 
 		height:5px; 
-		margin-left:auto;
-		margin-right:auto;
-		background-color:#FFF;
+
+		background-color:#CCC;
 		float:left;
 		display:block;
 	}
 	#loaded {
 		width:0px; 
 		height:5px; 
-		background-color:#F66;
+		background-color:#333;
 		float:left;
 	}
 	#bar {
 		width:0px; 
 		height:5px; 
-		background-color:#F00;
+		background-color:#09F;
 		float:left;
 		margin-left:0;
 	}
 	.spacer{height:100px;}
-	label{width:300px; color:#FFF;}
+	label{width:300px; color:#999;}
 	.playlist-item a {
 		text-decoration:none;
-		color:#000;
 	}
 	#list {
 		width:300px; 
 		margin-left:auto; 
 		margin-right:auto; 
-		2px solid; text-align:center;	
+ 		text-align:center;	
 	}
-	.playlist-item:hover {
-		font-weight:bold;	
-		background-color:#F00;
-	}
-	
 	.playlist-item {
-		border-bottom:#000 thin solid;
 		font-size:16px;
+		border-left:#999;
+		border-right:#999;
+	}
+	.playlist-item a {
+		text-decoration:none;
+		color:#999;
+
+	}
+	.playlist-item a:hover {
+		color:#000;
+		background-color:#09F;
+		font-weight:bold;
 	}
 </style>
 </head>
@@ -76,7 +79,7 @@
 <div class="spacer"></div>
 <div id="swagg-player" class="code-bold">
 	<div id="controls">
-    	<a id="back" href="#">back</a><a id="play" href="#">play</a><a id="skip" href="#">skip</a><a id="stop" href="#">stop</a>
+    	<a id="back" href="#">back </a>|<a id="play" href="#">play </a>|<a id="skip" href="#">skip </a>|<a id="stop" href="#">stop</a>
     </div>
     <div id="wrapper">
     	<div id="loaded">

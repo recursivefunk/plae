@@ -7,15 +7,17 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.4.2
+   v0.8.5.4.3
    
-   Change Log v0.8.5.4.2
-   - Added a logger object
-   - Used jQuery data API to store song information within playlist
+   Change Log v0.8.5.4.3
+   - Bug fixes
+   - Added image loader object
  */
 
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false */
+		
+		// logging utility
 		var SwaggLog = {
 			error: function(errMsg){
 				console.log('Swagg Player::Error::' + errMsg);	
@@ -31,6 +33,7 @@
 			}
 		};
 		
+		// global properties
 		var PROPS = {
 			songs : {},
 			song: {
@@ -48,6 +51,55 @@
 			vol_interval: 5,
 			interval_id: -1 
 		};	
+		
+		var imageLoader = {
+				_play:null,
+				_playOver:null,
+				_pauseOver:null,
+				_pause:null,
+				_stop:null,
+				_stopOver:null,
+				_back:null,
+				_backOver:null,
+				_skip:null,
+				_skipOver:null,
+				_imagesLoaded:false,
+				
+				loadImages: function(imagesDir) {
+					SwaggLog.info('Loading images for controls...');
+					this._play = new Image();
+					this._play.src = imagesDir + 'play.png';
+					
+					this._playOver = new Image();
+					this._playOver.src = imagesDir + 'play-over.png';
+					
+					this._pause = new Image();
+					this._pause.src = imagesDir + 'pause.png';
+					
+					this._pauseOver = new Image();
+					this._pauseOver.src = imagesDir + 'pause-over.png';
+					
+					this._skip = new Image();
+					this._skip.src = imagesDir + 'skip.png';
+					
+					this._skipOver = new Image();
+					this._skipOver.src = imagesDir + 'skip-over.png';
+					
+					this._back = new Image();
+					this._back.src = imagesDir + 'back.png';
+					
+					this._backOver = new Image();
+					this._backOver.src = imagesDir + 'back-over.png';
+					
+					this._stop = new Image();
+					this._stop.src = imagesDir + 'stop.png';
+					
+					this._stopOver = new Image();
+					this._stopOver.src = imagesDir + 'stop-over.png';
+					
+					this._imagesLoaded = true;
+				}
+			};
 
 		var swagg = {
 			init : function(config) {
@@ -60,7 +112,7 @@
 						config.buttonsDir = 'images/';
 					}	
 					// preload button images
-					swagg.loadImages(config); 	
+					imageLoader.loadImages(config.buttonsDir);	
 				}
 				else {
 					config.buttonImages === false;	
@@ -115,12 +167,12 @@
 						},
 						mouseover: function() {
 							if (_images === true) {
-								$play.attr('src', i[1].src);	
+								$play.attr('src', imageLoader._playOver.src);	
 							}
 						},
 						mouseout: function() {
 							if (_images === true) {
-								$play.attr('src', i[0].src);	
+								$play.attr('src', imageLoader._play.src);	
 							}
 						}
 					});
@@ -132,12 +184,12 @@
 						},
 						mouseover: function() {
 							if (_images === true) {
-								$skip.attr('src', i[5].src);
+								$skip.attr('src', imageLoader._skipOver.src);
 							}
 						},
 						mouseout: function() {
 							if (_images === true) {
-								$skip.attr('src', i[4].src);	
+								$skip.attr('src', imageLoader._skip.src);	
 							}
 						}
 					});
@@ -149,12 +201,12 @@
 						},
 						mouseover: function() {
 							if (_images === true) {
-								$stop.attr('src', i[7].src);
+								$stop.attr('src', imageLoader._stopOver.src);
 							}
 						},
 						mouseout: function() {
 							if (_images === true) {
-								$stop.attr('src', i[6].src);
+								$stop.attr('src', imageLoader._stop.src);
 							}
 						}
 					});
@@ -166,12 +218,12 @@
 						},
 						mouseover: function() {
 							if (_images === true) {
-								$back.attr('src', i[9].src);
+								$back.attr('src', imageLoader._backOver.src);
 							}
 						},
 						mouseout: function() {
 							if (_images === true) {
-								$back.attr('src', i[8].src);
+								$back.attr('src', imageLoader._back.src);
 							}
 						}
 					});
@@ -298,30 +350,30 @@
 			createElement : function(soundobj){
 				SwaggLog.info('createElement()');
 				var song = PROPS.songs[parseInt(soundobj.id.split('-')[1])];
-				var el = '<div class="playlist-item" id="item-' + soundobj.id + '><a href="#">' + song.title + ' - ' + song.artist + '</a></div>';
+				var id = 'item-' + song.id;
+				var el = '<div class="playlist-item" id="' + id + '"><a href="#">' + song.title + ' - ' + song.artist + '</a></div>';
 				PROPS.config.playList.append(el);
-				
-				var id = 'item-' + soundobj.id;
-				var div = $('#' + id);
-				div.data("song", song);
-				SwaggLog.info(div.data("song"));
-				
-				div.click(function(){
-					var track = $(this).data("song").id;
-					swagg.stopMusic(PROPS.curr_song);
-					var afterEffect = function() {
-						swagg.showSongInfo();
-						swagg.play('switchArt() - by way of createElement',track);
-					}			
-					PROPS.curr_song = track;
-					if (PROPS.config.useArt === true) {
-						swagg.switchArt(track, afterEffect);
+							
+				var $div = $('#' + id);
+				$div.data('song', song);
+				$div.bind({
+					click: function(){
+						var track = parseInt($(this).data('song').id);
+						swagg.stopMusic(PROPS.curr_song);
+						var afterEffect = function() {
+							swagg.showSongInfo();
+							swagg.play('switchArt() - by way of createElement',track);
+						}			
+						PROPS.curr_song = track;
+						if (PROPS.config.useArt === true) {
+							swagg.switchArt(track, afterEffect);
+						}
+						else {
+							swagg.showSongInfo();
+							swagg.play('switchArt() - by way of createElement',track);	
+						}
+						return false;
 					}
-					else {
-						swagg.showSongInfo();
-						swagg.play('switchArt() - by way of createElement',track);	
-					}
-					return false;			
 				});
 			},
 			
@@ -334,32 +386,38 @@
 				var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
 				
 				if (state === 1 ) { // play state
-					out = 0;
-					over = 1;
 					if (inst.config.buttonImages === false) {
 						$play.html('play');
 					}
+					else {
+						out = imageLoader._play.src;
+						over = imageLoader._playOver.src;
+					}
+
 				}
 				else if (state === 0) { // pause state
-					out = 2; 
-					over = 3;
 					if (inst.config.buttonImages === false) {
 						$play.html('pause');
 					}
+					else {
+						out = imageLoader._pause.src; 
+						over = imageLoader._pauseOver.src;
+					}
+
 				}
 				else { // invalid state
 					SwaggLog.error('Invalid button state! : ' + state);	
 					return false;
 				};
 				if (inst.config.buttonImages === true) {
-					$play.attr('src', i[out].src);
+					$play.attr('src', out);
 
 					$play.bind({
 						mouseout: function(){
-							$play.attr('src', i[out].src);
+							$play.attr('src', out);
 						},
 						mouseover: function(){
-							$play.attr('src', i[over].src);
+							$play.attr('src', over);
 						}	
 					});
 				}
@@ -423,48 +481,6 @@
 				swagg.resetProgressBar();	
 			},
 			
-			// Preloads button images
-			loadImages : function(config) {
-				SwaggLog.info('loadImages()');
-				if (config.buttonImages === true) {		
-					var pathtobutts = config.buttonsDir;
-					var img = PROPS.img;
-					
-					img[0] = new Image();
-					img[0].src = pathtobutts + 'play.png';
-					
-					img[1] = new Image();
-					img[1].src = pathtobutts + 'play-over.png';
-					
-					img[2] = new Image();
-					img[2].src = pathtobutts + 'pause.png';
-					
-					img[3] = new Image();
-					img[3].src = pathtobutts + 'pause-over.png';
-					
-					img[4] = new Image();
-					img[4].src = pathtobutts + 'skip.png';
-					
-					img[5] = new Image();
-					img[5].src = pathtobutts + 'skip-over.png';
-					
-					img[6] = new Image();
-					img[6].src = pathtobutts + 'stop.png';
-					
-					img[7] = new Image();
-					img[7].src = pathtobutts + 'stop-over.png';
-					
-					img[8] = new Image();
-					img[8].src = pathtobutts + 'back.png';
-					
-					img[9] = new Image();
-					img[9].src = pathtobutts + 'back-over.png';
-				}
-				else {
-					console.log('Swagg Player::You\'ve specified no button images yet, you\'ve given me an images directory! Ignoring...');	
-				}
-			},
-			
 			// Increases the volume of the specified song
 			volume : function(track, flag) {
 				var sound_id = 'song-' + track
@@ -484,6 +500,7 @@
 			
 			// switches to the currently playing song's album art using fancy jquery slide effect
 			switchArt : function(track, afterEffect) {
+				SwaggLog.info('Will show art for song at index: ' + track);
 				var sound_id = 'song-' + track
 				var $art = $('#art');
 				$art.hide('slide', function() {

@@ -61,12 +61,12 @@
 	.border {
 		border:#F00 thin solid;	
 	}
-		.playlist-item {
+	.playlist-item {
 		font-family: "Trebuchet MS", "Bitstream Vera Serif", Utopia, "Times New Roman", times, serif;
-		border-top:#000 2px solid;
+		border-bottom:#000 2px solid;
 		width:100%;
 		background-color:#FFF;
-		color:#F60;
+		color:#000;
 		display:block;
 	}
 	.border {
@@ -84,6 +84,5 @@
 		width:350px; 
 		margin-left:auto; 
 		margin-right:auto; 
-		border-bottom:#000 
 		2px solid; text-align:center;	
 	}

@@ -2,7 +2,7 @@
 This is a loader script for Swagg Player. It loads Swagg Player and SoundManager asynchronously
 so that the UI doesn't get blocked
 */
-window.SM2_DEFER = true;
+//window.SM2_DEFER = true;
 var SwaggLoader = {
 		swaggProps:{},
 		sound_manager:
@@ -21,8 +21,8 @@ var SwaggLoader = {
 					sm_script.attr('async', 'true');
 					sm_script.attr('id','soundManagerTag');
 					$('head').append(sm_script);
-					window.soundManager = new SoundManager(); // Flash expects window.soundManager.
-    				soundManager.beginDelayedInit(); // start SM2 init.
+					//window.soundManager = new SoundManager(); // Flash expects window.soundManager.
+    				//soundManager.beginDelayedInit(); // start SM2 init.
 					
 					var swagg_script = $('<script>');
 					swagg_script.attr( 'type', 'text/javascript');
