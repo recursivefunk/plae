@@ -18,15 +18,15 @@
 		height:80px;
 		background-color:#FFF;
 	}
-	#controls {
+	#swagg-player-controls {
 		font-size:24px;
 		display:block;
 		color:#999;
 	}
-	#controls a:hover {
+	#swagg-player-controls a:hover {
 		color:#09F;
 	}
-	#wrapper {
+	#swagg-player-progress-wrapper {
 		width:180px; 
 		height:5px; 
 
@@ -34,13 +34,13 @@
 		float:left;
 		display:block;
 	}
-	#loaded {
+	#swagg-player-loaded {
 		width:0px; 
 		height:5px; 
 		background-color:#333;
 		float:left;
 	}
-	#bar {
+	#swagg-player-bar {
 		width:0px; 
 		height:5px; 
 		background-color:#09F;
@@ -52,23 +52,23 @@
 	.playlist-item a {
 		text-decoration:none;
 	}
-	#list {
+	#swagg-player-list {
 		width:300px; 
 		margin-left:auto; 
 		margin-right:auto; 
  		text-align:center;	
 	}
-	.playlist-item {
+	.swagg-player-playlist-item {
 		font-size:16px;
 		border-left:#999;
 		border-right:#999;
 	}
-	.playlist-item a {
+	.swagg-player-playlist-item a {
 		text-decoration:none;
 		color:#999;
 
 	}
-	.playlist-item a:hover {
+	.swagg-player-playlist-item a:hover {
 		color:#000;
 		background-color:#09F;
 		font-weight:bold;
@@ -78,17 +78,20 @@
 <body>
 <div class="spacer"></div>
 <div id="swagg-player" class="code-bold">
-	<div id="controls">
-    	<a id="back" href="#">back </a>|<a id="play" href="#">play </a>|<a id="skip" href="#">skip </a>|<a id="stop" href="#">stop</a>
+	<div id="swagg-player-controls">
+    	<a id="swagg-player-back-button" href="#">back </a>|
+        <a id="swagg-player-play-button" href="#">play </a>|
+        <a id="swagg-player-skip-button" href="#">skip </a>|
+        <a id="swagg-player-stop-button" href="#">stop</a>
     </div>
-    <div id="wrapper">
-    	<div id="loaded">
-    		<div id="bar"></div>
+    <div id="swagg-player-progress-wrapper">
+    	<div id="swagg-player-loaded">
+    		<div id="swagg-player-bar"></div>
     	</div>
     </div>
-    <label id="info"></label>
+    <label id="swagg-player-song-info"></label>
 </div>
-<div id="list" class="code-bold"></div> 
+<div id="swagg-player-list" class="code-bold"></div> 
 <div class="spacer"></div>
 </body>
 <script type="text/javascript" src="js/jquery-1.4.3.min.js"></script>
@@ -101,7 +104,7 @@ $(document).ready(function(){
 		buttonsDir: 'images/',			// optional - tells swagg player where to find your button images
 		useArt: false,					// optional - using album? defaults to true
 		buttonImages: false	,			// optional - use to specify if you're using images for buttons or text (defaults to true)
-		playList: $('#list')			// optional - don't set if you do not wish to have a playlist
+		playList: true			// optional - don't set if you do not wish to have a playlist
 	});
 });
 </script>

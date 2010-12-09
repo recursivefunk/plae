@@ -11,7 +11,7 @@
 		font: 100% Verdana, Arial, Helvetica, sans-serif;
 		font-size:12px;
 	}
-	#wrapper {
+	#swagg-player-progress-wrapper {
 		width:180px; 
 		height:5px; 
 		margin-left:auto;
@@ -22,35 +22,35 @@
 		font-weight:bold;	
 		background-color:#F93;
 	}
-	#loaded {
+	#swagg-player-loaded {
 		width:0px; 
 		height:5px; 
 		background-color:#FC6;
 	}
-	#bar {
+	#swagg-player-bar {
 		width:0px; 
 		height:5px; 
 		background-color:#F93;
 		float:left;
 		margin-left:0;
 	}
-	#controls{
+	#swagg-player-controls{
 		width:200px;
 		margin-left:auto;
 		margin-right:auto;
 	}
-	#controls a{
+	#swagg-player-controls a{
 		padding:5px;
 	}
 	
-	#info{
+	#swagg-player-song-info{
 		margin-left:auto;
 		margin-right:auto;
 		width:80%;
 	}
 	#label{display:block;}
 	
-	#album-art {
+	#swagg-player-album-art {
 		margin-left:auto;
 		margin-right:auto;
 		width:100px;
@@ -61,7 +61,7 @@
 	.border {
 		border:#F00 thin solid;	
 	}
-	.playlist-item {
+	.swagg-player-playlist-item {
 		font-family: "Trebuchet MS", "Bitstream Vera Serif", Utopia, "Times New Roman", times, serif;
 		border-bottom:#000 2px solid;
 		width:100%;
@@ -72,15 +72,15 @@
 	.border {
 		border:#000 3px solid;	
 	}
-	.playlist-item a {
+	.swagg-player-playlist-item a {
 		text-decoration:none;
 		color:#000;
 	}
-	.playlist-item:hover {
+	.swagg-player-playlist-item:hover {
 		font-weight:bold;	
 		background-color:#F60;
 	}
-	#list {
+	#swagg-player-list {
 		width:350px; 
 		margin-left:auto; 
 		margin-right:auto; 

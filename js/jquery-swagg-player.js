@@ -7,11 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.4.3
+   v0.8.5.4.4
    
-   Change Log v0.8.5.4.3
-   - Bug fixes
-   - Added image loader object
+   Change Log v0.8.5.4.4
+   - Div tag IDs hard corded to make configuration more user friendly
  */
 
 (function ($){
@@ -40,7 +39,7 @@
 				id: '',
 				title: '',
 				url: '',
-				artist: '',
+				ist: '',
 				thumb: '',
 				duration: '',
 				img: []
@@ -49,7 +48,12 @@
 			img: {},
 			curr_song: 0,
 			vol_interval: 5,
-			interval_id: -1 
+			interval_id:-1,
+			play_:	$('#swagg-player-play-button'),
+			pause_:	$('#swagg-player-pause-button'),
+			skip_:	$('#swagg-player-skip-button'),
+			back_:	$('#swagg-player-back-button'),
+			stop_:	$('#swagg-player-stop-button') 
 		};	
 		
 		var imageLoader = {
@@ -118,8 +122,6 @@
 					config.buttonImages === false;	
 				}
 	
-				
-				
 				// path to song data - json file
 				var data = (config.data !== undefined) ? config.data : 'json/songs.json';
 					
@@ -135,7 +137,7 @@
 						SwaggLog.info('Successfully fetched JSON...');
 						var size = data.length;
 						
-						// preload song album art and append an IDs to the songs - make configurable in the future
+						// preload song album  and append an IDs to the songs - make configurable in the future
 						// to avoid having to loop through JSON array
 						for (var i = 0; i < size; i++) {
 							data[i].image = new Image();
@@ -153,77 +155,73 @@
 				var initButtons = function() {
 					SwaggLog.info('Initializing button event hooks');
 					var inst = PROPS;
-					var _images = inst.config.buttonImages === true;
+					var _images = inst.config.buttonImages;
 					var i = inst.img;
-					var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
-					var $skip = (inst.config.skipButt !== undefined) ? inst.config.skipButt : $('#skip');
-					var $stop = (inst.config.stopButt !== undefined) ? inst.config.stopButt : $('#stop');
-					var $back = (inst.config.backButt !== undefined) ? inst.config.backButt : $('#back');
 					
-					$play.bind({
+					PROPS.play_.bind({
 						click: function() {
 							 swagg.play('playlink click', PROPS.curr_song);
 							 return false;
 						},
 						mouseover: function() {
 							if (_images === true) {
-								$play.attr('src', imageLoader._playOver.src);	
+								$(this).attr('src', imageLoader._playOver.src);	
 							}
 						},
 						mouseout: function() {
 							if (_images === true) {
-								$play.attr('src', imageLoader._play.src);	
+								$(this).attr('src', imageLoader._play.src);	
 							}
 						}
 					});
 					
-					$skip.bind({
+					PROPS.skip_.bind({
 						click: function() {
 							swagg.skip(1);
 							return false;
 						},
 						mouseover: function() {
 							if (_images === true) {
-								$skip.attr('src', imageLoader._skipOver.src);
+								$(this).attr('src', imageLoader._skipOver.src);
 							}
 						},
 						mouseout: function() {
 							if (_images === true) {
-								$skip.attr('src', imageLoader._skip.src);	
+								$(this).attr('src', imageLoader._skip.src);	
 							}
 						}
 					});
 
-					$stop.bind({
+					PROPS.stop_.bind({
 						click: function() {
 							swagg.stopMusic(PROPS.curr_song);
 							return false;
 						},
 						mouseover: function() {
 							if (_images === true) {
-								$stop.attr('src', imageLoader._stopOver.src);
+								$(this).attr('src', imageLoader._stopOver.src);
 							}
 						},
 						mouseout: function() {
 							if (_images === true) {
-								$stop.attr('src', imageLoader._stop.src);
+								$(this).attr('src', imageLoader._stop.src);
 							}
 						}
 					});
 
-					$back.bind({
+					PROPS.back_.bind({
 						click: function() {
 							swagg.skip(0);
 							return false;
 						},
 						mouseover: function() {
 							if (_images === true) {
-								$back.attr('src', imageLoader._backOver.src);
+								$(this).attr('src', imageLoader._backOver.src);
 							}
 						},
 						mouseout: function() {
 							if (_images === true) {
-								$back.attr('src', imageLoader._back.src);
+								$(this).attr('src', imageLoader._back.src);
 							}
 						}
 					});
@@ -289,14 +287,14 @@
 								onresume: function(){swagg.playPauseButtonState(0);},
 								whileplaying: function(){swagg.progress(this);}
 							});
-							if (PROPS.config.playList !== undefined) {
+							if (PROPS.config.playList !== undefined && PROPS.config.playList === true) {
 								temp.id = 'song-' + i.toString();
 								swagg.createElement(temp);
 							}
 						} // end for
 						if (config.useArt === true) {
-							// initialize first song album art
-							$('#art').attr('src',songs_[PROPS.curr_song].image.src); 
+							// initialize first song album 
+							$('#swagg-player-art').attr('src',songs_[PROPS.curr_song].image.src); 
 						}
 						swagg.showSongInfo();
 					}
@@ -351,8 +349,8 @@
 				SwaggLog.info('createElement()');
 				var song = PROPS.songs[parseInt(soundobj.id.split('-')[1])];
 				var id = 'item-' + song.id;
-				var el = '<div class="playlist-item" id="' + id + '"><a href="#">' + song.title + ' - ' + song.artist + '</a></div>';
-				PROPS.config.playList.append(el);
+				var el = '<div class="swagg-player-playlist-item" id="' + id + '"><a href="#">' + song.title + ' - ' + song.artist + '</a></div>';
+				$('#swagg-player-list').append(el);
 							
 				var $div = $('#' + id);
 				$div.data('song', song);
@@ -383,7 +381,7 @@
 				var inst = PROPS;
 				var i = inst.img;
 				var out, over;
-				var $play = (inst.config.playButt !== undefined) ? inst.config.playButt : $('#play');
+				var $play = PROPS.play_;
 				
 				if (state === 1 ) { // play state
 					if (inst.config.buttonImages === false) {
@@ -453,7 +451,7 @@
 				}
 				swagg.stopMusic(t);
 				inst.curr_song = t;
-				// if using album art, use art transition
+				// if using album , use  transition
 				if (inst.config.useArt === true) {
 					var afterEffect = function() {
 						swagg.showSongInfo();
@@ -461,7 +459,7 @@
 					}
 					swagg.switchArt(t, afterEffect);
 				} // end if
-				// if not using album art, just go to the next song
+				// if not using album , just go to the next song
 				else {
 						swagg.showSongInfo();
 						swagg.play('skip',t);
@@ -470,8 +468,8 @@
 			
 			// Resets the progress bar back to the beginning
 			resetProgressBar : function(){
-				$('#bar').css('width', 0);
-				$('#loaded').css('width', 0);
+				$('#swagg-player-bar').css('width', 0);
+				$('#swagg-player-loaded').css('width', 0);
 			},	
 			
 			// Stops the specified song
@@ -498,14 +496,14 @@
 				}
 			},
 			
-			// switches to the currently playing song's album art using fancy jquery slide effect
+			// switches to the currently playing song's album  using fancy jquery slide effect
 			switchArt : function(track, afterEffect) {
-				SwaggLog.info('Will show art for song at index: ' + track);
+				SwaggLog.info('Will show  for song at index: ' + track);
 				var sound_id = 'song-' + track
-				var $art = $('#art');
-				$art.hide('slide', function() {
-					$art.attr('src',PROPS.songs[track].image.src);
-					$art.show('slide', afterEffect); 
+				var art = $('#swagg-player-art');
+				art.hide('slide', function() {
+					$(this).attr('src',PROPS.songs[track].image.src);
+					$(this).show('slide', afterEffect); 
 				});	
 			},
 			
@@ -524,7 +522,7 @@
 				var pos_ratio = pos/duration; 
 				
 				// width of progress bar
-				var wrapper_width = parseFloat($('#wrapper').css('width'));
+				var wrapper_width = parseFloat($('#swagg-player-progress-wrapper').css('width'));
 				
 				var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
 				var loaded = wrapper_width * loaded_ratio;
@@ -532,17 +530,17 @@
 				// set width of inner progress bar equal to the width equivelant of the
 				// current position
 				var t = wrapper_width*pos_ratio;
-				$('#bar').css('width', t);
-				$('#loaded').css('width', loaded);	
+				$('#swagg-player-bar').css('width', t);
+				$('#swagg-player-loaded').css('width', loaded);	
 					
 					
 			},
 			
-			// displays artist and song title
+			// displays ist and song title
 			showSongInfo : function() {
 				var loc_inst = PROPS;
 				var song_ = loc_inst.songs[loc_inst.curr_song];
-				$('#info').html( "<p>" + song_.artist + "  <br/>" + song_.title + " </p>" );	
+				$('#swagg-player-song-info').html( "<p>" + song_.artist + "  <br/>" + song_.title + " </p>" );	
 			}
 		};
 		

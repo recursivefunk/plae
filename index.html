@@ -12,22 +12,22 @@
 <body>
 <div class="spacer"></div>
 <div id="swagg-player"><br />
-	<div id="album-art">
-		<img src="loading.gif" id="art" border="0"/>
+	<div id="swagg-player-album-art">
+		<img src="loading.gif" id="swagg-player-art" border="0"/>
     </div><br/><br/>
-    <div id="controls">
-		<a  id="play-link" href="#"><img src="images/play.png" id="playbutton" border="0"/></a>
-		<a  id="back-link" href="#"><img src="images/back.png" id="backbutton" border="0"/></a>
-		<a  id="skip-link" href="#"><img src="images/skip.png" id="skipbutton" border="0"/></a>
-		<a  id="stop-link" href="#"><img src="images/stop.png" id="stopbutton" border="0"/></a>
+    <div id="swagg-player-controls">
+		<a  id="play-link" href="#"><img src="images/play.png" id="swagg-player-play-button" border="0"/></a>
+		<a  id="back-link" href="#"><img src="images/back.png" id="swagg-player-back-button" border="0"/></a>
+		<a  id="skip-link" href="#"><img src="images/skip.png" id="swagg-player-skip-button" border="0"/></a>
+		<a  id="stop-link" href="#"><img src="images/stop.png" id="swagg-player-stop-button" border="0"/></a>
   	</div><br /><br/>
-    <div id="wrapper">
-    	<div id="loaded">
-    		<div id="bar"></div>
+    <div id="swagg-player-progress-wrapper">
+    	<div id="swagg-player-loaded">
+    		<div id="swagg-player-bar"></div>
         </div>
     </div><br/>
-    <label id="info">Loading...</label><br /><br/>
-    <div id="list"></div> 
+    <label id="swagg-player-song-info">Loading...</label><br /><br/>
+    <div id="swagg-player-list"></div> 
 </div>
 <div class="spacer"></div>
 <div id="sm2-container"></div>
@@ -42,11 +42,8 @@ $(document).ready(function(){
 		data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
 		buttonsDir: 'images/',			// optional - tells swagg player where to find your buttons
 		useArt: true,					// optional - using album? defaults to true
-		playButt: $('#playbutton'), 	// optional - points to play button (image) defaults to $('#play')
-		skipButt: $('#skipbutton'), 	// optional - points to skip button (image) defaults to $('#skip)
-		backButt: $('#backbutton'), 	// optional - points to back button (image) defaults to $('#back')
-		stopButt: $('#stopbutton'), 	// optional - points to stop button (image) defaults to $('#stop')
-		playList: $('#list'),			// optional - don't set if you do not wish to have a playlist
+		buttonImages: true,			// optional - use to specify if you're using images for buttons or text (defaults to true)
+		playList: true
 	});
 });
 </script>
