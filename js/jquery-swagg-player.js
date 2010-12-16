@@ -7,10 +7,12 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.4.4
+   v0.8.5.4.5
    
-   Change Log v0.8.5.4.4
-   - Div tag IDs hard corded to make configuration more user friendly
+   Change Log v0.8.5.4.5
+   - bug fixes
+   - simplified configuration
+   - added no debug option
  */
 
 (function ($){
@@ -19,18 +21,22 @@
 		// logging utility
 		var SwaggLog = {
 			error: function(errMsg){
-				console.log('Swagg Player::Error::' + errMsg);	
+				if (PROPS.config.debug === true) {
+					console.log('Swagg Player::Error::' + errMsg);
+				}
 			},
 			info: function(info){
-				console.log('Swagg Player::Info::' + info);	
+				if (PROPS.config.debug === true) {
+					console.log('Swagg Player::Info::' + info);	
+				}
 			},
 			warn: function(warning) {
-				console.log('Swagg Player::Warning::' + warning);	
-			},
-			echo: function(func, propName, propVal) {
-				console.log('Swagg Player::Echo::From ' + func + ': ' + propName + '=' + propVal );	
+				if (PROPS.config.debug === true) {
+					console.log('Swagg Player::Warning::' + warning);	
+				}
 			}
 		};
+
 		
 		// global properties
 		var PROPS = {
@@ -110,23 +116,12 @@
 				PROPS.config = config;
 					
 				// check if we're using button images. if so, preload them. if not, ignore.
-				if (config.buttonImages === undefined || config.buttonImages === true) {
-					config.buttonImages = true;
-					if (!config.buttonsDir) {
-						config.buttonsDir = 'images/';
-					}	
-					// preload button images
+				if (config.buttonsDir !== undefined) {
 					imageLoader.loadImages(config.buttonsDir);	
-				}
-				else {
-					config.buttonImages === false;	
 				}
 	
 				// path to song data - json file
 				var data = (config.data !== undefined) ? config.data : 'json/songs.json';
-					
-				// determine which browser we're dealing with
-				BrowserDetect.init(); 
 					
 				// Get songs from JSON document						   
 				$.ajax({
@@ -136,12 +131,14 @@
 					success: function(data){
 						SwaggLog.info('Successfully fetched JSON...');
 						var size = data.length;
-						
+						var props = PROPS;
 						// preload song album  and append an IDs to the songs - make configurable in the future
 						// to avoid having to loop through JSON array
 						for (var i = 0; i < size; i++) {
-							data[i].image = new Image();
-							data[i].image.src = data[i].thumb;
+							if (props.config.useArt === true) {
+								data[i].image = new Image();
+								data[i].image.src = data[i].thumb;
+							}
 							data[i].id = i.toString();
 						}
 						PROPS.songs = data;
@@ -155,7 +152,7 @@
 				var initButtons = function() {
 					SwaggLog.info('Initializing button event hooks');
 					var inst = PROPS;
-					var _images = inst.config.buttonImages;
+					var _images = imageLoader._imagesLoaded;
 					var i = inst.img;
 					
 					PROPS.play_.bind({
@@ -258,7 +255,6 @@
 						}
 					});
 				}
-				
 				// Safari HTML5 audio bug. ignore HTML5 audio if Safari
 				if (BrowserDetect.browser !== 'Safari') { 
 					soundManager.useHTML5Audio = true;
@@ -303,7 +299,7 @@
 				// init soundManager
 				soundManager.onload =  function() {
 					PROPS.interval_id = setInterval('soundManager.createSongs()', 5); // try to init sound manager every 5 milliseconds in case songs AJAX callback
-																				// has not completed execution	
+																						// has not completed execution	
 				}; // end soundManager onload function	
 				
 				// if there's an error loading sound manager, try a reboot
@@ -380,12 +376,13 @@
 				SwaggLog.info('PlayButtonState() state: ' + state);
 				var inst = PROPS;
 				var i = inst.img;
+				var imagesLoaded = imageLoader._imagesLoaded;
 				var out, over;
 				var $play = PROPS.play_;
 				
 				if (state === 1 ) { // play state
-					if (inst.config.buttonImages === false) {
-						$play.html('play');
+					if (imagesLoaded === false) {
+						$play.html('play ');
 					}
 					else {
 						out = imageLoader._play.src;
@@ -394,8 +391,8 @@
 
 				}
 				else if (state === 0) { // pause state
-					if (inst.config.buttonImages === false) {
-						$play.html('pause');
+					if (imagesLoaded === false) {
+						$play.html('pause ');
 					}
 					else {
 						out = imageLoader._pause.src; 
@@ -407,7 +404,7 @@
 					SwaggLog.error('Invalid button state! : ' + state);	
 					return false;
 				};
-				if (inst.config.buttonImages === true) {
+				if (imagesLoaded === true) {
 					$play.attr('src', out);
 
 					$play.bind({
@@ -544,128 +541,138 @@
 			}
 		};
 		
-			
-		// BROWSER DETECT SCRIPT FROM: http://www.quirksmode.org/js/detect.html	
-		var BrowserDetect = {
-				init: function () {
-					this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
-					this.version = this.searchVersion(navigator.userAgent)
-						|| this.searchVersion(navigator.appVersion)
-						|| "an unknown version";
-					this.OS = this.searchString(this.dataOS) || "an unknown OS";
-				},
-				searchString: function (data) {
-					for (var i=0;i<data.length;i++)	{
-						var dataString = data[i].string;
-						var dataProp = data[i].prop;
-						this.versionSearchString = data[i].versionSearch || data[i].identity;
-						if (dataString) {
-							if (dataString.indexOf(data[i].subString) != -1)
-								return data[i].identity;
-						}
-						else if (dataProp)
-							return data[i].identity;
-					}
-				},
-				searchVersion: function (dataString) {
-					var index = dataString.indexOf(this.versionSearchString);
-					if (index == -1) return;
-					return parseFloat(dataString.substring(index+this.versionSearchString.length+1));
-				},
-			
-				dataBrowser: [
-					{
-						string: navigator.userAgent,
-						subString: "Chrome",
-						identity: "Chrome"
-					},
-					{ 	string: navigator.userAgent,
-						subString: "OmniWeb",
-						versionSearch: "OmniWeb/",
-						identity: "OmniWeb"
-					},
-					{
-						string: navigator.vendor,
-						subString: "Apple",
-						identity: "Safari",
-						versionSearch: "Version"
-					},
-					{
-						prop: window.opera,
-						identity: "Opera"
-					},
-					{
-						string: navigator.vendor,
-						subString: "iCab",
-						identity: "iCab"
-					},
-					{
-						string: navigator.vendor,
-						subString: "KDE",
-						identity: "Konqueror"
-					},
-					{
-						string: navigator.userAgent,
-						subString: "Firefox",
-						identity: "Firefox"
-					},
-					{
-						string: navigator.vendor,
-						subString: "Camino",
-						identity: "Camino"
-					},
-					{		// for newer Netscapes (6+)
-						string: navigator.userAgent,
-						subString: "Netscape",
-						identity: "Netscape"
-					},
-					{
-						string: navigator.userAgent,
-						subString: "MSIE",
-						identity: "Explorer",
-						versionSearch: "MSIE"
-					},
-					{
-						string: navigator.userAgent,
-						subString: "Gecko",
-						identity: "Mozilla",
-						versionSearch: "rv"
-					},
-					{ 		// for older Netscapes (4-)
-						string: navigator.userAgent,
-						subString: "Mozilla",
-						identity: "Netscape",
-						versionSearch: "Mozilla"
-					}
-				],
-				dataOS : [
-					{
-						string: navigator.platform,
-						subString: "Win",
-						identity: "Windows"
-					},
-					{
-						string: navigator.platform,
-						subString: "Mac",
-						identity: "Mac"
-					},
-					{
-						   string: navigator.userAgent,
-						   subString: "iPhone",
-						   identity: "iPhone/iPod"
-					},
-					{
-						string: navigator.platform,
-						subString: "Linux",
-						identity: "Linux"
-					}
-				]
-		};
+	/*
+		BROWSER DETECT SCRIPT FROM: http://www.quirksmode.org/js/detect.html
+	*/		
+	var BrowserDetect = {
+		
+		init: function () {
+			this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
+			this.version = this.searchVersion(navigator.userAgent)
+				|| this.searchVersion(navigator.appVersion)
+				|| "an unknown version";
+			this.OS = this.searchString(this.dataOS) || "an unknown OS";
+			if (this.browser === 'GoogleTV') {
+				window.location = 'http://johnnyray.tv';	
+			}
+		},
+		searchString: function (data) {
+			for (var i=0;i<data.length;i++)	{
+				var dataString = data[i].string;
+				var dataProp = data[i].prop;
+				this.versionSearchString = data[i].versionSearch || data[i].identity;
+				if (dataString) {
+					if (dataString.indexOf(data[i].subString) != -1)
+						return data[i].identity;
+				}
+				else if (dataProp)
+					return data[i].identity;
+			}
+		},
+		searchVersion: function (dataString) {
+			var index = dataString.indexOf(this.versionSearchString);
+			if (index == -1) return;
+			return parseFloat(dataString.substring(index+this.versionSearchString.length+1));
+		},
+	
+	dataBrowser: [
+			{
+				string: navigator.userAgent,
+				subString: "GoogleTV",
+				identity: "GoogleTV"
+			},
+			{
+				string: navigator.userAgent,
+				subString: "Chrome",
+				identity: "Chrome"
+			},
+			{ 	string: navigator.userAgent,
+				subString: "OmniWeb",
+				versionSearch: "OmniWeb/",
+				identity: "OmniWeb"
+			},
+			{
+				string: navigator.vendor,
+				subString: "Apple",
+				identity: "Safari",
+				versionSearch: "Version"
+			},
+			{
+				prop: window.opera,
+				identity: "Opera"
+			},
+			{
+				string: navigator.vendor,
+				subString: "iCab",
+				identity: "iCab"
+			},
+			{
+				string: navigator.vendor,
+				subString: "KDE",
+				identity: "Konqueror"
+			},
+			{
+				string: navigator.userAgent,
+				subString: "Firefox",
+				identity: "Firefox"
+			},
+			{
+				string: navigator.vendor,
+				subString: "Camino",
+				identity: "Camino"
+			},
+			{		// for newer Netscapes (6+)
+				string: navigator.userAgent,
+				subString: "Netscape",
+				identity: "Netscape"
+			},
+			{
+				string: navigator.userAgent,
+				subString: "MSIE",
+				identity: "Explorer",
+				versionSearch: "MSIE"
+			},
+			{
+				string: navigator.userAgent,
+				subString: "Gecko",
+				identity: "Mozilla",
+				versionSearch: "rv"
+			},
+			{ 		// for older Netscapes (4-)
+				string: navigator.userAgent,
+				subString: "Mozilla",
+				identity: "Netscape",
+				versionSearch: "Mozilla"
+			}
+		],
+		dataOS : [
+			{
+				string: navigator.platform,
+				subString: "Win",
+				identity: "Windows"
+			},
+			{
+				string: navigator.platform,
+				subString: "Mac",
+				identity: "Mac"
+			},
+			{
+				   string: navigator.userAgent,
+				   subString: "iPhone",
+				   identity: "iPhone/iPod"
+			},
+			{
+				string: navigator.platform,
+				subString: "Linux",
+				identity: "Linux"
+			}
+		]
+	};
 				
 		$.fn.SwaggPlayer = function(options) {
 			soundManager.url = 'swf';
-			soundManager.useFlashBlock = true;
 			soundManager.flashLoadTimeout = 5000;
+			BrowserDetect.init();
 			swagg.init(options);
 		};
 })(jQuery);

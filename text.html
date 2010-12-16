@@ -5,6 +5,7 @@
 <title></title>
 <link rel="stylesheet" type="text/css" href="css/font2.css" />
 <style>
+	body{background-color:#FFF;}
 	#swagg-player a {
 		text-decoration:none;
 		color:#999;
@@ -73,6 +74,7 @@
 		background-color:#09F;
 		font-weight:bold;
 	}
+
 </style>
 </head>
 <body>
@@ -94,16 +96,13 @@
 <div id="swagg-player-list" class="code-bold"></div> 
 <div class="spacer"></div>
 </body>
-<script type="text/javascript" src="js/jquery-1.4.3.min.js"></script>
-<script type="text/javascript" src="js/jquery-ui-1.8.1.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
 <script type="text/javascript" src="js/swaggloader.js"></script>
 <script type="text/javascript">
 $(document).ready(function(){
 	SwaggLoader.loadSwagg({
 		data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
-		buttonsDir: 'images/',			// optional - tells swagg player where to find your button images
 		useArt: false,					// optional - using album? defaults to true
-		buttonImages: false	,			// optional - use to specify if you're using images for buttons or text (defaults to true)
 		playList: true			// optional - don't set if you do not wish to have a playlist
 	});
 });
