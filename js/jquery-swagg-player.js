@@ -1,7 +1,7 @@
 /*
    Swagg Player: Music Player for the web
    --------------------------------------------
-   http://johnny-ray.com/blog/?page_id=70
+   http://johnny-ray.com/swaggplayer
 
    Copyright (c) 2010, Johnny Austin. All rights reserved.
    Code provided under the MIT License:
