@@ -1,18 +1,16 @@
 /*
    Swagg Player: Music Player for the web
    --------------------------------------------
-   http://johnny-ray.com/swaggplayer
+   http://johnny-ray.com/blog/?page_id=70
 
    Copyright (c) 2010, Johnny Austin. All rights reserved.
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.4.5
+   v0.8.5.5
    
-   Change Log v0.8.5.4.5
-   - bug fixes
-   - simplified configuration
-   - added no debug option
+   Change Log v0.8.5.5
+   - IE bug fixes yay!
  */
 
 (function ($){
@@ -114,6 +112,17 @@
 		var swagg = {
 			init : function(config) {
 				PROPS.config = config;
+				
+				
+				if (BrowserDetect.browser === 'Explorer' && config.debug === true){
+					config.debug = false; // Sometimes, IE doesn't like the console object so, for now there is no debugging in IE
+				}
+				if (!soundManager.supported()) {
+					SwaggLog.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
+				}
+				else {
+					SwaggLog.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
+				}
 					
 				// check if we're using button images. if so, preload them. if not, ignore.
 				if (config.buttonsDir !== undefined) {
@@ -255,6 +264,7 @@
 						}
 					});
 				}
+				
 				// Safari HTML5 audio bug. ignore HTML5 audio if Safari
 				if (BrowserDetect.browser !== 'Safari') { 
 					soundManager.useHTML5Audio = true;
@@ -541,138 +551,140 @@
 			}
 		};
 		
-	/*
-		BROWSER DETECT SCRIPT FROM: http://www.quirksmode.org/js/detect.html
-	*/		
-	var BrowserDetect = {
-		
-		init: function () {
-			this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
-			this.version = this.searchVersion(navigator.userAgent)
-				|| this.searchVersion(navigator.appVersion)
-				|| "an unknown version";
-			this.OS = this.searchString(this.dataOS) || "an unknown OS";
-			if (this.browser === 'GoogleTV') {
-				window.location = 'http://johnnyray.tv';	
-			}
-		},
-		searchString: function (data) {
-			for (var i=0;i<data.length;i++)	{
-				var dataString = data[i].string;
-				var dataProp = data[i].prop;
-				this.versionSearchString = data[i].versionSearch || data[i].identity;
-				if (dataString) {
-					if (dataString.indexOf(data[i].subString) != -1)
+		/*
+			BROWSER DETECT SCRIPT FROM: http://www.quirksmode.org/js/detect.html
+		*/		
+		var BrowserDetect = {
+			
+			init: function () {
+				this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
+				this.version = this.searchVersion(navigator.userAgent)
+					|| this.searchVersion(navigator.appVersion)
+					|| "an unknown version";
+				this.OS = this.searchString(this.dataOS) || "an unknown OS";
+				if (this.browser === 'GoogleTV') {
+					window.location = 'http://johnnyray.tv';	
+				}
+			},
+			searchString: function (data) {
+				for (var i=0;i<data.length;i++)	{
+					var dataString = data[i].string;
+					var dataProp = data[i].prop;
+					this.versionSearchString = data[i].versionSearch || data[i].identity;
+					if (dataString) {
+						if (dataString.indexOf(data[i].subString) != -1)
+							return data[i].identity;
+					}
+					else if (dataProp)
 						return data[i].identity;
 				}
-				else if (dataProp)
-					return data[i].identity;
-			}
-		},
-		searchVersion: function (dataString) {
-			var index = dataString.indexOf(this.versionSearchString);
-			if (index == -1) return;
-			return parseFloat(dataString.substring(index+this.versionSearchString.length+1));
-		},
-	
-	dataBrowser: [
-			{
-				string: navigator.userAgent,
-				subString: "GoogleTV",
-				identity: "GoogleTV"
 			},
-			{
-				string: navigator.userAgent,
-				subString: "Chrome",
-				identity: "Chrome"
+			searchVersion: function (dataString) {
+				var index = dataString.indexOf(this.versionSearchString);
+				if (index == -1) return;
+				return parseFloat(dataString.substring(index+this.versionSearchString.length+1));
 			},
-			{ 	string: navigator.userAgent,
-				subString: "OmniWeb",
-				versionSearch: "OmniWeb/",
-				identity: "OmniWeb"
-			},
-			{
-				string: navigator.vendor,
-				subString: "Apple",
-				identity: "Safari",
-				versionSearch: "Version"
-			},
-			{
-				prop: window.opera,
-				identity: "Opera"
-			},
-			{
-				string: navigator.vendor,
-				subString: "iCab",
-				identity: "iCab"
-			},
-			{
-				string: navigator.vendor,
-				subString: "KDE",
-				identity: "Konqueror"
-			},
-			{
-				string: navigator.userAgent,
-				subString: "Firefox",
-				identity: "Firefox"
-			},
-			{
-				string: navigator.vendor,
-				subString: "Camino",
-				identity: "Camino"
-			},
-			{		// for newer Netscapes (6+)
-				string: navigator.userAgent,
-				subString: "Netscape",
-				identity: "Netscape"
-			},
-			{
-				string: navigator.userAgent,
-				subString: "MSIE",
-				identity: "Explorer",
-				versionSearch: "MSIE"
-			},
-			{
-				string: navigator.userAgent,
-				subString: "Gecko",
-				identity: "Mozilla",
-				versionSearch: "rv"
-			},
-			{ 		// for older Netscapes (4-)
-				string: navigator.userAgent,
-				subString: "Mozilla",
-				identity: "Netscape",
-				versionSearch: "Mozilla"
-			}
-		],
-		dataOS : [
-			{
-				string: navigator.platform,
-				subString: "Win",
-				identity: "Windows"
-			},
-			{
-				string: navigator.platform,
-				subString: "Mac",
-				identity: "Mac"
-			},
-			{
-				   string: navigator.userAgent,
-				   subString: "iPhone",
-				   identity: "iPhone/iPod"
-			},
-			{
-				string: navigator.platform,
-				subString: "Linux",
-				identity: "Linux"
-			}
-		]
-	};
+		
+		dataBrowser: [
+				{
+					string: navigator.userAgent,
+					subString: "GoogleTV",
+					identity: "GoogleTV"
+				},
+				{
+					string: navigator.userAgent,
+					subString: "Chrome",
+					identity: "Chrome"
+				},
+				{ 	string: navigator.userAgent,
+					subString: "OmniWeb",
+					versionSearch: "OmniWeb/",
+					identity: "OmniWeb"
+				},
+				{
+					string: navigator.vendor,
+					subString: "Apple",
+					identity: "Safari",
+					versionSearch: "Version"
+				},
+				{
+					prop: window.opera,
+					identity: "Opera"
+				},
+				{
+					string: navigator.vendor,
+					subString: "iCab",
+					identity: "iCab"
+				},
+				{
+					string: navigator.vendor,
+					subString: "KDE",
+					identity: "Konqueror"
+				},
+				{
+					string: navigator.userAgent,
+					subString: "Firefox",
+					identity: "Firefox"
+				},
+				{
+					string: navigator.vendor,
+					subString: "Camino",
+					identity: "Camino"
+				},
+				{		// for newer Netscapes (6+)
+					string: navigator.userAgent,
+					subString: "Netscape",
+					identity: "Netscape"
+				},
+				{
+					string: navigator.userAgent,
+					subString: "MSIE",
+					identity: "Explorer",
+					versionSearch: "MSIE"
+				},
+				{
+					string: navigator.userAgent,
+					subString: "Gecko",
+					identity: "Mozilla",
+					versionSearch: "rv"
+				},
+				{ 		// for older Netscapes (4-)
+					string: navigator.userAgent,
+					subString: "Mozilla",
+					identity: "Netscape",
+					versionSearch: "Mozilla"
+				}
+			],
+			dataOS : [
+				{
+					string: navigator.platform,
+					subString: "Win",
+					identity: "Windows"
+				},
+				{
+					string: navigator.platform,
+					subString: "Mac",
+					identity: "Mac"
+				},
+				{
+					   string: navigator.userAgent,
+					   subString: "iPhone",
+					   identity: "iPhone/iPod"
+				},
+				{
+					string: navigator.platform,
+					subString: "Linux",
+					identity: "Linux"
+				}
+			]
+		};
 				
 		$.fn.SwaggPlayer = function(options) {
+			window.soundManager = new SoundManager(); // Flash expects window.soundManager.
+    		soundManager.beginDelayedInit(); // start SM2 init.
+			soundManager.wmode = 'transparent'
 			soundManager.url = 'swf';
 			soundManager.flashLoadTimeout = 5000;
-			BrowserDetect.init();
 			swagg.init(options);
 		};
 })(jQuery);

@@ -3,20 +3,16 @@ This is a loader script for Swagg Player. It loads Swagg Player and SoundManager
 so that the UI doesn't get blocked
 */
 var SwaggLoader = {
-		Props:{},
+		swaggProps:{},
 		sound_manager:
 		{
 			init: function()
 			{
 				if(jQuery)
 				{
-					
+					console.log('jquery loaded...');
 					clearInterval(SwaggLoader.sound_interval);
-					if (SwaggLoader.Props.debug === true) {
-						console.log('Swagg Player::jQuery Loaded. Loading Sound Manager.');
-					}
-					
-					var swagg_script = $('<script>');
+					var swagg_script = $('<script></script>');
 					swagg_script.attr( 'type', 'text/javascript');
 					swagg_script.attr('src', 'js/jquery-swagg-player.js');
 					swagg_script.attr('async', 'true');
@@ -28,6 +24,7 @@ var SwaggLoader = {
 					sm_script.attr('async', 'true');
 					sm_script.attr('id','soundManagerTag');
 					$('head').append(sm_script);
+
 				}
 			}
 		},
@@ -36,23 +33,25 @@ var SwaggLoader = {
 		{
 			init: function()
 			{
-				if(soundManager !== undefined)
+				if(typeof soundManager !== undefined)
 				{
+					console.log('SM loaded...');
 					clearInterval(SwaggLoader.swagg_interval);		
-					soundManager.url = 'swf';
-					soundManager.wmode = 'transparent'
-					if (SwaggLoader.Props.debug === true) {
-						console.log('Swagg Player::Sound Manager Loaded. Loading Swagg Player.');
-					}
-					$('#swagg-player').SwaggPlayer(SwaggLoader.Props);	
+					$('#swagg-player').SwaggPlayer(SwaggLoader.swaggProps);	
 				}
 			}
+		},
+
+		IEcrap: function() {
+			 
 		},
 		sound_interval:-1,
 		swagg_interval:-1,
 
 		loadSwagg : function(props){
-			SwaggLoader.Props = props;
+			console.log('loadSwag()');
+			window.SM2_DEFER = true;
+			SwaggLoader.swaggProps = props;
 			SwaggLoader.sound_interval = setInterval("SwaggLoader.sound_manager.init()", 5);
 			SwaggLoader.swagg_interval = setInterval("SwaggLoader.swaggPlayer.init()", 5);
 		}
