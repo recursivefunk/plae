@@ -7,14 +7,16 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.5
+   v0.8.5.5.1
    
-   Change Log v0.8.5.5
-   - IE bug fixes yay!
+   Change Log v0.8.5.5.1
+   - Event hooks for play, pause, resume and stop
+   - SM2 Update
+   - Ability to configure using html5 audio (best attempt as described by SM2 documentation)
  */
 
 (function ($){
-		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false */
+		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false, $: false */
 		
 		// logging utility
 		var SwaggLog = {
@@ -39,27 +41,20 @@
 		// global properties
 		var PROPS = {
 			songs : {},
-			song: {
-				id: '',
-				title: '',
-				url: '',
-				ist: '',
-				thumb: '',
-				duration: '',
-				img: []
-			},
+			song: {},
 			config: {},
 			img: {},
 			curr_song: 0,
 			vol_interval: 5,
 			interval_id:-1,
-			play_:	$('#swagg-player-play-button'),
-			pause_:	$('#swagg-player-pause-button'),
-			skip_:	$('#swagg-player-skip-button'),
-			back_:	$('#swagg-player-back-button'),
-			stop_:	$('#swagg-player-stop-button') 
+			_play:	$('#swagg-player-play-button'),
+			_pause:	$('#swagg-player-pause-button'),
+			_skip:	$('#swagg-player-skip-button'),
+			_back:	$('#swagg-player-back-button'),
+			_stop:	$('#swagg-player-stop-button') 
 		};	
 		
+		// images for button controls
 		var imageLoader = {
 				_play:null,
 				_playOver:null,
@@ -164,7 +159,7 @@
 					var _images = imageLoader._imagesLoaded;
 					var i = inst.img;
 					
-					PROPS.play_.bind({
+					PROPS._play.bind({
 						click: function() {
 							 swagg.play('playlink click', PROPS.curr_song);
 							 return false;
@@ -181,7 +176,7 @@
 						}
 					});
 					
-					PROPS.skip_.bind({
+					PROPS._skip.bind({
 						click: function() {
 							swagg.skip(1);
 							return false;
@@ -198,7 +193,7 @@
 						}
 					});
 
-					PROPS.stop_.bind({
+					PROPS._stop.bind({
 						click: function() {
 							swagg.stopMusic(PROPS.curr_song);
 							return false;
@@ -215,7 +210,7 @@
 						}
 					});
 
-					PROPS.back_.bind({
+					PROPS._back.bind({
 						click: function() {
 							swagg.skip(0);
 							return false;
@@ -265,8 +260,7 @@
 					});
 				}
 				
-				// Safari HTML5 audio bug. ignore HTML5 audio if Safari
-				if (BrowserDetect.browser !== 'Safari') { 
+				if (PROPS.config.html5Audio === true && BrowserDetect.browser !== 'Safari') { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
 					soundManager.useHTML5Audio = true;
 				}
 				
@@ -286,11 +280,11 @@
 								id: 'song-' + i.toString(),			// to button states
 								url: songs_[i].url,
 								autoLoad: true,
-								onfinish: function(){swagg.skip(1)},
-								onplay: function(){swagg.playPauseButtonState(0);},
-								onpause: function(){swagg.playPauseButtonState(1);},
-								onstop: function(){swagg.playPauseButtonState(1);},
-								onresume: function(){swagg.playPauseButtonState(0);},
+								onfinish: function(){swagg.skip(1);},
+								onplay: function(){swagg.playPauseButtonState(0); if(PROPS.config.onPlay !== undefined){PROPS.config.onPlay();}},
+								onpause: function(){swagg.playPauseButtonState(1); if(PROPS.config.onPause !== undefined){PROPS.config.onPause();}},
+								onstop: function(){swagg.playPauseButtonState(1); if(PROPS.config.onStop !== undefined){PROPS.config.onStop();}},
+								onresume: function(){swagg.playPauseButtonState(0); if(PROPS.config.onResume !== undefined){PROPS.config.onResume();}},
 								whileplaying: function(){swagg.progress(this);}
 							});
 							if (PROPS.config.playList !== undefined && PROPS.config.playList === true) {
@@ -303,6 +297,7 @@
 							$('#swagg-player-art').attr('src',songs_[PROPS.curr_song].image.src); 
 						}
 						swagg.showSongInfo();
+						SwaggLog.info("Swagg Player ready!");
 					}
 				};
 			
@@ -388,7 +383,8 @@
 				var i = inst.img;
 				var imagesLoaded = imageLoader._imagesLoaded;
 				var out, over;
-				var $play = PROPS.play_;
+				var $play = PROPS._play;
+				
 				
 				if (state === 1 ) { // play state
 					if (imagesLoaded === false) {
@@ -499,7 +495,7 @@
 					soundManager.setVolume(sound_id, curr_vol - PROPS.vol_interval);
 				}
 				else {
-					console.log('Swagg Player::Invalid volume flag!');	
+					SwaggLog.info('Invalid volume flag!');	
 				}
 			},
 			
@@ -538,9 +534,7 @@
 				// current position
 				var t = wrapper_width*pos_ratio;
 				$('#swagg-player-bar').css('width', t);
-				$('#swagg-player-loaded').css('width', loaded);	
-					
-					
+				$('#swagg-player-loaded').css('width', loaded);		
 			},
 			
 			// displays ist and song title
