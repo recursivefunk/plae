@@ -7,10 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.6.1
+   v0.8.5.6.2
    
-   Change Log v0.8.5.6.1
-   - Formated date for logger
+   Change Log v0.8.5.6.2
+   - Added html sub object to PROPS
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false, $: false */
@@ -73,13 +73,20 @@
 			curr_song: 0,
 			vol_interval: 5,
 			interval_id:-1,
-			_loading: $('<img src="loading.gif"></img>'),
-			_play:	$('#swagg-player-play-button'),
-			_pause:	$('#swagg-player-pause-button'),
-			_skip:	$('#swagg-player-skip-button'),
-			_back:	$('#swagg-player-back-button'),
-			_stop:	$('#swagg-player-stop-button') ,
-			_controls: $('#swagg-player-controls')
+			html: {
+				_loading: $('<img src="loading.gif"></img>'),
+				_play:	$('#swagg-player-play-button'),
+				_pause:	$('#swagg-player-pause-button'),
+				_skip:	$('#swagg-player-skip-button'),
+				_back:	$('#swagg-player-back-button'),
+				_stop:	$('#swagg-player-stop-button') ,
+				_controls: $('#swagg-player-controls'),
+				_art: $('#swagg-player-art'),
+				_progress_wrapper: $('#swagg-player-progress-wrapper'),
+				_bar: $('#swagg-player-bar'),
+				_loaded: $('#swagg-player-loaded'),
+				_song_info: $('#swagg-player-song-info')
+			}
 		};	
 		
 		// images for button controls
@@ -187,7 +194,7 @@
 					var _images = imageLoader._imagesLoaded;
 					var i = inst.img;
 					
-					PROPS._play.bind({
+					PROPS.html._play.bind({
 						click: function() {
 							 swagg.play('playlink click', PROPS.curr_song);
 							 return false;
@@ -204,7 +211,7 @@
 						}
 					});
 					
-					PROPS._skip.bind({
+					PROPS.html._skip.bind({
 						click: function() {
 							swagg.skip(1);
 							return false;
@@ -221,7 +228,7 @@
 						}
 					});
 
-					PROPS._stop.bind({
+					PROPS.html._stop.bind({
 						click: function() {
 							swagg.stopMusic(PROPS.curr_song);
 							return false;
@@ -238,7 +245,7 @@
 						}
 					});
 
-					PROPS._back.bind({
+					PROPS.html._back.bind({
 						click: function() {
 							swagg.skip(0);
 							return false;
@@ -357,7 +364,7 @@
 						} // end for
 						if (config.useArt === true) {
 							// initialize first song album 
-							$('#swagg-player-art').attr('src',songs_[PROPS.curr_song].image.src); 
+							PROPS.html._art.attr('src',songs_[PROPS.curr_song].image.src); 
 						}
 						swagg.showSongInfo();
 						SwaggLog.info("Swagg Player ready!");
@@ -446,7 +453,7 @@
 				var i = inst.img;
 				var imagesLoaded = imageLoader._imagesLoaded;
 				var out, over;
-				var $play = PROPS._play;
+				var $play = PROPS.html._play;
 				
 				
 				if (state === 1 ) { // play state
@@ -553,9 +560,11 @@
 				var curr_vol = sound.volume;
 
 				if (flag === 1) {
+					SwaggLog.info('Vol up');
 					soundManager.setVolume(sound_id, curr_vol + PROPS.vol_interval);
 				}
 				else if (flag === 0) {
+					SwaggLog.info('Vol down');
 					soundManager.setVolume(sound_id, curr_vol - PROPS.vol_interval);
 				}
 				else {
@@ -567,7 +576,7 @@
 			switchArt : function(track, afterEffect) {
 				SwaggLog.info('Will show  for song at index: ' + track);
 				var sound_id = 'song-' + track
-				var art = $('#swagg-player-art');
+				var art = PROPS.html._art;
 				art.hide('slide', function() {
 					$(this).attr('src',PROPS.songs[track].image.src);
 					$(this).show('slide', afterEffect); 
@@ -608,7 +617,7 @@
 				var pos_ratio = pos/duration; 
 				
 				// width of progress bar
-				var wrapper_width = parseFloat($('#swagg-player-progress-wrapper').css('width'));
+				var wrapper_width = parseFloat(PROPS.html._progress_wrapper.css('width'));
 				
 				var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
 				var loaded = wrapper_width * loaded_ratio;
@@ -616,8 +625,8 @@
 				// set width of inner progress bar equal to the width equivelant of the
 				// current position
 				var t = wrapper_width*pos_ratio;
-				$('#swagg-player-bar').css('width', t);
-				$('#swagg-player-loaded').css('width', loaded);		
+				PROPS.html._bar.css('width', t);
+				PROPS.html._loaded.css('width', loaded);		
 			},
 			
 			// displays ist and song title
@@ -639,9 +648,6 @@
 					|| this.searchVersion(navigator.appVersion)
 					|| "an unknown version";
 				this.OS = this.searchString(this.dataOS) || "an unknown OS";
-				if (this.browser === 'GoogleTV') {
-					window.location = 'http://johnnyray.tv';	
-				}
 			},
 			searchString: function (data) {
 				for (var i=0;i<data.length;i++)	{
