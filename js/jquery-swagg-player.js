@@ -7,15 +7,11 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.6
+   v0.8.5.6.1
    
-   Change Log v0.8.5.6
-   - Event hooks for play, pause, resume and stop
-   - SM2 Update
-   - Ability to configure using html5 audio (best attempt as described by SM2 documentation)
-   - Decreased flash timeout
- */
-
+   Change Log v0.8.5.6.1
+   - Formated date for logger
+*/
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false, $: false */
 		
@@ -23,18 +19,47 @@
 		var SwaggLog = {
 			error: function(errMsg){
 				if (PROPS.config.debug === true) {
-					console.log( new Date() + ' Swagg Player::Error::' + errMsg);
+					console.log( new Date().formatMMDDYYYY() + ' Swagg Player::Error::' + errMsg);
 				}
 			},
 			info: function(info){
 				if (PROPS.config.debug === true) {
-					console.log(new Date() + ' Swagg Player::Info::' + info);	
+					console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Info::' + info);	
 				}
 			},
 			warn: function(warning) {
 				if (PROPS.config.debug === true) {
-					console.log(new Date() + ' Swagg Player::Warning::' + warning);	
+					console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Warning::' + warning);	
 				}
+			},	
+			formatDate : function(){
+				Date.prototype.formatMMDDYYYY = function()
+				{
+					var amPm = '';
+					var month = parseInt(this.getMonth()) + 1;
+					var minutes = function(mns){
+						if (mns < 10) {
+							return '0' + mns;	
+						}
+						else {
+							return mns;	
+						}
+					}
+					var hours = function(hrs)
+					{
+						if (hrs > 12) 
+						{
+							amPm = 'PM';
+							return hrs - 12;	
+						} 
+						else 
+						{
+							amPm = 'AM';
+							return hrs;	
+						}
+					};
+					return this.getFullYear() + "-" + month + "-" +  this.getDate()  + " " + hours(this.getHours()) + ":" + minutes(this.getMinutes()) + amPm;
+				};
 			}
 		};
 
@@ -48,11 +73,13 @@
 			curr_song: 0,
 			vol_interval: 5,
 			interval_id:-1,
+			_loading: $('<img src="loading.gif"></img>'),
 			_play:	$('#swagg-player-play-button'),
 			_pause:	$('#swagg-player-pause-button'),
 			_skip:	$('#swagg-player-skip-button'),
 			_back:	$('#swagg-player-back-button'),
-			_stop:	$('#swagg-player-stop-button') 
+			_stop:	$('#swagg-player-stop-button') ,
+			_controls: $('#swagg-player-controls')
 		};	
 		
 		// images for button controls
@@ -108,7 +135,7 @@
 		var swagg = {
 			init : function(config) {
 				PROPS.config = config;
-				
+				SwaggLog.formatDate();
 				
 				if (BrowserDetect.browser === 'Explorer' && config.debug === true){
 					config.debug = false; // Sometimes, IE doesn't like the console object so, for now there is no debugging in IE
@@ -310,6 +337,15 @@
 								},
 								whileplaying: function(){
 									swagg.progress(this);
+								},
+								onbufferchange: function(){
+									if (this.isBuffering) {
+										SwaggLog.info('Buffering...');
+										//PROPS._controls.insertAfter(PROPS._loading);
+									}
+									else {
+										//PROPS._loading.remove();	
+									}
 								}
 							});
 							
@@ -515,6 +551,7 @@
 				var sound = soundManager.getSoundById(sound_id);
 				
 				var curr_vol = sound.volume;
+
 				if (flag === 1) {
 					soundManager.setVolume(sound_id, curr_vol + PROPS.vol_interval);
 				}
