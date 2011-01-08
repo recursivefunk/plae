@@ -1,18 +1,19 @@
 /*
    Swagg Player: Music Player for the web
    --------------------------------------------
-   http://johnny-ray.com/blog/?page_id=70
+   http://johnny-ray.com/swaggplayer
 
    Copyright (c) 2010, Johnny Austin. All rights reserved.
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.5.1
+   v0.8.5.6
    
-   Change Log v0.8.5.5.1
+   Change Log v0.8.5.6
    - Event hooks for play, pause, resume and stop
    - SM2 Update
    - Ability to configure using html5 audio (best attempt as described by SM2 documentation)
+   - Decreased flash timeout
  */
 
 (function ($){
@@ -22,17 +23,17 @@
 		var SwaggLog = {
 			error: function(errMsg){
 				if (PROPS.config.debug === true) {
-					console.log('Swagg Player::Error::' + errMsg);
+					console.log( new Date() + ' Swagg Player::Error::' + errMsg);
 				}
 			},
 			info: function(info){
 				if (PROPS.config.debug === true) {
-					console.log('Swagg Player::Info::' + info);	
+					console.log(new Date() + ' Swagg Player::Info::' + info);	
 				}
 			},
 			warn: function(warning) {
 				if (PROPS.config.debug === true) {
-					console.log('Swagg Player::Warning::' + warning);	
+					console.log(new Date() + ' Swagg Player::Warning::' + warning);	
 				}
 			}
 		};
@@ -68,7 +69,7 @@
 				_skipOver:null,
 				_imagesLoaded:false,
 				
-				loadImages: function(imagesDir) {
+				loadButtonImages: function(imagesDir) {
 					SwaggLog.info('Loading images for controls...');
 					this._play = new Image();
 					this._play.src = imagesDir + 'play.png';
@@ -121,7 +122,7 @@
 					
 				// check if we're using button images. if so, preload them. if not, ignore.
 				if (config.buttonsDir !== undefined) {
-					imageLoader.loadImages(config.buttonsDir);	
+					imageLoader.loadButtonImages(config.buttonsDir);	
 				}
 	
 				// path to song data - json file
@@ -133,7 +134,7 @@
 					url: data,
 					dataType: 'json',
 					success: function(data){
-						SwaggLog.info('Successfully fetched JSON...');
+						SwaggLog.info('Successfully fetched songs from the server.');
 						var size = data.length;
 						var props = PROPS;
 						// preload song album  and append an IDs to the songs - make configurable in the future
@@ -230,7 +231,7 @@
 					// media key event hooks				
 					$(document).keydown(function(e) {
 	
-						if (!e) e=window.event;
+						if (!e) e = window.event;
 					
 							switch(e.which) {
 							  case 179:
@@ -280,13 +281,39 @@
 								id: 'song-' + i.toString(),			// to button states
 								url: songs_[i].url,
 								autoLoad: true,
-								onfinish: function(){swagg.skip(1);},
-								onplay: function(){swagg.playPauseButtonState(0); if(PROPS.config.onPlay !== undefined){PROPS.config.onPlay();}},
-								onpause: function(){swagg.playPauseButtonState(1); if(PROPS.config.onPause !== undefined){PROPS.config.onPause();}},
-								onstop: function(){swagg.playPauseButtonState(1); if(PROPS.config.onStop !== undefined){PROPS.config.onStop();}},
-								onresume: function(){swagg.playPauseButtonState(0); if(PROPS.config.onResume !== undefined){PROPS.config.onResume();}},
-								whileplaying: function(){swagg.progress(this);}
+								onfinish: function(){
+									swagg.skip(1);
+								},
+								onplay: function(){
+									swagg.playPauseButtonState(0);
+									if(PROPS.config.onPlay !== undefined && jQuery.isFunction(PROPS.config.onPlay)){
+										PROPS.config.onPlay();
+									}
+								},
+								onpause: function(){
+									swagg.playPauseButtonState(1); 
+									if(PROPS.config.onPause !== undefined && jQuery.isFunction(PROPS.config.onPause)){
+										PROPS.config.onPause();
+									}
+								},
+								onstop: function(){
+									swagg.playPauseButtonState(1); 
+									if(PROPS.config.onStop !== undefined && jQuery.isFunction(PROPS.config.onStop)){
+										PROPS.config.onStop();
+									}
+								},
+								onresume: function(){
+									swagg.playPauseButtonState(0); 
+									if(PROPS.config.onResume !== undefined && jQuery.isFunction(PROPS.config.onResume)){
+										PROPS.config.onResume();
+									}
+								},
+								whileplaying: function(){
+									swagg.progress(this);
+								}
 							});
+							
+							//swagg.id3Fill(temp);
 							if (PROPS.config.playList !== undefined && PROPS.config.playList === true) {
 								temp.id = 'song-' + i.toString();
 								swagg.createElement(temp);
@@ -424,7 +451,7 @@
 				}
 			},
 		
-			// Skips to the next song. If currently playing song is the last song in the list
+			// Skips to the next song. If the currently playing song is the last song in the list
 			// it goes back to the first song
 			skip : function(direction){
 				SwaggLog.info('skip()');
@@ -508,6 +535,25 @@
 					$(this).attr('src',PROPS.songs[track].image.src);
 					$(this).show('slide', afterEffect); 
 				});	
+			},
+			
+			id3Fill : function(soundobj) {
+				var song = PROPS.songs[parseInt(soundobj.id.split('-')[1])];
+				if (typeof soundobj.id3.TIT2 !== undefined) {
+					song.title = soundobj.id3.TIT2;	
+				}
+				else if(typeof soundobj.id3.songname !== undefined) {
+					song.title = soundobj.id3.songname;	
+				}
+				else{}
+				
+				if(typeof soundobj.id3.TPE2 !== undefined) {
+					song.artist = soundobj.id3.TPE2;	
+				}
+				else if (typeof soundobj.id3.artist !== undefined) {
+					song.artist = soundobj.id3.artist;	
+				}
+				else{}
 			},
 			
 			// updates the UI progress bar
@@ -674,11 +720,12 @@
 		};
 				
 		$.fn.SwaggPlayer = function(options) {
+			SwaggLog.info('Initializing SoundManager2');
 			window.soundManager = new SoundManager(); // Flash expects window.soundManager.
     		soundManager.beginDelayedInit(); // start SM2 init.
 			soundManager.wmode = 'transparent'
 			soundManager.url = 'swf';
-			soundManager.flashLoadTimeout = 5000;
+			soundManager.flashLoadTimeout = 1000;
 			swagg.init(options);
 		};
 })(jQuery);

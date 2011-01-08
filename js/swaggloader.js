@@ -10,7 +10,6 @@ var SwaggLoader = {
 			{
 				if(jQuery)
 				{
-					console.log('jquery loaded...');
 					clearInterval(SwaggLoader.sound_interval);
 					var swagg_script = $('<script></script>');
 					swagg_script.attr( 'type', 'text/javascript');
@@ -35,21 +34,16 @@ var SwaggLoader = {
 			{
 				if(typeof soundManager !== undefined)
 				{
-					console.log('SM loaded...');
 					clearInterval(SwaggLoader.swagg_interval);		
 					$('#swagg-player').SwaggPlayer(SwaggLoader.swaggProps);	
 				}
 			}
 		},
 
-		IEcrap: function() {
-			 
-		},
 		sound_interval:-1,
 		swagg_interval:-1,
 
 		loadSwagg : function(props){
-			console.log('loadSwag()');
 			window.SM2_DEFER = true;
 			SwaggLoader.swaggProps = props;
 			SwaggLoader.sound_interval = setInterval("SwaggLoader.sound_manager.init()", 5);
