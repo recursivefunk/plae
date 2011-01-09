@@ -1,0 +1,7 @@
+I typically push out new code 2 or 3 times a week. If you'd like the last "stable" version please visit http://johnny-ray.com/swaggplayer.
+
+Examples are included in index.html and text.html. Production examples can be found at http://johnny-ray.com and http://iamjray.com.
+
+The production examples cited above are typically anywhere between 1 and 10 (minor) versions behind what's in this repo. Feel free to contact me if you have any questions.
+
+johnny@codeswagg.com
