@@ -11,6 +11,7 @@
    
    Change Log v0.8.5.6.2
    - Added html sub object to PROPS
+   - Added seek functionality
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false, $: false */
@@ -355,10 +356,9 @@
 									}
 								}
 							});
-							
+							temp.id = 'song-' + i.toString();
 							//swagg.id3Fill(temp);
 							if (PROPS.config.playList !== undefined && PROPS.config.playList === true) {
-								temp.id = 'song-' + i.toString();
 								swagg.createElement(temp);
 							}
 						} // end for
@@ -366,6 +366,7 @@
 							// initialize first song album 
 							PROPS.html._art.attr('src',songs_[PROPS.curr_song].image.src); 
 						}
+						swagg.setupSeek();
 						swagg.showSongInfo();
 						SwaggLog.info("Swagg Player ready!");
 					}
@@ -390,6 +391,31 @@
 					}
 				  },1500);
 				}
+			},
+			
+			setupSeek : function() {
+				PROPS.html._loaded.css('cursor', 'pointer').bind({
+					click : function(e) {
+						var id = 'song-' + PROPS.curr_song;
+						var soundobj = soundManager.getSoundById(id);
+						var x = e.pageX - this.offsetLeft;
+						
+						if (!soundobj.loaded === true)
+							var duration = soundobj.durationEstimate;
+						else {
+							var duration = soundobj.duration;
+						}
+						
+						// obtain the position clicked by the user
+						var newPosPercent = x / parseFloat(PROPS.html._progress_wrapper.css('width')); 
+						
+						// find the position within the song the location clicked correspondes to
+						var seekTo = Math.round(newPosPercent * duration);
+
+						soundobj.setPosition(seekTo);
+						SwaggLog.info('pos: ' + soundobj.position);
+					}
+				});
 			},
 			
 			// Plays a song based on the ID
