@@ -1,7 +1,15 @@
 /*
 This is a loader script for Swagg Player. It loads Swagg Player and SoundManager asynchronously
 so that the UI doesn't get blocked
-*/
+
+var SwaggHook = {
+	data: {
+		curr_song_total_minutes:null,
+		curr_song_total_seconds:null,
+		curr_song_curr_minutes:null,
+		curr_song_curr_seconds:null		
+	}
+};*/
 var SwaggLoader = {
 		swaggProps:{},
 		sound_manager:
@@ -35,7 +43,7 @@ var SwaggLoader = {
 				if(typeof soundManager !== undefined)
 				{
 					clearInterval(SwaggLoader.swagg_interval);		
-					$('#swagg-player').SwaggPlayer(SwaggLoader.swaggProps);	
+					SwaggHook = $('#swagg-player').SwaggPlayer(SwaggLoader.swaggProps);	
 				}
 			}
 		},

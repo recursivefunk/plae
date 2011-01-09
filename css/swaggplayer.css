@@ -38,8 +38,9 @@
 		width:200px;
 		margin-left:auto;
 		margin-right:auto;
+		
 	}
-	#swagg-player-controls a{
+	.swagg-player-button{
 		padding:5px;
 	}
 	

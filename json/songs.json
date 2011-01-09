@@ -1,5 +1,11 @@
 [
     {
+        "url": "sound/3.mp3",
+		"artist": "Artist 3",
+		"title": "Song 3",
+        "thumb": "images/music.jpg" 
+    },
+    {
         "url": "sound/1.mp3",
 		"artist": "Artist1",
 		"title": "Song 1",
@@ -10,5 +16,5 @@
 		"artist": "Artist 2",
 		"title": "Song 2",
         "thumb": "images/windowseat.jpg" 
-    } 
+    }
 ]

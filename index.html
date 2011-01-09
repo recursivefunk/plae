@@ -15,10 +15,10 @@
 		<img src="loading.gif" id="swagg-player-art" border="0"/>
     </div><br/><br/>
     <div id="swagg-player-controls">
-		<a  id="play-link" href="#"><img src="images/play.png" id="swagg-player-play-button" border="0"/></a>
-		<a  id="back-link" href="#"><img src="images/back.png" id="swagg-player-back-button" border="0"/></a>
-		<a  id="skip-link" href="#"><img src="images/skip.png" id="swagg-player-skip-button" border="0"/></a>
-		<a  id="stop-link" href="#"><img src="images/stop.png" id="swagg-player-stop-button" border="0"/></a>
+		<img class="swagg-player-button" src="images/play.png" id="swagg-player-play-button" border="0"/>
+		<img class="swagg-player-button" src="images/back.png" id="swagg-player-back-button" border="0"/>
+		<img class="swagg-player-button" src="images/skip.png" id="swagg-player-skip-button" border="0"/>
+		<img class="swagg-player-button" src="images/stop.png" id="swagg-player-stop-button" border="0"/>
   	</div><br /><br/>
     <div id="swagg-player-progress-wrapper">
         <div id="swagg-player-loaded">
@@ -29,6 +29,7 @@
     <label id="swagg-player-song-info">Loading...</label><br /><br/>
     <div id="swagg-player-list"></div> 
 </div><br/>
+<div id="swagg-player-data"></div>
 <div class="spacer"></div>
 </body>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
@@ -41,7 +42,7 @@ $(document).ready(function(){
 		useArt: true,					// optional - using album? defaults to true
 		playList: true,
 		debug: true,
-		html5Audio: false
+		html5Audio: false,
 	});
 });
 </script>

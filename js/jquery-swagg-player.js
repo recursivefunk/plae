@@ -7,11 +7,13 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.6.2
+   v0.8.5.6.3
    
-   Change Log v0.8.5.6.2
-   - Added html sub object to PROPS
-   - Added seek functionality
+   Change Log v0.8.5.6.3
+   - Added swagg-player-button class
+   - Added current and total time calcuation for songs MINS:SECS
+   - Exposed whileplaying event hook
+   - Added data bridge
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false, $: false */
@@ -86,7 +88,8 @@
 				_progress_wrapper: $('#swagg-player-progress-wrapper'),
 				_bar: $('#swagg-player-bar'),
 				_loaded: $('#swagg-player-loaded'),
-				_song_info: $('#swagg-player-song-info')
+				_song_info: $('#swagg-player-song-info'),
+				_data: $('#swagg-player-data')
 			}
 		};	
 		
@@ -144,6 +147,14 @@
 			init : function(config) {
 				PROPS.config = config;
 				SwaggLog.formatDate();
+				var trackTime = {
+							totalMinutes:null,
+							totalSeconds:null,
+							currMinutes:null,
+							currSeconds:null	
+				};
+				PROPS.html._data.data('trackTime', trackTime);
+				$('.swagg-player-button').css('cursor', 'pointer');
 				
 				if (BrowserDetect.browser === 'Explorer' && config.debug === true){
 					config.debug = false; // Sometimes, IE doesn't like the console object so, for now there is no debugging in IE
@@ -320,6 +331,7 @@
 									swagg.skip(1);
 								},
 								onplay: function(){
+									swagg.millsToTime(this.duration, 0);	
 									swagg.playPauseButtonState(0);
 									if(PROPS.config.onPlay !== undefined && jQuery.isFunction(PROPS.config.onPlay)){
 										PROPS.config.onPlay();
@@ -345,14 +357,9 @@
 								},
 								whileplaying: function(){
 									swagg.progress(this);
-								},
-								onbufferchange: function(){
-									if (this.isBuffering) {
-										SwaggLog.info('Buffering...');
-										//PROPS._controls.insertAfter(PROPS._loading);
-									}
-									else {
-										//PROPS._loading.remove();	
+									swagg.millsToTime(this.position, 1);
+									if(PROPS.config.whilePlaying !== undefined && jQuery.isFunction(PROPS.config.whilePlaying)){
+										PROPS.config.whilePlaying();
 									}
 								}
 							});
@@ -571,11 +578,23 @@
 				$('#swagg-player-loaded').css('width', 0);
 			},	
 			
+			resetTrackTime : function() {
+				var bridge = PROPS.html._data;
+				if (bridge !== undefined){
+					SwaggLog.info('Resetting track time');
+					bridge.data('trackTime').totalMinutes = 0;
+					bridge.data('trackTime').totalSeconds = 0;
+					bridge.data('trackTime').currMinutes = 0;
+					bridge.data('trackTime').currSeconds = 0;
+				}			
+			},
+			
 			// Stops the specified song
 			stopMusic : function(track) {
 				SwaggLog.info('stopMusic()');
 				soundManager.stopAll();
-				swagg.resetProgressBar();	
+				swagg.resetProgressBar();
+				swagg.resetTrackTime();
 			},
 			
 			// Increases the volume of the specified song
@@ -630,14 +649,17 @@
 			
 			// updates the UI progress bar
 			progress : function(soundobj) {
-				if (!soundobj.loaded === true)
+				// get current position of currently playing song
+				var pos = soundobj.position; 
+				var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
+				
+				if (soundobj.loaded === false) {
 					var duration = soundobj.durationEstimate;
+					swagg.millsToTime(duration, 0);
+				}
 				else {
 					var duration = soundobj.duration;
 				}
-				
-				// get current position of currently playing song
-				var pos = soundobj.position; 
 				
 				// ratio of (current position / total duration of song)
 				var pos_ratio = pos/duration; 
@@ -645,14 +667,40 @@
 				// width of progress bar
 				var wrapper_width = parseFloat(PROPS.html._progress_wrapper.css('width'));
 				
-				var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
 				var loaded = wrapper_width * loaded_ratio;
 				
 				// set width of inner progress bar equal to the width equivelant of the
 				// current position
 				var t = wrapper_width*pos_ratio;
 				PROPS.html._bar.css('width', t);
-				PROPS.html._loaded.css('width', loaded);		
+				PROPS.html._loaded.css('width', loaded);
+					
+			},
+			
+			// calculates the total duration of a sound in terms of minutes
+			// and seconds based on the total duration in milliseconds.
+			// flag 0 - says we're calculating the total duration of the song
+			// flag 1 - says we're calculating the current potition of the song
+			millsToTime : function(duration, flag) {
+					var bridge = PROPS.html._data;
+					var seconds = Math.floor(duration / 1000);
+					var minutes = 0;
+					if (seconds > 60) {
+						minutes = Math.floor(seconds / 60);
+						seconds = Math.round(seconds % 60);		
+					}
+					
+					if (flag === 0) { // total duration
+						bridge.data('trackTime').totalMinutes = minutes
+						bridge.data('trackTime').totalSeconds = seconds
+					}
+					else if (flag === 1) { // current position
+						bridge.data('trackTime').currMinutes = minutes;
+						bridge.data('trackTime').currSeconds = seconds;
+					}
+					else {
+						SwaggLog.error('Invalid flag passed to millsToTime()');	
+					}
 			},
 			
 			// displays ist and song title
@@ -661,6 +709,13 @@
 				var song_ = loc_inst.songs[loc_inst.curr_song];
 				$('#swagg-player-song-info').html( "<p>" + song_.artist + "  <br/>" + song_.title + " </p>" );	
 			}
+		};
+		
+		var SwaggData = {
+			curr_song_total_minutes:null,
+			curr_song_total_seconds:null,
+			curr_song_curr_minutes:null,
+			curr_song_curr_seconds:null	
 		};
 		
 		/*
@@ -789,6 +844,7 @@
 		};
 				
 		$.fn.SwaggPlayer = function(options) {
+			$('#swagg-player-data').css('display','none');
 			SwaggLog.info('Initializing SoundManager2');
 			window.soundManager = new SoundManager(); // Flash expects window.soundManager.
     		soundManager.beginDelayedInit(); // start SM2 init.
