@@ -182,6 +182,7 @@
 						}
 					}		
 				};
+				
 				Props.html._data.data('time', trackTime);
 				$('.swagg-player-button').css('cursor', 'pointer');
 				
@@ -920,6 +921,9 @@
     		soundManager.beginDelayedInit(); // start SM2 init.
 			soundManager.wmode = 'transparent'
 			soundManager.url = 'swf';
+			soundManager.allowPolling = true;
+			soundManager.useFastPolling = true;
+			soundManager.useHighPerformance = true;
 			soundManager.flashLoadTimeout = 1000;
 			swagg.init(options);
 		};
