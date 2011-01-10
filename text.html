@@ -23,16 +23,18 @@
 		font-size:24px;
 		display:block;
 		color:#999;
+		margin-left:auto;
+		margin-right:auto;
 	}
 	#swagg-player-controls a:hover {
 		color:#09F;
 	}
 	#swagg-player-progress-wrapper {
-		width:180px; 
+		width:300px; 
 		height:5px; 
-
+		margin-left:auto;
+		margin-right:auto;
 		background-color:#CCC;
-		float:left;
 		display:block;
 	}
 	#swagg-player-loaded {
@@ -50,31 +52,6 @@
 	}
 	.spacer{height:100px;}
 	label{width:300px; color:#999;}
-	.playlist-item a {
-		text-decoration:none;
-	}
-	#swagg-player-list {
-		width:300px; 
-		margin-left:auto; 
-		margin-right:auto; 
- 		text-align:center;	
-	}
-	.swagg-player-playlist-item {
-		font-size:16px;
-		border-left:#999;
-		border-right:#999;
-	}
-	.swagg-player-playlist-item a {
-		text-decoration:none;
-		color:#999;
-
-	}
-	.swagg-player-playlist-item a:hover {
-		color:#000;
-		background-color:#09F;
-		font-weight:bold;
-	}
-
 </style>
 </head>
 <body>
@@ -86,6 +63,7 @@
         <a id="swagg-player-skip-button" href="#">skip </a>|
         <a id="swagg-player-stop-button" href="#">stop</a>
     </div>
+    <br/>
     <div id="swagg-player-progress-wrapper">
     	<div id="swagg-player-loaded">
     		<div id="swagg-player-bar"></div>
@@ -93,7 +71,6 @@
     </div>
     <label id="swagg-player-song-info"></label>
 </div>
-<div id="swagg-player-list" class="code-bold"></div> 
 <div class="spacer"></div>
 </body>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
@@ -103,7 +80,7 @@ $(document).ready(function(){
 	SwaggLoader.loadSwagg({
 		data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
 		useArt: false,					// optional - using album? defaults to true
-		playList: true			// optional - don't set if you do not wish to have a playlist
+		playList: false					// optional - don't set if you do not wish to have a playlist
 	});
 });
 </script>

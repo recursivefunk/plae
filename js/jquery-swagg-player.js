@@ -7,13 +7,12 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.6.3
+   v0.8.5.6.4
    
-   Change Log v0.8.5.6.3
-   - Added swagg-player-button class
-   - Added current and total time calcuation for songs MINS:SECS
-   - Exposed whileplaying event hook
-   - Added data bridge
+   Change Log v0.8.5.6.4
+   - Added time tracking object
+   - Added onSnapshot event handler for seek preview functionality
+   
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false, $: false */
@@ -21,17 +20,17 @@
 		// logging utility
 		var SwaggLog = {
 			error: function(errMsg){
-				if (PROPS.config.debug === true) {
+				if (Props.config.debug === true) {
 					console.log( new Date().formatMMDDYYYY() + ' Swagg Player::Error::' + errMsg);
 				}
 			},
 			info: function(info){
-				if (PROPS.config.debug === true) {
+				if (Props.config.debug === true) {
 					console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Info::' + info);	
 				}
 			},
 			warn: function(warning) {
-				if (PROPS.config.debug === true) {
+				if (Props.config.debug === true) {
 					console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Warning::' + warning);	
 				}
 			},	
@@ -48,15 +47,12 @@
 							return mns;	
 						}
 					}
-					var hours = function(hrs)
-					{
-						if (hrs > 12) 
-						{
+					var hours = function(hrs){
+						if (hrs > 12) {
 							amPm = 'PM';
 							return hrs - 12;	
 						} 
-						else 
-						{
+						else {
 							amPm = 'AM';
 							return hrs;	
 						}
@@ -68,7 +64,7 @@
 
 		
 		// global properties
-		var PROPS = {
+		var Props = {
 			songs : {},
 			song: {},
 			config: {},
@@ -84,12 +80,14 @@
 				_back:	$('#swagg-player-back-button'),
 				_stop:	$('#swagg-player-stop-button') ,
 				_controls: $('#swagg-player-controls'),
+				_player: $('#swagg-player'),
+				_playlist: $('#swagg-player-list'),
 				_art: $('#swagg-player-art'),
 				_progress_wrapper: $('#swagg-player-progress-wrapper'),
 				_bar: $('#swagg-player-bar'),
 				_loaded: $('#swagg-player-loaded'),
 				_song_info: $('#swagg-player-song-info'),
-				_data: $('#swagg-player-data')
+				_data: null
 			}
 		};	
 		
@@ -145,15 +143,46 @@
 
 		var swagg = {
 			init : function(config) {
-				PROPS.config = config;
+				Props.config = config;
 				SwaggLog.formatDate();
+				
+				Props.html._data = $('<div></div>');
+				Props.html._data.attr('id','swagg-player-data');
+				Props.html._data.css('display','none');
+				Props.html._player.append(Props.html._data);
+				
 				var trackTime = {
-							totalMinutes:null,
-							totalSeconds:null,
-							currMinutes:null,
-							currSeconds:null	
+					totalMinutes:null,
+					totalSeconds:null,
+					currMinutes:null,
+					currSeconds:null,
+					currTimeAsString: function(){
+						var currMin = (this.currMinutes > 9) ? this.currMinutes : '0' + 
+							this.currMinutes.toString();
+						var currSec = (this.currSeconds > 9) ? this.currSeconds : '0' + 
+							this.currSeconds.toString();	
+						return currMin + ':' + currSec;
+					},
+					totalTimeAsString: function() {
+						var totalMin = (this.totalMinutes > 9) ? this.totalMinutes : '0' + 
+							this.totalMinutes.toString();
+						var totalSec = (this.totalSeconds > 9) ? this.totalSeconds : '0' + 
+							this.totalSeconds.toString();	
+						return totalMin + ':' + totalSec;	
+					},
+					snapShot:{
+						seconds:null,
+						minutes:null,
+						asString: function(){
+							var mins = (this.minutes > 9) ? this.minutes : '0' + 
+								this.minutes.toString();
+							var secs = (this.seconds > 9) ? this.seconds : '0' + 
+								this.seconds.toString();	
+							return mins + ':' + secs;							
+						}
+					}		
 				};
-				PROPS.html._data.data('trackTime', trackTime);
+				Props.html._data.data('time', trackTime);
 				$('.swagg-player-button').css('cursor', 'pointer');
 				
 				if (BrowserDetect.browser === 'Explorer' && config.debug === true){
@@ -182,7 +211,7 @@
 					success: function(data){
 						SwaggLog.info('Successfully fetched songs from the server.');
 						var size = data.length;
-						var props = PROPS;
+						var props = Props;
 						// preload song album  and append an IDs to the songs - make configurable in the future
 						// to avoid having to loop through JSON array
 						for (var i = 0; i < size; i++) {
@@ -192,7 +221,7 @@
 							}
 							data[i].id = i.toString();
 						}
-						PROPS.songs = data;
+						Props.songs = data;
 					},
 					error: function(xhr, ajaxOptions, thrownError){
 						SwaggLog.error('There was a problem fetching your songs from the server: ' + thrownError);
@@ -202,13 +231,13 @@
 				// event hooks for control buttons
 				var initButtons = function() {
 					SwaggLog.info('Initializing button event hooks');
-					var inst = PROPS;
+					var inst = Props;
 					var _images = imageLoader._imagesLoaded;
 					var i = inst.img;
 					
-					PROPS.html._play.bind({
+					Props.html._play.bind({
 						click: function() {
-							 swagg.play('playlink click', PROPS.curr_song);
+							 swagg.play('playlink click', Props.curr_song);
 							 return false;
 						},
 						mouseover: function() {
@@ -223,7 +252,7 @@
 						}
 					});
 					
-					PROPS.html._skip.bind({
+					Props.html._skip.bind({
 						click: function() {
 							swagg.skip(1);
 							return false;
@@ -240,9 +269,9 @@
 						}
 					});
 
-					PROPS.html._stop.bind({
+					Props.html._stop.bind({
 						click: function() {
-							swagg.stopMusic(PROPS.curr_song);
+							swagg.stopMusic(Props.curr_song);
 							return false;
 						},
 						mouseover: function() {
@@ -257,7 +286,7 @@
 						}
 					});
 
-					PROPS.html._back.bind({
+					Props.html._back.bind({
 						click: function() {
 							swagg.skip(0);
 							return false;
@@ -281,11 +310,11 @@
 					
 							switch(e.which) {
 							  case 179:
-								swagg.play('Media key event switch',PROPS.curr_song);
+								swagg.play('Media key event switch',Props.curr_song);
 								return false;
 						
 							  case 178:
-								swagg.stopMusic(PROPS.curr_song);
+								swagg.stopMusic(Props.curr_song);
 								return false;
 						
 							  case 176:
@@ -297,26 +326,26 @@
 								return false;
 								
 							case 175:
-								swagg.volume(PROPS.curr_song, 1);
+								swagg.volume(Props.curr_song, 1);
 								return false;
 						
 							case 174:
-								swagg.volume(PROPS.curr_song, 0);
+								swagg.volume(Props.curr_song, 0);
 								return false;
 						}
 					});
 				}
 				
-				if (PROPS.config.html5Audio === true && BrowserDetect.browser !== 'Safari') { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
+				if (Props.config.html5Audio === true && BrowserDetect.browser !== 'Safari') { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
 					soundManager.useHTML5Audio = true;
 				}
 				
 				// configure soundManager, create song objects, and hook event listener actions
 				soundManager.createSongs = function() {
 					SwaggLog.info('createSongs()');
-					if(PROPS.songs[0] !== undefined) {
-						clearInterval(PROPS.interval_id);
-						var songs_ = PROPS.songs;
+					if(Props.songs[0] !== undefined) {
+						clearInterval(Props.interval_id);
+						var songs_ = Props.songs;
 						var localSoundManager = soundManager;
 						localSoundManager.useFastPolling = true;
 						localSoundManager.useHighPerformance = true;
@@ -333,45 +362,45 @@
 								onplay: function(){
 									swagg.millsToTime(this.duration, 0);	
 									swagg.playPauseButtonState(0);
-									if(PROPS.config.onPlay !== undefined && jQuery.isFunction(PROPS.config.onPlay)){
-										PROPS.config.onPlay();
+									if(Props.config.onPlay !== undefined && jQuery.isFunction(Props.config.onPlay)){
+										Props.config.onPlay();
 									}
 								},
 								onpause: function(){
 									swagg.playPauseButtonState(1); 
-									if(PROPS.config.onPause !== undefined && jQuery.isFunction(PROPS.config.onPause)){
-										PROPS.config.onPause();
+									if(Props.config.onPause !== undefined && jQuery.isFunction(Props.config.onPause)){
+										Props.config.onPause();
 									}
 								},
 								onstop: function(){
 									swagg.playPauseButtonState(1); 
-									if(PROPS.config.onStop !== undefined && jQuery.isFunction(PROPS.config.onStop)){
-										PROPS.config.onStop();
+									if(Props.config.onStop !== undefined && jQuery.isFunction(Props.config.onStop)){
+										Props.config.onStop();
 									}
 								},
 								onresume: function(){
 									swagg.playPauseButtonState(0); 
-									if(PROPS.config.onResume !== undefined && jQuery.isFunction(PROPS.config.onResume)){
-										PROPS.config.onResume();
+									if(Props.config.onResume !== undefined && jQuery.isFunction(Props.config.onResume)){
+										Props.config.onResume();
 									}
 								},
 								whileplaying: function(){
 									swagg.progress(this);
 									swagg.millsToTime(this.position, 1);
-									if(PROPS.config.whilePlaying !== undefined && jQuery.isFunction(PROPS.config.whilePlaying)){
-										PROPS.config.whilePlaying();
+									if(Props.config.whilePlaying !== undefined && jQuery.isFunction(Props.config.whilePlaying)){
+										Props.config.whilePlaying();
 									}
 								}
 							});
 							temp.id = 'song-' + i.toString();
 							//swagg.id3Fill(temp);
-							if (PROPS.config.playList !== undefined && PROPS.config.playList === true) {
+							if (Props.config.playList !== undefined && Props.config.playList === true) {
 								swagg.createElement(temp);
 							}
 						} // end for
 						if (config.useArt === true) {
 							// initialize first song album 
-							PROPS.html._art.attr('src',songs_[PROPS.curr_song].image.src); 
+							Props.html._art.attr('src',songs_[Props.curr_song].image.src); 
 						}
 						swagg.setupSeek();
 						swagg.showSongInfo();
@@ -381,7 +410,7 @@
 			
 				// init soundManager
 				soundManager.onload =  function() {
-					PROPS.interval_id = setInterval('soundManager.createSongs()', 5); // try to init sound manager every 5 milliseconds in case songs AJAX callback
+					Props.interval_id = setInterval('soundManager.createSongs()', 5); // try to init sound manager every 5 milliseconds in case songs AJAX callback
 																						// has not completed execution	
 				}; // end soundManager onload function	
 				
@@ -389,7 +418,7 @@
 				soundManager.onerror = function() {
 				  SwaggLog.error('An error has occured with loading Sound Manager! Rebooting...');
 				  soundManager.flashLoadTimeout = 0;
-				  clearInterval(PROPS.interval_id);
+				  clearInterval(Props.interval_id);
 				  soundManager.url = 'swf';
 				  setTimeout(soundManager.reboot,20);
 				  setTimeout(function() {
@@ -400,29 +429,59 @@
 				}
 			},
 			
+			// get the duration of a song in milliseconds
+			getDuration : function(soundobj) {
+				var duration;
+				if (!soundobj.loaded === true)
+					uration = soundobj.durationEstimate;
+				else {
+					duration = soundobj.duration;
+				}
+				return duration;
+			},
+			
+			// sets up the seek functionality 
 			setupSeek : function() {
-				PROPS.html._loaded.css('cursor', 'pointer').bind({
+				// seek to a position in the song
+				Props.html._loaded.css('cursor', 'pointer').bind({
 					click : function(e) {
-						var id = 'song-' + PROPS.curr_song;
+						var id = 'song-' + Props.curr_song;
 						var soundobj = soundManager.getSoundById(id);
 						var x = e.pageX - this.offsetLeft;
 						
-						if (!soundobj.loaded === true)
-							var duration = soundobj.durationEstimate;
-						else {
-							var duration = soundobj.duration;
-						}
+						var duration = swagg.getDuration(soundobj);
 						
 						// obtain the position clicked by the user
-						var newPosPercent = x / parseFloat(PROPS.html._progress_wrapper.css('width')); 
+						var newPosPercent = x / parseFloat(Props.html._progress_wrapper.css('width')); 
 						
 						// find the position within the song the location clicked correspondes to
 						var seekTo = Math.round(newPosPercent * duration);
 
 						soundobj.setPosition(seekTo);
-						SwaggLog.info('pos: ' + soundobj.position);
 					}
 				});
+				
+				// seek preview data
+				Props.html._loaded.bind( 'mouseover hover mousemove', 
+					function(e){
+						var id = 'song-' + Props.curr_song;
+						var soundobj = soundManager.getSoundById(id);
+						var x = e.pageX - this.offsetLeft;
+						
+						var duration = swagg.getDuration(soundobj);
+						
+						// obtain the position clicked by the user
+						var newPosPercent = x / parseFloat(Props.html._progress_wrapper.css('width')); 
+						
+						// find the position within the song the location clicked correspondes to
+						var seekTo = Math.round(newPosPercent * duration);
+
+						swagg.millsToTime(seekTo, -1);
+						if (Props.config.onSnapshot !== undefined && $.isFunction(Props.config.onSnapshot)) {
+							Props.config.onSnapshot();	
+						}				
+					}
+				);
 			},
 			
 			// Plays a song based on the ID
@@ -451,23 +510,25 @@
 			// Dynamically creates playlist items as songs are loaded
 			createElement : function(soundobj){
 				SwaggLog.info('createElement()');
-				var song = PROPS.songs[parseInt(soundobj.id.split('-')[1])];
+				var song = Props.songs[parseInt(soundobj.id.split('-')[1])];
 				var id = 'item-' + song.id;
-				var el = '<div class="swagg-player-playlist-item" id="' + id + '"><a href="#">' + song.title + ' - ' + song.artist + '</a></div>';
-				$('#swagg-player-list').append(el);
+				var listItem = $('<li></li>');
+				listItem.attr('id',id);
+				listItem.addClass('swagg-player-playlist-item');
+				listItem.html(song.title + ' - ' + song.artist);
+				listItem.css('cursor','pointer');
 							
-				var $div = $('#' + id);
-				$div.data('song', song);
-				$div.bind({
+				listItem.data('song', song);
+				listItem.bind({
 					click: function(){
 						var track = parseInt($(this).data('song').id);
-						swagg.stopMusic(PROPS.curr_song);
+						swagg.stopMusic(Props.curr_song);
 						var afterEffect = function() {
 							swagg.showSongInfo();
 							swagg.play('switchArt() - by way of createElement',track);
 						}			
-						PROPS.curr_song = track;
-						if (PROPS.config.useArt === true) {
+						Props.curr_song = track;
+						if (Props.config.useArt === true) {
 							swagg.switchArt(track, afterEffect);
 						}
 						else {
@@ -477,16 +538,17 @@
 						return false;
 					}
 				});
+				Props.html._playlist.append(listItem);
 			},
 			
 			// toggles the play/pause button to the play state
 			playPauseButtonState : function(state){
 				SwaggLog.info('PlayButtonState() state: ' + state);
-				var inst = PROPS;
+				var inst = Props;
 				var i = inst.img;
 				var imagesLoaded = imageLoader._imagesLoaded;
 				var out, over;
-				var $play = PROPS.html._play;
+				var $play = Props.html._play;
 				
 				
 				if (state === 1 ) { // play state
@@ -531,7 +593,7 @@
 			// it goes back to the first song
 			skip : function(direction){
 				SwaggLog.info('skip()');
-				var inst = PROPS;
+				var inst = Props;
 				//var songs_ = inst.songs;	
 				var t = inst.curr_song;
 				
@@ -578,14 +640,15 @@
 				$('#swagg-player-loaded').css('width', 0);
 			},	
 			
+			// resets the track time
 			resetTrackTime : function() {
-				var bridge = PROPS.html._data;
+				var bridge = Props.html._data;
 				if (bridge !== undefined){
 					SwaggLog.info('Resetting track time');
-					bridge.data('trackTime').totalMinutes = 0;
-					bridge.data('trackTime').totalSeconds = 0;
-					bridge.data('trackTime').currMinutes = 0;
-					bridge.data('trackTime').currSeconds = 0;
+					bridge.data('time').totalMinutes = 0;
+					bridge.data('time').totalSeconds = 0;
+					bridge.data('time').currMinutes = 0;
+					bridge.data('time').currSeconds = 0;
 				}			
 			},
 			
@@ -606,11 +669,11 @@
 
 				if (flag === 1) {
 					SwaggLog.info('Vol up');
-					soundManager.setVolume(sound_id, curr_vol + PROPS.vol_interval);
+					soundManager.setVolume(sound_id, curr_vol + Props.vol_interval);
 				}
 				else if (flag === 0) {
 					SwaggLog.info('Vol down');
-					soundManager.setVolume(sound_id, curr_vol - PROPS.vol_interval);
+					soundManager.setVolume(sound_id, curr_vol - Props.vol_interval);
 				}
 				else {
 					SwaggLog.info('Invalid volume flag!');	
@@ -621,15 +684,17 @@
 			switchArt : function(track, afterEffect) {
 				SwaggLog.info('Will show  for song at index: ' + track);
 				var sound_id = 'song-' + track
-				var art = PROPS.html._art;
+				var art = Props.html._art;
 				art.hide('slide', function() {
-					$(this).attr('src',PROPS.songs[track].image.src);
+					$(this).attr('src',Props.songs[track].image.src);
 					$(this).show('slide', afterEffect); 
 				});	
 			},
 			
+			// fills in song metadata based on ID3 tags
+			// not being used for now, flash ID3 is too buggy
 			id3Fill : function(soundobj) {
-				var song = PROPS.songs[parseInt(soundobj.id.split('-')[1])];
+				var song = Props.songs[parseInt(soundobj.id.split('-')[1])];
 				if (typeof soundobj.id3.TIT2 !== undefined) {
 					song.title = soundobj.id3.TIT2;	
 				}
@@ -665,15 +730,15 @@
 				var pos_ratio = pos/duration; 
 				
 				// width of progress bar
-				var wrapper_width = parseFloat(PROPS.html._progress_wrapper.css('width'));
+				var wrapper_width = parseFloat(Props.html._progress_wrapper.css('width'));
 				
 				var loaded = wrapper_width * loaded_ratio;
 				
 				// set width of inner progress bar equal to the width equivelant of the
 				// current position
 				var t = wrapper_width*pos_ratio;
-				PROPS.html._bar.css('width', t);
-				PROPS.html._loaded.css('width', loaded);
+				Props.html._bar.css('width', t);
+				Props.html._loaded.css('width', loaded);
 					
 			},
 			
@@ -681,8 +746,9 @@
 			// and seconds based on the total duration in milliseconds.
 			// flag 0 - says we're calculating the total duration of the song
 			// flag 1 - says we're calculating the current potition of the song
+			// flag -1 = says we're calculating the arbitrary position of a song (seek preview)
 			millsToTime : function(duration, flag) {
-					var bridge = PROPS.html._data;
+					var bridge = Props.html._data;
 					var seconds = Math.floor(duration / 1000);
 					var minutes = 0;
 					if (seconds > 60) {
@@ -691,12 +757,16 @@
 					}
 					
 					if (flag === 0) { // total duration
-						bridge.data('trackTime').totalMinutes = minutes
-						bridge.data('trackTime').totalSeconds = seconds
+						bridge.data('time').totalMinutes = minutes
+						bridge.data('time').totalSeconds = seconds
 					}
 					else if (flag === 1) { // current position
-						bridge.data('trackTime').currMinutes = minutes;
-						bridge.data('trackTime').currSeconds = seconds;
+						bridge.data('time').currMinutes = minutes;
+						bridge.data('time').currSeconds = seconds;
+					}
+					else if(flag === -1){
+						bridge.data('time').snapShot.minutes = minutes;
+						bridge.data('time').snapShot.seconds = seconds;
 					}
 					else {
 						SwaggLog.error('Invalid flag passed to millsToTime()');	
@@ -705,7 +775,7 @@
 			
 			// displays ist and song title
 			showSongInfo : function() {
-				var loc_inst = PROPS;
+				var loc_inst = Props;
 				var song_ = loc_inst.songs[loc_inst.curr_song];
 				$('#swagg-player-song-info').html( "<p>" + song_.artist + "  <br/>" + song_.title + " </p>" );	
 			}

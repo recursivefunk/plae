@@ -29,7 +29,6 @@
     <label id="swagg-player-song-info">Loading...</label><br /><br/>
     <div id="swagg-player-list"></div> 
 </div><br/>
-<div id="swagg-player-data"></div>
 <div class="spacer"></div>
 </body>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
@@ -43,6 +42,9 @@ $(document).ready(function(){
 		playList: true,
 		debug: true,
 		html5Audio: false,
+		onSnapshot: function() {
+			//console.log($('#swagg-player-data').data('trackTime').snapShot.asString());
+		}
 	});
 });
 </script>
