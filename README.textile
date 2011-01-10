@@ -1,7 +1,9 @@
-I typically push out new code 2 or 3 times a week. If you'd like the last "stable" version please visit http://johnny-ray.com/swaggplayer.
+<h1>Swagg Player</h1>
+<h2>Cross browser javascript music player for the web! Works in IE 7,8,9, FF 3.5+, Chrome & Safari</h2>
+<p>I typically push out new code 2 or 3 times a week. If you'd like the last "stable" version please visit http://johnny-ray.com/swaggplayer.</p>
 
-Examples are included in index.html and text.html. Production examples can be found at http://johnny-ray.com and http://iamjray.com.
+Examples are included in index.html and text.html. Production examples can be found at <a href="http://johnny-ray.com">here</a> and <a href="http://iamjray.com">here</a>.
 
-The production examples cited above are typically anywhere between 1 and 10 (minor) versions behind what's in this repo. Feel free to contact me if you have any questions.
+<p>The production examples cited above are typically anywhere between 1 and 10 (minor) versions behind what's in this repo. Features and documentation for what's in the repo probably does not exist simply because it may or may not make it in the actual release or it may change in design. Feel free to contact me if you have any questions about features in the repo code that is not documented <a href="http://johnny-ray.com/swaggplayer">here</a>.</p>
 
-johnny@codeswagg.com
+johnny.ray02@gmail.com
