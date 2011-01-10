@@ -35,17 +35,37 @@
 <script type="text/javascript" src="js/swaggloader.js"></script>
 <script type="text/javascript">
 $(document).ready(function(){
+	var mysongs = 
+	[
+		{
+			"url": "sound/3.mp3",
+			"artist": "Artist 3",
+			"title": "Song 3",
+			"thumb": "images/music.jpg" 
+		},
+		{
+			"url": "sound/1.mp3",
+			"artist": "Artist1",
+			"title": "Song 1",
+			"thumb": "images/median.jpg" 
+		},
+		{
+			"url": "sound/2.mp3",
+			"artist": "Artist 2",
+			"title": "Song 2",
+			"thumb": "images/windowseat.jpg" 
+		}
+	];
+	
 	SwaggLoader.loadSwagg({
-		data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
+		data: mysongs,		// REQUIRED - path to your songs file JSON
 		buttonsDir: 'images/',			// optional - tells swagg player where to find your buttons
 		useArt: true,					// optional - using album? defaults to true
 		playList: true,
 		debug: true,
-		html5Audio: false,
-		onSnapshot: function() {
-			//console.log($('#swagg-player-data').data('trackTime').snapShot.asString());
-		}
+		html5Audio: false
 	});
+	
 });
 </script>
 </html>
