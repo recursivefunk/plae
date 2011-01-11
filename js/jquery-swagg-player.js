@@ -119,6 +119,7 @@
 			loaded: $('#swagg-player-loaded'),
 			song_info: $('#swagg-player-song-info'),
 			controls_div: $('#swagg-player-controls'),
+			loading: '<img src="loading.gif"></img>',
 			bridge_data: null			
 		};
 		
@@ -379,6 +380,19 @@
 									Controller.millsToTime(this.position, 1);
 									if(Data.config.whilePlaying !== undefined && jQuery.isFunction(Data.config.whilePlaying)){
 										Data.config.whilePlaying();
+									}
+								},
+								onbufferchange: function(){
+									var song_ = soundManager.getSoundById('song-' + i.toString());
+									if (this.isBuffering === true) {
+										if (song_.id === curr_song) {
+											Html.song_info.html('<img src="loading.gif" />');	
+										}
+									}
+									else {
+										if (song_.id === curr_song) {
+											Controller.showSongInfo();	
+										}
 									}
 								}
 							});
@@ -909,28 +923,33 @@
 			currMinutes:null,
 			currSeconds:null,
 			currTimeAsString: function(){
-				var currMin = (this.currMinutes > 9) ? this.currMinutes : '0' + 
-					this.currMinutes.toString();
-				var currSec = (this.currSeconds > 9) ? this.currSeconds : '0' + 
-					this.currSeconds.toString();	
-				return currMin + ':' + currSec;
+					var currMin = (this.currMinutes > 9) ? this.currMinutes : '0' + 
+						this.currMinutes.toString();
+					var currSec = (this.currSeconds > 9) ? this.currSeconds : '0' + 
+						this.currSeconds.toString();	
+					return currMin + ':' + currSec;
 			},
 			totalTimeAsString: function() {
-				var totalMin = (this.totalMinutes > 9) ? this.totalMinutes : '0' + 
-					this.totalMinutes.toString();
-				var totalSec = (this.totalSeconds > 9) ? this.totalSeconds : '0' + 
-					this.totalSeconds.toString();	
-				return totalMin + ':' + totalSec;	
+					var totalMin = (this.totalMinutes > 9) ? this.totalMinutes : '0' + 
+						this.totalMinutes.toString();
+					var totalSec = (this.totalSeconds > 9) ? this.totalSeconds : '0' + 
+						this.totalSeconds.toString();	
+					return totalMin + ':' + totalSec;	
 			},
 			snapShot:{
 				seconds:null,
 				minutes:null,
 				asString: function(){
-					var mins = (this.minutes > 9) ? this.minutes : '0' + 
-						this.minutes.toString();
-					var secs = (this.seconds > 9) ? this.seconds : '0' + 
-						this.seconds.toString();	
-					return mins + ':' + secs;							
+					if ( !isNaN(this.minutes) && !isNaN(this.seconds)) {
+						var mins = (this.minutes > 9) ? this.minutes : '0' + 
+							this.minutes.toString();
+						var secs = (this.seconds > 9) ? this.seconds : '0' + 
+							this.seconds.toString();	
+						return mins + ':' + secs;			
+					}
+					else {
+						return "calculating."	
+					}
 				}
 			}		
 		};
