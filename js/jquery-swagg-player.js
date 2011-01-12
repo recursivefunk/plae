@@ -7,11 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.6.5
+   v0.8.5.6.7
    
-   Change Log v0.8.5.6.5
-   - Major code refactoring
-   - Option to use literal JSON object for song data as opposed to remote .json file
+   Change Log v0.8.5.6.7
+   - Simplified external API access. Easier to use IMHO
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false, $: false */
@@ -69,24 +68,25 @@
 			config:{},
 			vol_interval:5,
 			interval_id:-1,
-			processSongs: function(data){
+			processSongs: function(theData){
 				SwaggLog.info('Successfully fetched songs from the server.');
-				var size = data.length;
+				var size = theData.length;
 				var _data_ = Data;
 				// preload song album  and append an IDs to the songs - make configurable in the future
 				// to avoid having to loop through JSON array
 				for (var i = 0; i < size; i++) {
 					if (_data_.config.useArt === true) {
-						data[i].image = new Image();
-						data[i].image.src = data[i].thumb;
+						theData[i].image = new Image();
+						theData[i].image.src = data[i].thumb;
 					}
-					data[i].id = i.toString();
+					theData[i].id = i.toString();
 				}
-				Data.songs = data;				
+				Data.songs = theData;				
 			},
 			
 			getSongs: function() {				
-				var theData = (Data.config.data !== undefined) ? Data.config.data : 'json/songs.json';
+				var theData = Data.config.data;
+				
 				
 				// Check if dataString points to a json file if so, fetch it.
 				// if not, assume string is a literal JSON object
@@ -306,7 +306,9 @@
 				
 				// create invisible element which will hold user accessible data
 				Html.player.append('<div id="swagg-player-data"></div>');
-				$('#swagg-player-data').css('display','none').data('time',Time).data('seekPreviewEvent',seekPreviewEvent);
+				$('#swagg-player-data').css('display','none').data('api', API);
+				//.data('time',Time).data('seekPreviewEvent',seekPreviewEvent);
+				//$('#swagg-player-data').data('currentSongData', currentData);
 				Html.bridge_data = $('#swagg-player-data');
 				
 				$('.swagg-player-button').css('cursor', 'pointer');
@@ -483,7 +485,7 @@
 						Controller.millsToTime(seekTo, -1);
 						// fire off onSeekPreview event
 						if (Data.config.onSeekPreview !== undefined && $.isFunction(Data.config.onSeekPreview)) {
-							seekPreviewEvent.event_ref = e;
+							API.seekPreviewEvent.event_ref = e;
 							Data.config.onSeekPreview();	
 						}				
 					}
@@ -506,6 +508,8 @@
 						target.pause();
 					}
 					else { // track is is not playing (it's in a stopped or uninitialized stated, play it
+						//currentSong().update();
+						API.currentSongData.update();
 						SwaggLog.info('Playing current track from beginning');
 						target.play();
 					}
@@ -648,14 +652,12 @@
 			
 			// resets the track time
 			resetTrackTime : function() {
-				var bridge = Html.bridge_data;
-				if (bridge !== undefined){
-					SwaggLog.info('Resetting track time');
-					bridge.data('time').totalMinutes = 0;
-					bridge.data('time').totalSeconds = 0;
-					bridge.data('time').currMinutes = 0;
-					bridge.data('time').currSeconds = 0;
-				}			
+				var api = API;
+				SwaggLog.info('Resetting track time');
+				api.time.totalMinutes = 0;
+				api.time.totalSeconds = 0;
+				api.time.currMinutes = 0;
+				api.time.currSeconds = 0;		
 			},
 			
 			// Stops the specified song
@@ -765,17 +767,17 @@
 					
 					// total duration
 					if (flag === 0) { 
-						bridge.data('time').totalMinutes = minutes
-						bridge.data('time').totalSeconds = seconds
+						API.time.totalMinutes = minutes
+						API.time.totalSeconds = seconds
 					}
 					// current position
 					else if (flag === 1) { 
-						bridge.data('time').currMinutes = minutes;
-						bridge.data('time').currSeconds = seconds;
+						API.time.currMinutes = minutes;
+						API.time.currSeconds = seconds;
 					}
 					else if(flag === -1){
-						bridge.data('time').snapShot.minutes = minutes;
-						bridge.data('time').snapShot.seconds = seconds;
+						API.time.preview.minutes = minutes;
+						API.time.preview.seconds = seconds;
 					}
 					else {
 						SwaggLog.error('Invalid flag passed to millsToTime()');	
@@ -789,6 +791,65 @@
 				$('#swagg-player-song-info').html( "<p>" + song_.artist + "  <br/>" + song_.title + " </p>" );	
 			}
 		};
+
+		// external API devs can use to extend Swagg Player. Exposes song data, events etc
+		var API = {
+			
+			time : {
+				totalMinutes:null,
+				totalSeconds:null,
+				currMinutes:null,
+				currSeconds:null,
+				currTimeAsString: function(){
+					var currMin = (this.currMinutes > 9) ? this.currMinutes : '0' + 
+						this.currMinutes.toString();
+					var currSec = (this.currSeconds > 9) ? this.currSeconds : '0' + 
+						this.currSeconds.toString();	
+					return currMin + ':' + currSec;
+				},
+				
+				totalTimeAsString: function() {
+						var totalMin = (this.totalMinutes > 9) ? this.totalMinutes : '0' + 
+							this.totalMinutes.toString();
+						var totalSec = (this.totalSeconds > 9) ? this.totalSeconds : '0' + 
+							this.totalSeconds.toString();	
+						return totalMin + ':' + totalSec;	
+				},
+				
+				preview:{
+					seconds:null,
+					minutes:null,
+					asString: function(){
+						if ( !isNaN(this.minutes) && !isNaN(this.seconds)) {
+							var mins = (this.minutes > 9) ? this.minutes : '0' + 
+								this.minutes.toString();
+							var secs = (this.seconds > 9) ? this.seconds : '0' + 
+								this.seconds.toString();	
+							return mins + ':' + secs;			
+						}
+						else {
+							return "calculating"	
+						}
+					}
+				}		
+			},
+			
+			seekPreviewEvent : {
+				event_ref:null
+			},
+			
+			currentSongData : {				
+				currTitle:null,
+				currArtist:null,
+				currAlbum:null,
+				update : function() {
+					this.currTitle = Data.songs[Data.curr_song].title;
+					this.currArtist = Data.songs[Data.curr_song].artist;
+					this.currAlbum = Data.songs[Data.curr_song].album;	
+					SwaggLog.info('Current song: [' + this.currArtist + '] [' + this.currTitle + '] [' + this.currAlbum + ']'  );					
+				} // end update()
+			} // end currentSongData
+		}; // end API 
 		
 		/*
 			BROWSER DETECT SCRIPT FROM: http://www.quirksmode.org/js/detect.html
@@ -915,48 +976,6 @@
 					}
 				]
 		};
-		
-		// track time data
-		var Time = {
-			totalMinutes:null,
-			totalSeconds:null,
-			currMinutes:null,
-			currSeconds:null,
-			currTimeAsString: function(){
-					var currMin = (this.currMinutes > 9) ? this.currMinutes : '0' + 
-						this.currMinutes.toString();
-					var currSec = (this.currSeconds > 9) ? this.currSeconds : '0' + 
-						this.currSeconds.toString();	
-					return currMin + ':' + currSec;
-			},
-			totalTimeAsString: function() {
-					var totalMin = (this.totalMinutes > 9) ? this.totalMinutes : '0' + 
-						this.totalMinutes.toString();
-					var totalSec = (this.totalSeconds > 9) ? this.totalSeconds : '0' + 
-						this.totalSeconds.toString();	
-					return totalMin + ':' + totalSec;	
-			},
-			snapShot:{
-				seconds:null,
-				minutes:null,
-				asString: function(){
-					if ( !isNaN(this.minutes) && !isNaN(this.seconds)) {
-						var mins = (this.minutes > 9) ? this.minutes : '0' + 
-							this.minutes.toString();
-						var secs = (this.seconds > 9) ? this.seconds : '0' + 
-							this.seconds.toString();	
-						return mins + ':' + secs;			
-					}
-					else {
-						return "calculating."	
-					}
-				}
-			}		
-		};
-		
-		var seekPreviewEvent = {
-			event_ref:null,
-		}
 		
 		// initialize and configure SM2
 		var initializeSoundManager = function() {

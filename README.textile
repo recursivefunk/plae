@@ -4,6 +4,7 @@
 
 Examples are included in index.html and text.html. Production examples can be found at <a href="http://johnny-ray.com">here</a> and <a href="http://iamjray.com">here</a>.
 
-<p>The production examples cited above are typically anywhere between 1 and 10 (minor) versions behind what's in this repo. Features and documentation for what's in the repo probably does not exist simply because it may or may not make it in the actual release or it may change in design. Feel free to contact me if you have any questions about features in the repo code that is not documented <a href="http://johnny-ray.com/swaggplayer">here</a>.</p>
+<p>The production examples cited above are typically anywhere between 1 and 10 (minor) versions ahead of what's downloadable at at the Swagg Player homepage. Documentation for some features found in the repo (and on my website) probably does not exist simply because it may or may not make it in the actual release or it may change substantially in design. 
+I try and keep the bleeding edge (un-documented) version on my web site to get some real world testing and to see if certain features "make sense". Feel free to contact me if you have any questions about features in the repo code that are not documented <a href="http://johnny-ray.com/swaggplayer">here</a>.</p>
 
 johnny.ray02@gmail.com
