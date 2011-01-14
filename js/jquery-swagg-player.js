@@ -16,7 +16,7 @@
 		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false, $: false */
 		
 		// logging utility
-		var SwaggLog = {
+		var LOGGER = {
 			error: function(errMsg){
 				if (Data.config.debug === true) {
 					console.log( new Date().formatMMDDYYYY() + ' Swagg Player::Error::' + errMsg);
@@ -69,7 +69,7 @@
 			vol_interval:5,
 			interval_id:-1,
 			processSongs: function(theData){
-				SwaggLog.info('Successfully fetched songs from the server.');
+				LOGGER.info('Successfully fetched songs from the server.');
 				var size = theData.length;
 				var _data_ = Data;
 				// preload song album  and append an IDs to the songs - make configurable in the future
@@ -99,7 +99,7 @@
 							Data.processSongs(data);
 						},
 						error: function(xhr, ajaxOptions, thrownError){
-							SwaggLog.error('There was a problem fetching your songs from the server: ' + thrownError);
+							LOGGER.error('There was a problem fetching your songs from the server: ' + thrownError);
 						}
 					});	
 				} // end if
@@ -134,7 +134,7 @@
 		
 		var Events = {
 			bindControllerEvents: function(){
-				SwaggLog.info('Binding controller button events');
+				LOGGER.info('Binding controller button events');
 				var inst = Data;
 				var _images = ImageLoader.imagesLoaded;
 				var i = inst.img;
@@ -209,7 +209,7 @@
 			},
 			
 			bindMediaKeyEvents: function() {
-				SwaggLog.info('Binding media key events');			
+				LOGGER.info('Binding media key events');			
 				$(document).keydown(function(e) {
 	
 					if (!e) e = window.event;
@@ -258,7 +258,7 @@
 			imagesLoaded:false,
 			
 			loadButtonImages: function(imagesDir) {
-				SwaggLog.info('Loading images for controls...');
+				LOGGER.info('Loading images for controls...');
 				this.play = new Image();
 				this.play.src = imagesDir + 'play.png';
 				
@@ -299,15 +299,13 @@
 				Data.config = $.extend(Data.config,config);	
 				
 				// format date for log messages
-				SwaggLog.formatDate();
+				LOGGER.formatDate();
 				// get songs from server via XHR
 				Data.getSongs();
 				
 				// create invisible element which will hold user accessible data
 				Html.player.append('<div id="swagg-player-data"></div>');
 				$('#swagg-player-data').css('display','none').data('api', API);
-				//.data('time',Time).data('seekPreviewEvent',seekPreviewEvent);
-				//$('#swagg-player-data').data('currentSongData', currentData);
 				Html.bridge_data = $('#swagg-player-data');
 				
 				$('.swagg-player-button').css('cursor', 'pointer');
@@ -317,10 +315,10 @@
 					config.debug = false; 
 				}
 				if (!soundManager.supported()) {
-					SwaggLog.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
+					LOGGER.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
 				}
 				else {
-					SwaggLog.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
+					LOGGER.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
 				}
 					
 				// check if we're using button images. if so, preload them. if not, ignore.
@@ -334,7 +332,7 @@
 				
 				// configure soundManager, create song objects, and hook event listener actions
 				soundManager.createSongs = function() {
-					SwaggLog.info('createSongs()');
+					LOGGER.info('createSongs()');
 					if(Data.songs[0] !== undefined) {
 						clearInterval(Data.interval_id);
 						var songs_ = Data.songs;
@@ -396,7 +394,7 @@
 						}
 						Controller.setupSeek();
 						Controller.showSongInfo();
-						SwaggLog.info("Swagg Player ready!");
+						LOGGER.info("Swagg Player ready!");
 					}
 				};
 			
@@ -409,14 +407,14 @@
 				
 				// if there's an error loading sound manager, try a reboot
 				soundManager.onerror = function() {
-				  SwaggLog.error('An error has occured with loading Sound Manager! Rebooting.');
+				  LOGGER.error('An error has occured with loading Sound Manager! Rebooting.');
 				  soundManager.flashLoadTimeout = 0;
 				  clearInterval(Data.interval_id);
 				  soundManager.url = 'swf';
 				  setTimeout(soundManager.reboot,20);
 				  setTimeout(function() {
 					if (!soundManager.supported()) {
-					  SwaggLog.error('Something went wrong with loading Sound Manager. No tunes for you!');
+					  LOGGER.error('Something went wrong with loading Sound Manager. No tunes for you!');
 					}
 				  },1500);
 				}
@@ -483,23 +481,21 @@
 			// Plays a song based on the ID
 			play : function(caller, track){
 				var sound_id = 'song-' + track
-				SwaggLog.info('Playing track: ' + sound_id + '. Oh and ' + caller + ' called me!');
+				LOGGER.info('Playing track: ' + sound_id + '. Oh and ' + caller + ' called me!');
 				var target = soundManager.getSoundById(sound_id);
 				
 				if (target.paused === true) { // if current track is paused, unpause
-					SwaggLog.info('Unpausing song');
+					LOGGER.info('Unpausing song');
 					target.resume();
 				}
 				else { // track is not paused
 					if (target.playState === 1) {// if track is already playing, pause it
-						SwaggLog.info('Pausing current track');
+						LOGGER.info('Pausing current track');
 						target.pause();
 					}
 					else { // track is is not playing (it's in a stopped or uninitialized stated, play it
-						//currentSong().update();
-						//API.currentSongData.update();
-						API.song.data().update();
-						SwaggLog.info('Playing current track from beginning');
+						internal.update();
+						LOGGER.info('Playing current track from beginning');
 						target.play();
 					}
 				}
@@ -508,7 +504,7 @@
 			
 			// Dynamically creates playlist items as songs are loaded
 			createElement : function(soundobj){
-				SwaggLog.info('createElement()');
+				LOGGER.info('createElement()');
 				var song = Data.songs[parseInt(soundobj.id.split('-')[1])];
 				var id = 'item-' + song.id;
 				var listItem = $('<li></li>');
@@ -542,7 +538,7 @@
 			
 			// toggles the play/pause button to the play state
 			playPauseButtonState : function(state){
-				SwaggLog.info('PlayButtonState() state: ' + state);
+				LOGGER.info('PlayButtonState() state: ' + state);
 				var inst = Data;
 				var i = inst.img;
 				var imagesLoaded = ImageLoader.imagesLoaded;
@@ -571,7 +567,7 @@
 
 				}
 				else { // invalid state
-					SwaggLog.error('Invalid button state! : ' + state);	
+					LOGGER.error('Invalid button state! : ' + state);	
 					return false;
 				};
 				if (imagesLoaded === true) {
@@ -591,7 +587,7 @@
 			// Skips to the next song. If the currently playing song is the last song in the list
 			// it goes back to the first song
 			skip : function(direction){
-				SwaggLog.info('skip()');
+				LOGGER.info('skip()');
 				var inst = Data;
 				//var songs_ = inst.songs;	
 				var t = inst.curr_song;
@@ -613,7 +609,7 @@
 					}
 				}
 				else { // invalid flag
-					SwaggLog.error('Invalid skip direction flag: ' + direction);
+					LOGGER.error('Invalid skip direction flag: ' + direction);
 					return false;	
 				}
 				Controller.stopMusic(t);
@@ -641,14 +637,13 @@
 			
 			// resets the track time
 			resetTrackTime : function() {
-				SwaggLog.info('Resetting track time');
-				//API.song.time().fillTime(0,0,0,0);
+				LOGGER.info('Resetting track time');
 				internal.fillTime(0,0,0,0);
 			},
 			
 			// Stops the specified song
 			stopMusic : function(track) {
-				SwaggLog.info('stopMusic()');
+				LOGGER.info('stopMusic()');
 				soundManager.stopAll();
 				Controller.resetProgressBar();
 				Controller.resetTrackTime();
@@ -662,21 +657,21 @@
 				var curr_vol = sound.volume;
 
 				if (flag === 1) {
-					SwaggLog.info('Vol up');
+					LOGGER.info('Vol up');
 					soundManager.setVolume(sound_id, curr_vol + Data.vol_interval);
 				}
 				else if (flag === 0) {
-					SwaggLog.info('Vol down');
+					LOGGER.info('Vol down');
 					soundManager.setVolume(sound_id, curr_vol - Data.vol_interval);
 				}
 				else {
-					SwaggLog.info('Invalid volume flag!');	
+					LOGGER.info('Invalid volume flag!');	
 				}
 			},
 			
 			// switches to the currently playing song's album  using fancy jquery slide effect
 			switchArt : function(track, afterEffect) {
-				SwaggLog.info('Will show  for song at index: ' + track);
+				LOGGER.info('Will show  for song at index: ' + track);
 				var sound_id = 'song-' + track
 				var art = Html.art;
 
@@ -754,20 +749,17 @@
 					
 					// total duration
 					if (flag === 0) { 
-						//API.song.time().fillTotalTime(minutes,seconds);
 						internal.fillTotalTime(minutes,seconds);
 					}
 					// current position
 					else if (flag === 1) { 
-						//API.song.time().fillCurrentTime(minutes,seconds);
 						internal.fillCurrentTime(minutes,seconds);
 					}
 					else if(flag === -1){
-						//API.song.time().fillPreview(minutes,seconds);
 						internal.fillPreview(minutes,seconds);
 					}
 					else {
-						SwaggLog.error('Invalid flag passed to millsToTime()');	
+						LOGGER.error('Invalid flag passed to millsToTime()');	
 					}
 			},
 			
@@ -787,12 +779,23 @@
 			seconds:null,
 			minutes:null,
 			event_ref:null,
-			fillTime : function(tMins, tSecs, cMins, tSecs) {
+			currTitle:null,
+			currArtist:null,
+			currAlbum:null,	
+			
+			update : function() {
+				this.currTitle = Data.songs[Data.curr_song].title;
+				this.currArtist = Data.songs[Data.curr_song].artist;
+				this.currAlbum = Data.songs[Data.curr_song].album;	
+				LOGGER.info('Current song: [' + this.currArtist + '] [' + this.currTitle + '] [' + this.currAlbum + ']'  );	
+			},	
+			
+			fillTime : function(tMins, tSecs, cMins, cSecs) {
 				var i = internal;
 				this.totalMinutes = tMins;
 				this.totalSeconds = tSecs;
 				this.currMinutes = cMins;
-				this.currSeconds = tSecs;
+				this.currSeconds = cSecs;
 			},
 						
 			fillTotalTime : function(tMins, tSecs) {
@@ -816,7 +819,7 @@
 
 		// external API devs can use to extend Swagg Player. Exposes song data, events etc
 		var API = {
-			song : {
+			currentSong : {
 				time : function() {
 				
 					var privateFuncs = {
@@ -854,37 +857,27 @@
 							else {
 								return "wait."	
 							}							
-						} // end as string
-						
+						}, // end as string
+						title : function() {
+							return (internal.currTitle !== null) ? internal.currTitle : 'Unknown Title';	
+						},
+						artist : function() {
+							return (internal.currArtist !== null) ? internal.currArtist : 'Unknown Artist';	
+						},
+						album : function() {
+							return (internal.currAlbum !== null) ? internal.currAlbum : 'Unknown Album';	
+						}
 					};
 					
+					// public methods
 					return {
 						previewAsString	:	privateFuncs.previewAsString,
-						getEvent		:	privateFuncs.getEventRef,
+						getSeekEvent	:	privateFuncs.getEventRef,
 						getCurrTimeAsString	:	privateFuncs.currTimeAsString,
-						getTotalTimeAsString:	privateFuncs.totalTimeAsString
-					};
-				}, // end time
-				
-				data : function() {
-					var private = {
-						currTitle:null,
-						currArtist:null,
-						currAlbum:null,						
-					};
-					
-					var privateFuncs = {
-						update : function() {
-							var that = private;
-							private.currTitle = Data.songs[Data.curr_song].title;
-							private.currArtist = Data.songs[Data.curr_song].artist;
-							private.currAlbum = Data.songs[Data.curr_song].album;	
-							SwaggLog.info('Current song: [' + private.currArtist + '] [' + private.currTitle + '] [' + private.currAlbum + ']'  );	
-						}
-					}; // end privateFuncs
-					
-					return {
-						update : privateFuncs.update
+						getTotalTimeAsString:	privateFuncs.totalTimeAsString,
+						getTitle	: 	privateFuncs.title,
+						getArtist	:	privateFuncs.artist,
+						getAlbum	:	privateFuncs.album
 					};
 				}
 			} // end song
@@ -977,7 +970,7 @@
 		
 		// initialize and configure SM2
 		var initializeSoundManager = function() {
-			SwaggLog.info('Initializing SoundManager2');
+			LOGGER.info('Initializing SoundManager2');
 			window.soundManager = new SoundManager();
 			soundManager.wmode = 'transparent'
 			soundManager.url = 'swf';
