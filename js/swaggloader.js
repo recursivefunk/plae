@@ -2,14 +2,16 @@
 This is a loader script for Swagg Player. It loads Swagg Player and SoundManager asynchronously
 so that the UI doesn't get blocked
 */
-SwaggLoader = (function($) {
-	var swaggProps, load_interval, swagg_interval;
+var SwaggLoader = (function($) {
+	var swaggProps;
+	var load_interval;
+	var swagg_interval;
 	
 	get_swagg_player =
 	{
 		init: function()
 		{
-			if(jQuery)
+			if(typeof jQuery !== 'undefined')
 			{
 				clearInterval(SwaggLoader.load_interval);
 				var swagg_script = $('<script></script>');
@@ -17,6 +19,7 @@ SwaggLoader = (function($) {
 				swagg_script.attr('src', 'js/jquery-swagg-player.js');
 				swagg_script.attr('async', 'true');
 				$('head').append(swagg_script);
+				SwaggLoader.swagg_interval = setInterval("this.swagg_player.init();", 5);
 			}
 		}
 	};
@@ -25,9 +28,9 @@ SwaggLoader = (function($) {
 	{
 		init: function()
 		{
-			if(typeof soundManager !== undefined)
+			if(typeof soundManager !== 'undefined' && jQuery.isFunction($('#swagg-player').SwaggPlayer))
 			{
-				clearInterval(SwaggLoader.swagg_interval);		
+				clearInterval(SwaggLoader.swagg_interval);	
 				$('#swagg-player').SwaggPlayer(SwaggLoader.swaggProps);	
 			}
 		}
@@ -46,8 +49,7 @@ SwaggLoader = (function($) {
 				sm_script.attr('id','soundManagerTag');
 				$('head').append(sm_script);
 			}();
-			this.load_interval = setInterval("this.get_swagg_player.init()", 5);
-			this.swagg_interval = setInterval("this.swagg_player.init()", 5);
+			this.load_interval = setInterval("get_swagg_player.init();", 5);		
 		}
 	};
 }(jQuery));

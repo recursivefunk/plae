@@ -7,13 +7,15 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.6.8
+   v0.8.5.6.9
    
-   Change Log v0.8.5.6.8
-   - API refactoring
+   Change Log v0.8.5.6.9
+   - IE7 bug fix
+   - Safari bug fix
+   - Removed BrowserDetect dependency
 */
 (function ($){
-		/*global soundManager: false, setInterval: false, console: false, BrowserDetect: false, $: false */
+		/*global soundManager: false, setInterval: false, console: false, $: false */
 		
 		// logging utility
 		var LOGGER = {
@@ -77,7 +79,7 @@
 				for (var i = 0; i < size; i++) {
 					if (_data_.config.useArt === true) {
 						theData[i].image = new Image();
-						theData[i].image.src = data[i].thumb;
+						theData[i].image.src = theData[i].thumb;
 					}
 					theData[i].id = i.toString();
 				}
@@ -129,7 +131,7 @@
 			pause:	$('#swagg-player-pause-button'),
 			skip:	$('#swagg-player-skip-button'),
 			back:	$('#swagg-player-back-button'),
-			stop:	$('#swagg-player-stop-button') ,			
+			stop:	$('#swagg-player-stop-button')			
 		};
 		
 		var Events = {
@@ -311,7 +313,7 @@
 				$('.swagg-player-button').css('cursor', 'pointer');
 				
 				// Sometimes, IE doesn't like the console object so, for now there is no debugging in IE
-				if (BrowserDetect.browser === 'Explorer' && config.debug === true){
+				if (Browser.isIe() && config.debug === true){
 					config.debug = false; 
 				}
 				if (!soundManager.supported()) {
@@ -326,7 +328,7 @@
 					ImageLoader.loadButtonImages(config.buttonsDir);	
 				}
 				
-				if (Data.config.html5Audio === true && BrowserDetect.browser !== 'Safari') { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
+				if (Data.config.html5Audio === true && Browser.isSafari() === false) { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
 					soundManager.useHTML5Audio = true;
 				}
 				
@@ -400,9 +402,9 @@
 			
 				// init soundManager
 				soundManager.onload =  function() {
-					Data.interval_id = setInterval('soundManager.createSongs()', 5); // try to init sound manager every 5 milliseconds in case songs AJAX callback
-																						// has not completed execution	
-
+					// try to init sound manager every 5 milliseconds in case songs AJAX callback
+					// has not completed execution	
+					Data.interval_id = setInterval('soundManager.createSongs()', 5); 
 				}; // end soundManager onload function	
 				
 				// if there's an error loading sound manager, try a reboot
@@ -535,6 +537,7 @@
 				});
 				Html.playlist.append(listItem);
 			},
+
 			
 			// toggles the play/pause button to the play state
 			playPauseButtonState : function(state){
@@ -820,10 +823,10 @@
 		// external API devs can use to extend Swagg Player. Exposes song data, events etc
 		var API = {
 			currentSong : {
-				time : function() {
-				
+				time : function() {			
 					var privateFuncs = {
 						currTimeAsString : function(){
+
 							var i = internal;
 							var currMin = (i.currMinutes > 9) ? i.currMinutes : '0' + 
 								i.currMinutes.toString();
@@ -881,92 +884,18 @@
 					};
 				}
 			} // end song
-		} // end API
+		}; // end API
 		
-		/*
-			BROWSER DETECT SCRIPT FROM: http://www.quirksmode.org/js/detect.html
-		*/		
-		var BrowserDetect = {
-			
-			init: function () {
-				this.browser = this.searchString(this.dataBrowser) || "An unknown browser";
-				this.version = this.searchVersion(navigator.userAgent)
-					|| this.searchVersion(navigator.appVersion)
-					|| "an unknown version";
-				this.OS = this.searchString(this.dataOS) || "an unknown OS";
-			},
-			searchString: function (data) {
-				for (var i=0;i<data.length;i++)	{
-					var dataString = data[i].string;
-					var dataProp = data[i].prop;
-					this.versionSearchString = data[i].versionSearch || data[i].identity;
-
-					if (dataString) {
-						if (dataString.indexOf(data[i].subString) != -1)
-							return data[i].identity;
-					}
-					else if (dataProp)
-						return data[i].identity;
-				}
-			},
-			searchVersion: function (dataString) {
-				var index = dataString.indexOf(this.versionSearchString);
-				if (index == -1) return;
-				return parseFloat(dataString.substring(index+this.versionSearchString.length+1));
-			},
 		
-			dataBrowser: [
-					{
-						string: navigator.userAgent,
-						subString: "GoogleTV",
-						identity: "GoogleTV"
-					},
-					{
-						string: navigator.userAgent,
-						subString: "Chrome",
-						identity: "Chrome"
-					},
-					{
-						string: navigator.vendor,
-						subString: "Apple",
-						identity: "Safari",
-						versionSearch: "Version"
-					},
-					{
-						string: navigator.userAgent,
-						subString: "Firefox",
-						identity: "Firefox"
-					},
-					{
-						string: navigator.userAgent,
-						subString: "MSIE",
-						identity: "Explorer",
-						versionSearch: "MSIE"
-					}
-				],
-				dataOS : [
-					{
-						string: navigator.platform,
-						subString: "Win",
-						identity: "Windows"
-					},
-					{
-						string: navigator.platform,
-						subString: "Mac",
-						identity: "Mac"
-					},
-					{
-						   string: navigator.userAgent,
-						   subString: "iPhone",
-						   identity: "iPhone/iPod"
-					},
-					{
-						string: navigator.platform,
-						subString: "Linux",
-						identity: "Linux"
-					}
-				]
-		};
+		//	BEGIN BROWSER DETECT
+		var Browser = {
+			isIe : function(){
+				return (navigator.userAgent.indexOf('MSIE') > -1) ? true : false;
+			},
+			isSafari : function(){
+				return (navigator.userAgent.indexOf('AppleWebKit') > -1 && navigator.userAgent.indexOf('Chrome') === -1);
+			}
+		}; // END BROWSER DETECT
 		
 		// initialize and configure SM2
 		var initializeSoundManager = function() {
@@ -976,10 +905,14 @@
 			soundManager.url = 'swf';
 			soundManager.allowPolling = true;
 			soundManager.useFastPolling = true;
-			soundManager.useHighPerformance = true;
+			if (Browser.isSafari()) {
+				soundManager.useHighPerformance = false;
+			}
+			else {
+				soundManager.useHighPerformance = true;	
+			}
 			soundManager.flashLoadTimeout = 1000;
     		soundManager.beginDelayedInit();
-			
 		};
 						
 		$.fn.SwaggPlayer = function(options_) {

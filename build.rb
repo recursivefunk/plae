@@ -47,8 +47,8 @@ def stripBrowserDetect(baseFile, newFile)
 end
 
 stripLog("js/jquery-swagg-player.js", "js/jquery-swagg-player-nodebug.js")
-stripBrowserDetect("js/jquery-swagg-player.js", "js/jquery-swagg-player-nobrowserdetect.js")
-stripLog("js/jquery-swagg-player-nobrowserdetect.js", "js/jquery-swagg-player-nodebug-nobrowserdetect.js")
+#stripBrowserDetect("js/jquery-swagg-player.js", "js/jquery-swagg-player-nobrowserdetect.js")
+#stripLog("js/jquery-swagg-player-nobrowserdetect.js", "js/jquery-swagg-player-nodebug-nobrowserdetect.js")
 
 # ============================== minifiy =========================================
 
@@ -59,8 +59,8 @@ system "juicer merge -i --force js/jquery-swagg-player.js"
 puts "Comporessing Swagg Player (No Logging)"
 system "juicer merge -i --force js/jquery-swagg-player-nodebug.js"
 
-puts "Compressing Swagg Player (No Logging and no BrowserDetect)"
-system "juicer merge -i --force js/jquery-swagg-player-nodebug-nobrowserdetect.js"
+#puts "Compressing Swagg Player (No Logging and no BrowserDetect)"
+#system "juicer merge -i --force js/jquery-swagg-player-nodebug-nobrowserdetect.js"
 
 puts "Done!"
 
