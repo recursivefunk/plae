@@ -7,12 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.6.9
+   v0.8.5.7
    
-   Change Log v0.8.5.6.9
-   - IE7 bug fix
-   - Safari bug fix
-   - Removed BrowserDetect dependency
+   Change Log v0.8.5.7
+   - Added ability to configure and access song tempo {slow | fast | medium}
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, $: false */
@@ -79,7 +77,7 @@
 				for (var i = 0; i < size; i++) {
 					if (_data_.config.useArt === true) {
 						theData[i].image = new Image();
-						theData[i].image.src = theData[i].thumb;
+						theData[i].image.src = data[i].thumb;
 					}
 					theData[i].id = i.toString();
 				}
@@ -784,13 +782,15 @@
 			event_ref:null,
 			currTitle:null,
 			currArtist:null,
-			currAlbum:null,	
+			currAlbum:null,
+			currTempo:null,	
 			
 			update : function() {
 				this.currTitle = Data.songs[Data.curr_song].title;
 				this.currArtist = Data.songs[Data.curr_song].artist;
 				this.currAlbum = Data.songs[Data.curr_song].album;	
-				LOGGER.info('Current song: [' + this.currArtist + '] [' + this.currTitle + '] [' + this.currAlbum + ']'  );	
+				this.currTempo = Data.songs[Data.curr_song].tempo;
+				LOGGER.info('Current song: [' + this.currArtist + '] [' + this.currTitle + '] [' + this.currTempo + ']'  );	
 			},	
 			
 			fillTime : function(tMins, tSecs, cMins, cSecs) {
@@ -869,6 +869,9 @@
 						},
 						album : function() {
 							return (internal.currAlbum !== null) ? internal.currAlbum : 'Unknown Album';	
+						},
+						tempo : function(){
+							return (internal.currTempo !== null) ? internal.currTempo : 'Unknown Tempo'; 	
 						}
 					};
 					
@@ -880,7 +883,8 @@
 						getTotalTimeAsString:	privateFuncs.totalTimeAsString,
 						getTitle	: 	privateFuncs.title,
 						getArtist	:	privateFuncs.artist,
-						getAlbum	:	privateFuncs.album
+						getAlbum	:	privateFuncs.album,
+						getTempo	:	privateFuncs.tempo
 					};
 				}
 			} // end song
