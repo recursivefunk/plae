@@ -1,5 +1,5 @@
 <h1>Swagg Player</h1>
-<h2>Cross browser javascript music player for the web! Works in IE 7,8,9, FF 3.5+, Chrome & Safari</h2>
+<h2>Cross browser javascript music player for the web! Works in IE 7,8,9, FF 3.5+ (but not 4), Chrome & Safari</h2>
 <p>I typically push out new code 2 or 3 times a week. If you'd like the last "stable" version please visit http://johnny-ray.com/swaggplayer.</p>
 
 <h2>Building Swagg Player</h2>
@@ -10,7 +10,7 @@ A ruby build script is included which will create 3 additional versions of Swagg
     <li>jquery-swagg-player-nodebug.js (Swagg Player with no log statements. 'debug' option does nothing.)</li>
     <li>jquery-swagg-player-nodebug.min.js (minified Swagg Player with no log statements. 'debug' option does nothing.)</li>
 </ul>
-<p>I HIGHLY recommend enabling gzip on your server for JavaScript as jquery.swagg-player-nodebug.min.js is a little less than 4KB when gzipped! The build is fairly dumb right now assumes assumes swagg player is in a child directory named 'js' and outputs all created files to that directory as well. If you'd like to run the build script yourself you'll need the following:</p>
+<p>I HIGHLY recommend enabling gzip on your server for JavaScript as jquery.swagg-player-nodebug.min.js is a little less than 4KB when gzipped! The build is fairly dumb right now and assumes swagg player is in a child directory named 'js' and outputs all created files to that directory as well. If you'd like to run the build script yourself you'll need the following:</p>
 <ul>
 	<li><a href="http://www.ruby-lang.org/en/">Ruby</a></li>
     <li><a href="http://cjohansen.no/en/ruby/juicer_a_css_and_javascript_packaging_tool">Juicer</a></li>
