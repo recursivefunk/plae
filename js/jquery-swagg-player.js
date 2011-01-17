@@ -7,10 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.7
+   v0.8.5.7.1
    
-   Change Log v0.8.5.7
-   - Added ability to configure and access song tempo {slow | fast | medium}
+   Change Log v0.8.5.7.1
+   - added autoplay functionality
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, $: false */
@@ -69,7 +69,7 @@
 			vol_interval:5,
 			interval_id:-1,
 			processSongs: function(theData){
-				LOGGER.info('Successfully fetched songs from the server.');
+				LOGGER.info('Processing songs.');
 				var size = theData.length;
 				var _data_ = Data;
 				// preload song album  and append an IDs to the songs - make configurable in the future
@@ -77,7 +77,7 @@
 				for (var i = 0; i < size; i++) {
 					if (_data_.config.useArt === true) {
 						theData[i].image = new Image();
-						theData[i].image.src = data[i].thumb;
+						theData[i].image.src = theData[i].thumb;
 					}
 					theData[i].id = i.toString();
 				}
@@ -91,6 +91,7 @@
 				// Check if dataString points to a json file if so, fetch it.
 				// if not, assume string is a literal JSON object
 				if (typeof theData === 'string') {
+					LOGGER.info('Fetching songs from the server.');
 					$.ajax({
 						type: "GET",
 						url: theData,
@@ -393,7 +394,14 @@
 							Html.art.attr('src',songs_[Data.curr_song].image.src); 
 						}
 						Controller.setupSeek();
-						Controller.showSongInfo();
+						if(Data.config.autoPlay !== 'undefined' && Data.config.autoPlay === true) {
+						setTimeout(function(){
+								Controller.play('',Data.curr_song);
+							},3000);
+						}
+						else {
+							Controller.showSongInfo();
+						}
 						LOGGER.info("Swagg Player ready!");
 					}
 				};
