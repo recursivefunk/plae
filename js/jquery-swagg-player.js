@@ -7,10 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.7.1
+   v0.8.5.7.3
    
-   Change Log v0.8.5.7.1
-   - added autoplay functionality
+   Change Log v0.8.5.7.3
+   - added onSetupComplete event handler
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, $: false */
@@ -121,7 +121,25 @@
 			song_info: $('#swagg-player-song-info'),
 			controls_div: $('#swagg-player-controls'),
 			loading: '<img src="loading.gif"></img>',
-			bridge_data: null			
+			bridge_data: null,
+			
+			setupProgressBar : function() {
+				LOGGER.info('SetupProgressBar()');
+				if ($('#swagg-player-progress-wrapper')) {
+					LOGGER.info('ok');
+					var wrapper = $('#swagg-player-progress-wrapper');
+					var height = wrapper.css('height');
+					loaded = $('<div id="swagg-player-loaded"></div>');
+					loaded.css('height', height).css('width',0).css('float','left').css('margin-left','0');
+					wrapper.append(loaded);
+					Html.loaded = loaded;
+					
+					var progress = $('<div id="swagg-player-bar"></div>');
+					progress.css('height', height).css('width',0).css('float','left').css('margin-left','auto');
+					loaded.append(progress);
+					Html.bar = progress;
+				}
+			}
 		};
 		
 		// encapsulate controlls
@@ -241,6 +259,52 @@
 							return false;
 					}
 				});				
+			},
+			
+			setupSeek : function() {
+				// seek to a position in the song
+				Html.loaded.css('cursor', 'pointer').bind({
+					click : function(e) {
+						var id = 'song-' + Data.curr_song;
+						var soundobj = soundManager.getSoundById(id);
+						var x = e.pageX - this.offsetLeft;
+						
+						var duration = Controller.getDuration(soundobj);
+						
+						// obtain the position clicked by the user
+						var newPosPercent = x / parseFloat(Html.progress_wrapper.css('width')); 
+						
+						// find the position within the song the location clicked correspondes to
+						var seekTo = Math.round(newPosPercent * duration);
+
+						soundobj.setPosition(seekTo);
+					}
+				});
+				
+				// seek preview data
+				Html.loaded.bind( 'mouseover hover mousemove', 
+					function(e){
+						var id = 'song-' + Data.curr_song;
+						var soundobj = soundManager.getSoundById(id);
+						var x = e.pageX - this.offsetLeft;
+						
+						var duration = Controller.getDuration(soundobj);
+						
+						// obtain the position clicked by the user
+						var newPosPercent = x / parseFloat(Html.progress_wrapper.css('width')); 
+						
+						// find the position within the song the location clicked correspondes to
+						var seekTo = Math.round(newPosPercent * duration);
+
+						Controller.millsToTime(seekTo, -1);
+						
+						// fire off onSeekPreview event
+						if (Data.config.onSeekPreview !== undefined && $.isFunction(Data.config.onSeekPreview)) {
+							internal.event_ref = e;
+							Data.config.onSeekPreview();	
+						}				
+					}
+				);	
 			}
 		};
 		
@@ -303,7 +367,7 @@
 				LOGGER.formatDate();
 				// get songs from server via XHR
 				Data.getSongs();
-				
+				Html.setupProgressBar();
 				// create invisible element which will hold user accessible data
 				Html.player.append('<div id="swagg-player-data"></div>');
 				$('#swagg-player-data').css('display','none').data('api', API);
@@ -378,8 +442,8 @@
 								whileplaying: function(){
 									Controller.progress(this);
 									Controller.millsToTime(this.position, 1);
-									if(jQuery.isFunction(Data.config.duringPlay)){
-										Data.config.duringPlay();
+									if(jQuery.isFunction(Data.config.whilePlaying)){
+										Data.config.whilePlaying();
 									}
 									
 								}
@@ -393,14 +457,18 @@
 							// initialize first song album 
 							Html.art.attr('src',songs_[Data.curr_song].image.src); 
 						}
-						Controller.setupSeek();
+						//Controller.setupSeek();
+						Events.setupSeek();
 						if(Data.config.autoPlay !== 'undefined' && Data.config.autoPlay === true) {
 						setTimeout(function(){
 								Controller.play('',Data.curr_song);
-							},3000);
+							},1000);
 						}
 						else {
 							Controller.showSongInfo();
+						}
+						if (Data.config.onSetupComplete !== 'undefined' && jQuery.isFunction(Data.config.onSetupComplete)) {
+							Data.config.onSetupComplete();
 						}
 						LOGGER.info("Swagg Player ready!");
 					}
@@ -437,53 +505,6 @@
 					duration = soundobj.duration;
 				}
 				return duration;
-			},
-			
-			// sets up the seek functionality 
-			setupSeek : function() {
-				// seek to a position in the song
-				Html.loaded.css('cursor', 'pointer').bind({
-					click : function(e) {
-						var id = 'song-' + Data.curr_song;
-						var soundobj = soundManager.getSoundById(id);
-						var x = e.pageX - this.offsetLeft;
-						
-						var duration = Controller.getDuration(soundobj);
-						
-						// obtain the position clicked by the user
-						var newPosPercent = x / parseFloat(Html.progress_wrapper.css('width')); 
-						
-						// find the position within the song the location clicked correspondes to
-						var seekTo = Math.round(newPosPercent * duration);
-
-						soundobj.setPosition(seekTo);
-					}
-				});
-				
-				// seek preview data
-				Html.loaded.bind( 'mouseover hover mousemove', 
-					function(e){
-						var id = 'song-' + Data.curr_song;
-						var soundobj = soundManager.getSoundById(id);
-						var x = e.pageX - this.offsetLeft;
-						
-						var duration = Controller.getDuration(soundobj);
-						
-						// obtain the position clicked by the user
-						var newPosPercent = x / parseFloat(Html.progress_wrapper.css('width')); 
-						
-						// find the position within the song the location clicked correspondes to
-						var seekTo = Math.round(newPosPercent * duration);
-
-						Controller.millsToTime(seekTo, -1);
-						
-						// fire off onSeekPreview event
-						if (Data.config.onSeekPreview !== undefined && $.isFunction(Data.config.onSeekPreview)) {
-							internal.event_ref = e;
-							Data.config.onSeekPreview();	
-						}				
-					}
-				);
 			},
 			
 			// Plays a song based on the ID
@@ -868,7 +889,20 @@
 							else {
 								return "wait."	
 							}							
-						}, // end as string
+						} // end as string
+					};
+					
+					// public methods
+					return {
+						previewAsString	:	privateFuncs.previewAsString,
+						getSeekEvent	:	privateFuncs.getEventRef,
+						getCurrTimeAsString	:	privateFuncs.currTimeAsString,
+						getTotalTimeAsString:	privateFuncs.totalTimeAsString
+					};
+				}, // end time
+				
+				data : function(){
+					var privateDataFuncs = {
 						title : function() {
 							return (internal.currTitle !== null) ? internal.currTitle : 'Unknown Title';	
 						},
@@ -881,20 +915,15 @@
 						tempo : function(){
 							return (internal.currTempo !== null) ? internal.currTempo : 'Unknown Tempo'; 	
 						}
+					}; // end private
+					return  {
+						getTitle	: 	privateDataFuncs.title,
+						getArtist	:	privateDataFuncs.artist,
+						getAlbum	:	privateDataFuncs.album,
+						getTempo	:	privateDataFuncs.tempo						
 					};
-					
-					// public methods
-					return {
-						previewAsString	:	privateFuncs.previewAsString,
-						getSeekEvent	:	privateFuncs.getEventRef,
-						getCurrTimeAsString	:	privateFuncs.currTimeAsString,
-						getTotalTimeAsString:	privateFuncs.totalTimeAsString,
-						getTitle	: 	privateFuncs.title,
-						getArtist	:	privateFuncs.artist,
-						getAlbum	:	privateFuncs.album,
-						getTempo	:	privateFuncs.tempo
-					};
-				}
+				} // end data
+				
 			} // end song
 		}; // end API
 		

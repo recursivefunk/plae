@@ -64,11 +64,7 @@
         <a id="swagg-player-stop-button" href="#">stop</a>
     </div>
     <br/>
-    <div id="swagg-player-progress-wrapper">
-    	<div id="swagg-player-loaded">
-    		<div id="swagg-player-bar"></div>
-    	</div>
-    </div>
+    <div id="swagg-player-progress-wrapper"></div>
     <label id="swagg-player-song-info"></label>
 </div>
 <div class="spacer"></div>
@@ -77,8 +73,32 @@
 <script type="text/javascript" src="js/swaggloader.js"></script>
 <script type="text/javascript">
 $(document).ready(function(){
+	
+	var songs =
+	[
+		/*		
+		{
+			"url": "sound/3.mp3",
+			"artist": "Artist 3",
+			"title": "Song 3",
+			"thumb": "images/music.jpg" 
+		},*/
+		{
+			"url": "sound/1.mp3",
+			"artist": "Artist1",
+			"title": "Song 1",
+			"thumb": "images/median.jpg" 
+		},
+		{
+			"url": "sound/2.mp3",
+			"artist": "Artist 2",
+			"title": "Song 2",
+			"thumb": "images/windowseat.jpg" 
+		}
+	];
+	
 	SwaggLoader.loadSwagg({
-		data: 'json/songs.json',		// REQUIRED - path to your songs file JSON
+		data: songs,		// REQUIRED - path to your songs file JSON OR literal object
 		useArt: false,					// optional - using album? defaults to true
 		playList: false					// optional - don't set if you do not wish to have a playlist
 	});
