@@ -7,10 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.7.3
+   v0.8.5.7.4
    
-   Change Log v0.8.5.7.3
-   - added onSetupComplete event handler
+   Change Log v0.8.5.7.4
+   - Added option to not use onMouseover buttons for controls (need to explicitly say set buttonHover:false)
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, $: false */
@@ -125,8 +125,7 @@
 			
 			setupProgressBar : function() {
 				LOGGER.info('SetupProgressBar()');
-				if ($('#swagg-player-progress-wrapper')) {
-					LOGGER.info('ok');
+				if (this.progress_wrapper.length > 0) {
 					var wrapper = $('#swagg-player-progress-wrapper');
 					var height = wrapper.css('height');
 					loaded = $('<div id="swagg-player-loaded"></div>');
@@ -145,7 +144,6 @@
 		// encapsulate controlls
 		var Controls = {
 			play:	$('#swagg-player-play-button'),
-			pause:	$('#swagg-player-pause-button'),
 			skip:	$('#swagg-player-skip-button'),
 			back:	$('#swagg-player-back-button'),
 			stop:	$('#swagg-player-stop-button')			
@@ -157,6 +155,7 @@
 				var inst = Data;
 				var _images = ImageLoader.imagesLoaded;
 				var i = inst.img;
+				var usehover = (Data.config.buttonHover === 'undefined') ? false : Data.config.buttonHover;
 				
 				Controls.play.bind({
 					click: function() {
@@ -164,12 +163,12 @@
 						 return false;
 					},
 					mouseover: function() {
-						if (_images === true) {
+						if (_images === true && usehover) {
 							$(this).attr('src', ImageLoader.playOver.src);	
 						}
 					},
 					mouseout: function() {
-						if (_images === true) {
+						if (_images === true && usehover) {
 							$(this).attr('src', ImageLoader.play.src);	
 						}
 					}
@@ -181,12 +180,12 @@
 						return false;
 					},
 					mouseover: function() {
-						if (_images === true) {
+						if (_images === true && usehover) {
 							$(this).attr('src', ImageLoader.skipOver.src);
 						}
 					},
 					mouseout: function() {
-						if (_images === true) {
+						if (_images === true && usehover) {
 							$(this).attr('src', ImageLoader.skip.src);	
 						}
 					}
@@ -198,12 +197,12 @@
 						return false;
 					},
 					mouseover: function() {
-						if (_images === true) {
+						if (_images === true && usehover) {
 							$(this).attr('src', ImageLoader.stopOver.src);
 						}
 					},
 					mouseout: function() {
-						if (_images === true) {
+						if (_images === true && usehover) {
 							$(this).attr('src', ImageLoader.stop.src);
 						}
 					}
@@ -215,12 +214,12 @@
 						return false;
 					},
 					mouseover: function() {
-						if (_images === true) {
+						if (_images === true && usehover) {
 							$(this).attr('src', ImageLoader.backOver.src);
 						}
 					},
 					mouseout: function() {
-						if (_images === true) {
+						if (_images === true && usehover) {
 							$(this).attr('src', ImageLoader.back.src);
 						}
 					}
@@ -323,37 +322,51 @@
 			imagesLoaded:false,
 			
 			loadButtonImages: function(imagesDir) {
+				var hover = (Data.config.buttonHover === 'undefined') ? false : Data.config.buttonHover;
 				LOGGER.info('Loading images for controls...');
-				this.play = new Image();
-				this.play.src = imagesDir + 'play.png';
+				if (Controls.play.length > 0) {
+					this.play = new Image();
+					this.play.src = imagesDir + 'play.png';
+					this.pause = new Image();
+					this.pause.src = imagesDir + 'pause.png';
+					
+					if (hover === true) {
+						this.playOver = new Image();
+						this.playOver.src = imagesDir + 'play-over.png';
+						this.pauseOver = new Image();
+						this.pauseOver.src = imagesDir + 'pause-over.png';
+					}
+				}
 				
-				this.playOver = new Image();
-				this.playOver.src = imagesDir + 'play-over.png';
+				if (Controls.skip.length > 0) {
+					this.skip = new Image();
+					this.skip.src = imagesDir + 'skip.png';
+					
+					if (hover === true) {
+						this.skipOver = new Image();
+						this.skipOver.src = imagesDir + 'skip-over.png';
+					}
+				}
 				
-				this.pause = new Image();
-				this.pause.src = imagesDir + 'pause.png';
+				if (Controls.back.length > 0) {
+					this.back = new Image();
+					this.back.src = imagesDir + 'back.png';
+					
+					if (hover === true) {
+						this.backOver = new Image();
+						this.backOver.src = imagesDir + 'back-over.png';
+					}
+				}
 				
-				this.pauseOver = new Image();
-				this.pauseOver.src = imagesDir + 'pause-over.png';
-				
-				this.skip = new Image();
-				this.skip.src = imagesDir + 'skip.png';
-				
-				this.skipOver = new Image();
-				this.skipOver.src = imagesDir + 'skip-over.png';
-				
-				this.back = new Image();
-				this.back.src = imagesDir + 'back.png';
-				
-				this.backOver = new Image();
-				this.backOver.src = imagesDir + 'back-over.png';
-				
-				this.stop = new Image();
-				this.stop.src = imagesDir + 'stop.png';
-				
-				this.stopOver = new Image();
-				this.stopOver.src = imagesDir + 'stop-over.png';
-				
+				if (Controls.stop.length > 0) {
+					this.stop = new Image();
+					this.stop.src = imagesDir + 'stop.png';
+					
+					if (hover === true) {
+						this.stopOver = new Image();
+						this.stopOver.src = imagesDir + 'stop-over.png';
+					}
+				}
 				this.imagesLoaded = true;
 			}
 		};
@@ -390,6 +403,9 @@
 				if (config.buttonsDir !== undefined) {
 					ImageLoader.loadButtonImages(config.buttonsDir);	
 				}
+				else {
+					config.buttonHover = false;	
+				}
 				
 				if (Data.config.html5Audio === true && Browser.isSafari() === false) { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
 					soundManager.useHTML5Audio = true;
@@ -402,7 +418,6 @@
 						clearInterval(Data.interval_id);
 						var songs_ = Data.songs;
 						var localSoundManager = soundManager;
-
 						Events.bindControllerEvents();
 						Events.bindMediaKeyEvents();
 						var temp;
@@ -574,7 +589,7 @@
 				var imagesLoaded = ImageLoader.imagesLoaded;
 				var out, over;
 				var play = Controls.play;
-				
+				var hover = (Data.config.buttonHover === 'undefined') ? false : Data.config.buttonHover;
 				
 				if (state === 1 ) { // play state
 					if (imagesLoaded === false) {
@@ -582,7 +597,9 @@
 					}
 					else {
 						out = ImageLoader.play.src;
-						over = ImageLoader.playOver.src;
+						if (hover === true) {
+							over = ImageLoader.playOver.src;
+						}
 					}
 
 				}
@@ -591,8 +608,10 @@
 						play.html('pause ');
 					}
 					else {
-						out = ImageLoader.pause.src; 
-						over = ImageLoader.pauseOver.src;
+						out = ImageLoader.pause.src;
+						if (hover === true) {
+							over = ImageLoader.pauseOver.src;
+						}
 					}
 
 				}
@@ -602,15 +621,16 @@
 				};
 				if (imagesLoaded === true) {
 					play.attr('src', out);
-
-					play.bind({
-						mouseout: function(){
-							play.attr('src', out);
-						},
-						mouseover: function(){
-							play.attr('src', over);
-						}	
-					});
+					if (hover === true) {
+						play.bind({
+							mouseout: function(){
+								play.attr('src', out);
+							},
+							mouseover: function(){
+								play.attr('src', over);
+							}	
+						});
+					} // end if
 				}
 			},
 		
