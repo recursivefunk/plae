@@ -100,7 +100,9 @@ $(document).ready(function(){
 	SwaggLoader.loadSwagg({
 		data: songs,		// REQUIRED - path to your songs file JSON OR literal object
 		useArt: false,					// optional - using album? defaults to true
-		playList: false					// optional - don't set if you do not wish to have a playlist
+		playList: false,					// optional - don't set if you do not wish to have a playlist
+		swaggplayer: 'js/min/jquery-swagg-player.min.js',
+		sm2: 'js/soundmanager2-nodebug-jsmin.js'
 	});
 });
 </script>

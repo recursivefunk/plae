@@ -16,7 +16,7 @@ var SwaggLoader = (function($) {
 				clearInterval(SwaggLoader.load_interval);
 				var swagg_script = $('<script></script>');
 				swagg_script.attr( 'type', 'text/javascript');
-				swagg_script.attr('src', 'js/jquery-swagg-player.js');
+				swagg_script.attr('src', SwaggLoader.swaggProps.swaggplayer);
 				swagg_script.attr('async', 'true');
 				$('head').append(swagg_script);
 				SwaggLoader.swagg_interval = setInterval("this.swagg_player.init();", 5);
@@ -44,7 +44,7 @@ var SwaggLoader = (function($) {
 			var loadSoundManager = function() {
 				var sm_script = $('<script>');
 				sm_script.attr( 'type', 'text/javascript');
-				sm_script.attr('src', 'js/soundmanager2-nodebug-jsmin.js');
+				sm_script.attr('src', SwaggLoader.swaggProps.sm2);
 				sm_script.attr('async', 'true');
 				sm_script.attr('id','soundManagerTag');
 				$('head').append(sm_script);

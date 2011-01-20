@@ -4,13 +4,15 @@
 
 <h2>Building Swagg Player</h2>
 <p>Swagg Player is a JavaScript application so the build is simply a matter of optimizing the code (making it as small as possible).
-A ruby build script is included which will create 3 additional versions of Swagg Player:</p>
+A ruby build script is included which will create 5 additional versions of Swagg Player:</p>
 <ul>
-	<li>jquery-swagg-player.min.js (minified version of the full app including BrowserDetect and logging statements)</li>
-    <li>jquery-swagg-player-nodebug.js (Swagg Player with no log statements. 'debug' option does nothing.)</li>
-    <li>jquery-swagg-player-nodebug.min.js (minified Swagg Player with no log statements. 'debug' option does nothing.)</li>
+	<li>jquery-swagg-player.min.js (minified version of the full source including logging statements)</li>
+    <li>jquery-swagg-player-nodebug.js (source minus log statements. 'debug' option does nothing.)</li>
+    <li>jquery-swagg-player-nodebug.min.js (minified source with no log statements. 'debug' option does nothing.)</li>
+    <li>jquery-swagg-player.min.js.php (full source, minified, special gzip php header at the top of the file. must keep .php extention)</li>
+    <li>jquery-swagg-player-nodebug.min.js.php (no debugging code in source, minified, special gzip php header at the top of the file. must keep .php extention)</li>
 </ul>
-<p>I HIGHLY recommend enabling gzip on your server for JavaScript as jquery.swagg-player-nodebug.min.js is a little less than 4KB when gzipped! The build is fairly dumb right now and assumes swagg player is in a child directory named 'js' and outputs all created files to that directory as well. If you'd like to run the build script yourself you'll need the following:</p>
+<p><STRIKE>I HIGHLY recommend enabling gzip on your server for JavaScript</STRIKE> (I have done this for you - on the client side. See the .php files) as jquery.swagg-player-nodebug.min.js is about 4KB when gzipped! The build is fairly dumb right now and assumes swagg player is in a child directory named 'js' and outputs minified source in 'js/min/' and minified gzip ready source in 'js/min/gzipready/'. If you'd like to run the build script yourself you'll need the following:</p>
 <ul>
 	<li><a href="http://www.ruby-lang.org/en/">Ruby</a></li>
     <li><a href="http://cjohansen.no/en/ruby/juicer_a_css_and_javascript_packaging_tool">Juicer</a></li>

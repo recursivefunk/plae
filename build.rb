@@ -1,4 +1,5 @@
 
+require 'fileutils'
 # strips the lines of a file which have LOGGER. in them as these are
 # presumably debugging output
 # output: creates jquery-swagg-player-nodebug.js
@@ -46,22 +47,47 @@ def stripBrowserDetect(baseFile, newFile)
   noBrowserDetect.close
 end
 
+def optimize(baseFile, newFile)
+  puts "Making file gzip ready " + baseFile
+  if File.exists?(newFile)
+    File.delete(newFile);
+  end
+  file = File.new(baseFile, "r")  
+  php = File.new(newFile, "w")
+  php.puts('<?php ob_start ("ob_gzhandler"); header("Content-type: text/javascript; charset: UTF-8"); ?>')
+  while (line = file.gets)
+      php.puts(line)
+  end
+  file.close
+  php.close
+end
+
 stripLog("js/jquery-swagg-player.js", "js/jquery-swagg-player-nodebug.js")
-#stripBrowserDetect("js/jquery-swagg-player.js", "js/jquery-swagg-player-nobrowserdetect.js")
-#stripLog("js/jquery-swagg-player-nobrowserdetect.js", "js/jquery-swagg-player-nodebug-nobrowserdetect.js")
 
-# ============================== minifiy =========================================
-
-
+# ============================== minifiy / gzip prep =========================================
+puts ""
 puts "Compressing Swagg Player"
 system "juicer merge -i --force js/jquery-swagg-player.js"
 
+puts ""
 puts "Comporessing Swagg Player (No Logging)"
 system "juicer merge -i --force js/jquery-swagg-player-nodebug.js"
 
-#puts "Compressing Swagg Player (No Logging and no BrowserDetect)"
-#system "juicer merge -i --force js/jquery-swagg-player-nodebug-nobrowserdetect.js"
+#puts "Comporessing Swagg Loader"
+#system "juicer merge -i --force js/swaggloader.js"
 
+puts ""
+puts "enabling gzip for swagg player"
+optimize("js/jquery-swagg-player.min.js", "js/gzipready/jquery-swagg-player.min.js.php")
+
+puts ""
+puts "enabling gzip for swagg player (no debug)"
+optimize("js/jquery-swagg-player-nodebug.min.js", "js/gzipready/jquery-swagg-player-nodebug.min.js.php")
+
+puts ""
+puts "moving files"
+FileUtils.mv("js/jquery-swagg-player.min.js", "js/min/jquery-swagg-player.min.js")
+FileUtils.mv("js/jquery-swagg-player-nodebug.min.js", "js/min/jquery-swagg-player-nodebug.min.js")
 puts "Done!"
 
 

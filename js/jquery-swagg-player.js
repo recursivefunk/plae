@@ -7,10 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.7.4
+   v0.8.5.7.5
    
-   Change Log v0.8.5.7.4
-   - Added option to not use onMouseover buttons for controls (need to explicitly say set buttonHover:false)
+   Change Log v0.8.5.7.5
+   - Added repeat functionality (API feature)
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, $: false */
@@ -32,7 +32,11 @@
 					console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Warning::' + warning);	
 				}
 			},	
-			formatDate : function(){
+			setup : function(){
+				if (Browser.isIe() && config.debug === true){
+					config.debug = false; 
+				}
+				
 				Date.prototype.formatMMDDYYYY = function()
 				{
 					var amPm = '';
@@ -146,10 +150,31 @@
 			play:	$('#swagg-player-play-button'),
 			skip:	$('#swagg-player-skip-button'),
 			back:	$('#swagg-player-back-button'),
-			stop:	$('#swagg-player-stop-button')			
+			stop:	$('#swagg-player-stop-button'),
+			
+			setup : function() {
+				if (ImageLoader.play !== null) {
+					this.play.css('cursor','pointer');	
+				}
+				if (ImageLoader.skip !== null) {
+					this.skip.css('cursor','pointer');		
+				}
+				if (ImageLoader.back !== null) {
+					this.back.css('cursor','pointer');		
+				}
+				if (ImageLoader.stop !== null) {
+					this.stop.css('cursor','pointer');		
+				}
+			}
 		};
 		
 		var Events = {
+			
+			setup : function() {
+				this.bindControllerEvents();
+				this.bindMediaKeyEvents();
+			},
+			
 			bindControllerEvents: function(){
 				LOGGER.info('Binding controller button events');
 				var inst = Data;
@@ -307,6 +332,8 @@
 			}
 		};
 		
+		
+		
 		// images for button controls
 		var ImageLoader = {
 			play:null,
@@ -324,6 +351,7 @@
 			loadButtonImages: function(imagesDir) {
 				var hover = (Data.config.buttonHover === 'undefined') ? false : Data.config.buttonHover;
 				LOGGER.info('Loading images for controls...');
+
 				if (Controls.play.length > 0) {
 					this.play = new Image();
 					this.play.src = imagesDir + 'play.png';
@@ -377,21 +405,18 @@
 				Data.config = $.extend(Data.config,config);	
 				
 				// format date for log messages
-				LOGGER.formatDate();
+				LOGGER.setup();
+				
 				// get songs from server via XHR
 				Data.getSongs();
+				
+				// init onSeek events
 				Html.setupProgressBar();
+				
 				// create invisible element which will hold user accessible data
-				Html.player.append('<div id="swagg-player-data"></div>');
-				$('#swagg-player-data').css('display','none').data('api', API);
-				Html.bridge_data = $('#swagg-player-data');
-				
-				$('.swagg-player-button').css('cursor', 'pointer');
-				
-				// Sometimes, IE doesn't like the console object so, for now there is no debugging in IE
-				if (Browser.isIe() && config.debug === true){
-					config.debug = false; 
-				}
+				Controller.setupApi();
+
+				// check for soundManager support and warn or inform accordingly
 				if (!soundManager.supported()) {
 					LOGGER.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
 				}
@@ -401,7 +426,8 @@
 					
 				// check if we're using button images. if so, preload them. if not, ignore.
 				if (config.buttonsDir !== undefined) {
-					ImageLoader.loadButtonImages(config.buttonsDir);	
+					ImageLoader.loadButtonImages(config.buttonsDir);
+					Controls.setup();	
 				}
 				else {
 					config.buttonHover = false;	
@@ -411,15 +437,16 @@
 					soundManager.useHTML5Audio = true;
 				}
 				
+				// setup controller events
+				Events.setup();
+				
 				// configure soundManager, create song objects, and hook event listener actions
 				soundManager.createSongs = function() {
 					LOGGER.info('createSongs()');
 					if(Data.songs[0] !== undefined) {
 						clearInterval(Data.interval_id);
 						var songs_ = Data.songs;
-						var localSoundManager = soundManager;
-						Events.bindControllerEvents();
-						Events.bindMediaKeyEvents();
+						var localSoundManager = soundManager;	
 						var temp;
 						for (var i = 0, end = songs_.length; i < end; i++) {
 							temp = localSoundManager.createSound({	// create sound objects to hook event handlers
@@ -427,7 +454,12 @@
 								url: songs_[i].url,
 								autoLoad: true,
 								onfinish: function(){
-									Controller.skip(1);
+									if (internal.repeat === false){
+										Controller.skip(1);
+									}
+									else {
+										Controller.repeat();	
+									}
 								},
 								onplay: function(){
 									Controller.millsToTime(this.duration, 0);	
@@ -522,6 +554,15 @@
 				return duration;
 			},
 			
+			repeat : function(track) {
+				LOGGER.info('repeat()');
+				var sound_id = 'song-' + Data.curr_song;
+				var target = soundManager.getSoundById(sound_id);
+				Controller.resetProgressBar();
+				target.setPosition(0);
+				target.play();
+			},
+			
 			// Plays a song based on the ID
 			play : function(caller, track){
 				var sound_id = 'song-' + track
@@ -544,6 +585,11 @@
 					}
 				}
 				Controller.showSongInfo();
+			},
+			
+			setupApi : function() {
+				Html.player.append('<div id="swagg-player-data"></div>');
+				$('#swagg-player-data').css('display','none').data('api', API);				
 			},
 			
 			// Dynamically creates playlist items as songs are loaded
@@ -788,7 +834,6 @@
 			// flag 1 - says we're calculating the current potition of the song
 			// flag -1 = says we're calculating the arbitrary position of a song (seek preview)
 			millsToTime : function(duration, flag) {
-					var bridge = Html.bridge_data;
 					var seconds = Math.floor(duration / 1000);
 					var minutes = 0;
 					if (seconds > 60) {
@@ -832,7 +877,8 @@
 			currTitle:null,
 			currArtist:null,
 			currAlbum:null,
-			currTempo:null,	
+			currTempo:null,
+			repeat:false,	
 			
 			update : function() {
 				this.currTitle = Data.songs[Data.curr_song].title;
@@ -942,7 +988,23 @@
 						getAlbum	:	privateDataFuncs.album,
 						getTempo	:	privateDataFuncs.tempo						
 					};
-				} // end data
+				}, // end data
+				
+				playback : function() {
+					repeat = function(flag) {
+						internal.repeat = (flag === true || flag === false) ? repeat : false;	
+					};
+					
+					inRepeat = function() {
+						var r = internal.repeat;
+						return (r === true || r === false) ? r : false;
+					};
+					
+					return {
+						setRepeat : repeat,
+						repeatMode: inRepeat
+					}; // end return
+				} // end playback
 				
 			} // end song
 		}; // end API
