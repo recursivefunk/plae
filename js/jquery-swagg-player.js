@@ -7,35 +7,22 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.7.5
+   v0.8.5.7.6
    
-   Change Log v0.8.5.7.5
-   - Added repeat functionality (API feature)
+   Change Log v0.8.5.7.6
+   - More IE bug fixes
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, $: false */
 		
 		// logging utility
 		var LOGGER = {
-			error: function(errMsg){
-				if (Data.config.debug === true) {
-					console.log( new Date().formatMMDDYYYY() + ' Swagg Player::Error::' + errMsg);
-				}
-			},
-			info: function(info){
-				if (Data.config.debug === true) {
-					console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Info::' + info);	
-				}
-			},
-			warn: function(warning) {
-				if (Data.config.debug === true) {
-					console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Warning::' + warning);	
-				}
-			},	
+			
 			setup : function(){
-				if (Browser.isIe() && config.debug === true){
-					config.debug = false; 
+				if (Browser.isIe() && Data.config.debug === true){
+					//Data.config.debug = false; 
 				}
+				LOGGER.info('LOGGER setup()');
 				
 				Date.prototype.formatMMDDYYYY = function()
 				{
@@ -61,6 +48,38 @@
 					};
 					return this.getFullYear() + "-" + month + "-" +  this.getDate()  + " " + hours(this.getHours()) + ":" + minutes(this.getMinutes()) + amPm;
 				};
+			},			
+			
+			error: function(errMsg){
+				if (Data.config.debug === true) {
+					if (Data.isIe === true) {
+						console.log('Swagg Player::Error::' + errMsg);	
+					}
+					else {
+						console.log( new Date().formatMMDDYYYY() + ' Swagg Player::Error::' + errMsg);
+					}
+				}
+			},
+			info: function(info){
+				if (Data.config.debug === true) {
+					if (Data.isIe === true) {
+						console.log('Swagg Player::Info::' + info);
+					}
+					else {
+						console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Info::' + info);	
+					}
+				}
+			},
+			warn: function(warning) {
+				if (Data.config.debug === true) {
+					if (Data.isIe === true) {
+						console.log('Swagg Player::Warning::' + warning);
+					}
+					else {
+						console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Warning::' + warning);		
+					}
+					
+				}
 			}
 		};
 		
@@ -68,6 +87,7 @@
 		var Data = {
 			songs:{},
 			song:{},
+			isIe: false,
 			curr_song:0,
 			config:{},
 			vol_interval:5,
@@ -132,12 +152,14 @@
 				if (this.progress_wrapper.length > 0) {
 					var wrapper = $('#swagg-player-progress-wrapper');
 					var height = wrapper.css('height');
-					loaded = $('<div id="swagg-player-loaded"></div>');
+					loaded = $('<div></div>');
+					loaded.attr("id","swagg-player-loaded");
 					loaded.css('height', height).css('width',0).css('float','left').css('margin-left','0');
 					wrapper.append(loaded);
 					Html.loaded = loaded;
 					
-					var progress = $('<div id="swagg-player-bar"></div>');
+					var progress = $('<div></div>');
+					progress.attr("id","swagg-player-bar");
 					progress.css('height', height).css('width',0).css('float','left').css('margin-left','auto');
 					loaded.append(progress);
 					Html.bar = progress;
@@ -291,7 +313,7 @@
 					click : function(e) {
 						var id = 'song-' + Data.curr_song;
 						var soundobj = soundManager.getSoundById(id);
-						var x = e.pageX - this.offsetLeft;
+						var x = e.pageX - Html.loaded.offset().left;
 						
 						var duration = Controller.getDuration(soundobj);
 						
@@ -310,7 +332,7 @@
 					function(e){
 						var id = 'song-' + Data.curr_song;
 						var soundobj = soundManager.getSoundById(id);
-						var x = e.pageX - this.offsetLeft;
+						var x = e.pageX - Html.loaded.offset().left;
 						
 						var duration = Controller.getDuration(soundobj);
 						
@@ -403,6 +425,8 @@
 		var Controller = {
 			init : function(config) {
 				Data.config = $.extend(Data.config,config);	
+				
+				Data.isIe = Browser.isIe();
 				
 				// format date for log messages
 				LOGGER.setup();
