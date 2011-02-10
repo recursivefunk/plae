@@ -21,6 +21,7 @@
 		<img class="swagg-player-button" src="images/stop.png" id="swagg-player-stop-button" border="0"/>
   	</div><br /><br/>
     <div id="swagg-player-progress-wrapper"></div>
+    <div id="time"></div>
     <br/>
     <label id="swagg-player-song-info">Loading...</label><br /><br/>
     <div id="swagg-player-list"></div> 
@@ -53,19 +54,31 @@ $(document).ready(function(){
 		}
 	];
 	
-	SwaggLoader.loadSwagg({
-		data: mysongs,		// REQUIRED - path to your songs file JSON
-		buttonsDir: 'images/',			// optional - tells swagg player where to find your buttons
-		useArt: true,					// optional - using album? defaults to true
-		playList: true,
-		buttonHover: true,
-		debug: true,
-		html5Audio: false,
-		autoPlay: true,
-		swaggplayer: 'js/jquery-swagg-player.js',
-		sm2: 'js/soundmanager2-nodebug-jsmin.js'
-	});
+	var onload = function() {	
+		$('#swagg-player').SwaggPlayer({
+			data: mysongs,					// REQUIRED - path to your songs file JSON
+			buttonsDir: 'images/',			// optional - tells swagg player where to find your buttons
+			useArt: true,					// optional - using album? defaults to true
+			playList: true,
+			buttonHover: true,
+			debug: true,
+			html5Audio: 	false,
+			swaggplayer: 'js/jquery-swagg-player.js',
+			sm2: 'js/soundmanager2-nodebug-jsmin.js',
+			whilePlaying: function(){
+				var api = $('#swagg-player-data').data('api');
+				$('#time').html( api.currentSong.time().getCurrTimeAsString() + ' / ' + api.currentSong.time().getTotalTimeAsString() );
+			},
+			onStop: function(){
+				 $('#time').html('00:00 / 00:00');	
+			}
+		});
+	}
 	
-});
+	$('body').SwaggLoader({ 
+		scripts : ['js/soundmanager2-nodebug-jsmin.js', 'js/jquery-swagg-player.js'],
+		onBeforeLoad : function(){window.SM2_DEFER = true;}, 
+		onLoad : onload});	
+	});
 </script>
 </html>

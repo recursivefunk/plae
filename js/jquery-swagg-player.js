@@ -7,10 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.7.6
+   v0.8.5.7.7
    
-   Change Log v0.8.5.7.6
-   - More IE bug fixes
+   Change Log v0.8.5.7.7
+   - Code refactoring
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, $: false */
@@ -19,12 +19,8 @@
 		var LOGGER = {
 			
 			setup : function(){
-				if (Browser.isIe() && Data.config.debug === true){
-					//Data.config.debug = false; 
-				}
-				LOGGER.info('LOGGER setup()');
 				
-				Date.prototype.formatMMDDYYYY = function()
+				Date.prototype.formatMMDDYYYY = (function()
 				{
 					var amPm = '';
 					var month = parseInt(this.getMonth()) + 1;
@@ -47,12 +43,12 @@
 						}
 					};
 					return this.getFullYear() + "-" + month + "-" +  this.getDate()  + " " + hours(this.getHours()) + ":" + minutes(this.getMinutes()) + amPm;
-				};
+				});
 			},			
 			
 			error: function(errMsg){
-				if (Data.config.debug === true) {
-					if (Data.isIe === true) {
+				if (Config.props.debug === true) {
+					if ($.isFunction(Date.formatMMDDYYY) === false) {
 						console.log('Swagg Player::Error::' + errMsg);	
 					}
 					else {
@@ -61,8 +57,8 @@
 				}
 			},
 			info: function(info){
-				if (Data.config.debug === true) {
-					if (Data.isIe === true) {
+				if (Config.props.debug === true) {
+					if ($.isFunction(Date.formatMMDDYYY) === false) {
 						console.log('Swagg Player::Info::' + info);
 					}
 					else {
@@ -71,8 +67,8 @@
 				}
 			},
 			warn: function(warning) {
-				if (Data.config.debug === true) {
-					if (Data.isIe === true) {
+				if (Config.props.debug === true) {
+					if ($.isFunction(Date.formatMMDDYYY) === false) {
 						console.log('Swagg Player::Warning::' + warning);
 					}
 					else {
@@ -83,23 +79,26 @@
 			}
 		};
 		
+		var Config = {
+			props : {}
+		};
+		
 		// swagg player data and configuration
 		var Data = {
 			songs:{},
 			song:{},
 			isIe: false,
 			curr_song:0,
-			config:{},
 			vol_interval:5,
 			interval_id:-1,
 			processSongs: function(theData){
 				LOGGER.info('Processing songs.');
 				var size = theData.length;
-				var _data_ = Data;
+				var _config_ = Config;
 				// preload song album  and append an IDs to the songs - make configurable in the future
 				// to avoid having to loop through JSON array
 				for (var i = 0; i < size; i++) {
-					if (_data_.config.useArt === true) {
+					if (_config_.props.useArt === true) {
 						theData[i].image = new Image();
 						theData[i].image.src = theData[i].thumb;
 					}
@@ -109,7 +108,7 @@
 			},
 			
 			getSongs: function() {				
-				var theData = Data.config.data;
+				var theData = Config.props.data;
 				
 				
 				// Check if dataString points to a json file if so, fetch it.
@@ -202,7 +201,7 @@
 				var inst = Data;
 				var _images = ImageLoader.imagesLoaded;
 				var i = inst.img;
-				var usehover = (Data.config.buttonHover === 'undefined') ? false : Data.config.buttonHover;
+				var usehover = (Config.props.buttonHover === 'undefined') ? false : Config.props.buttonHover;
 				
 				Controls.play.bind({
 					click: function() {
@@ -345,9 +344,9 @@
 						Controller.millsToTime(seekTo, -1);
 						
 						// fire off onSeekPreview event
-						if (Data.config.onSeekPreview !== undefined && $.isFunction(Data.config.onSeekPreview)) {
+						if (Config.props.onSeekPreview !== undefined && $.isFunction(Config.props.onSeekPreview)) {
 							internal.event_ref = e;
-							Data.config.onSeekPreview();	
+							Config.props.onSeekPreview();	
 						}				
 					}
 				);	
@@ -371,7 +370,7 @@
 			imagesLoaded:false,
 			
 			loadButtonImages: function(imagesDir) {
-				var hover = (Data.config.buttonHover === 'undefined') ? false : Data.config.buttonHover;
+				var hover = (Config.props.buttonHover === 'undefined') ? false : Config.props.buttonHover;
 				LOGGER.info('Loading images for controls...');
 
 				if (Controls.play.length > 0) {
@@ -424,7 +423,7 @@
 		// controller for the main functionality (play, pause etc)
 		var Controller = {
 			init : function(config) {
-				Data.config = $.extend(Data.config,config);	
+				Config.props = $.extend(Config.props,config);	
 				
 				Data.isIe = Browser.isIe();
 				
@@ -457,7 +456,7 @@
 					config.buttonHover = false;	
 				}
 				
-				if (Data.config.html5Audio === true && Browser.isSafari() === false) { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
+				if (Config.props.html5Audio === true && Browser.isSafari() === false) { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
 					soundManager.useHTML5Audio = true;
 				}
 				
@@ -488,39 +487,39 @@
 								onplay: function(){
 									Controller.millsToTime(this.duration, 0);	
 									Controller.playPauseButtonState(0);
-									if(Data.config.onPlay !== undefined && jQuery.isFunction(Data.config.onPlay)){
-										Data.config.onPlay();
+									if(Config.props.onPlay !== undefined && jQuery.isFunction(Config.props.onPlay)){
+										Config.props.onPlay();
 									}
 								},
 								onpause: function(){
 									Controller.playPauseButtonState(1); 
-									if(Data.config.onPause !== undefined && jQuery.isFunction(Data.config.onPause)){
-										Data.config.onPause();
+									if(Config.props.onPause !== undefined && jQuery.isFunction(Config.props.onPause)){
+										Config.props.onPause();
 									}
 								},
 								onstop: function(){
 									Controller.playPauseButtonState(1); 
-									if(Data.config.onStop !== undefined && jQuery.isFunction(Data.config.onStop)){
-										Data.config.onStop();
+									if(Config.props.onStop !== undefined && jQuery.isFunction(Config.props.onStop)){
+										Config.props.onStop();
 									}
 								},
 								onresume: function(){
 									Controller.playPauseButtonState(0); 
-									if(Data.config.onResume !== undefined && jQuery.isFunction(Data.config.onResume)){
-										Data.config.onResume();
+									if(Config.props.onResume !== undefined && jQuery.isFunction(Config.props.onResume)){
+										Config.props.onResume();
 									}
 								},
 								whileplaying: function(){
 									Controller.progress(this);
 									Controller.millsToTime(this.position, 1);
-									if(jQuery.isFunction(Data.config.whilePlaying)){
-										Data.config.whilePlaying();
+									if(jQuery.isFunction(Config.props.whilePlaying)){
+										Config.props.whilePlaying();
 									}
 									
 								}
 							});
 							temp.id = 'song-' + i.toString();
-							if (Data.config.playList !== undefined && Data.config.playList === true) {
+							if (Config.props.playList !== undefined && Config.props.playList === true) {
 								Controller.createElement(temp);
 							}
 						} // end for
@@ -530,7 +529,7 @@
 						}
 						//Controller.setupSeek();
 						Events.setupSeek();
-						if(Data.config.autoPlay !== 'undefined' && Data.config.autoPlay === true) {
+						if(Config.props.autoPlay !== 'undefined' && Config.props.autoPlay === true) {
 						setTimeout(function(){
 								Controller.play('',Data.curr_song);
 							},1000);
@@ -538,8 +537,8 @@
 						else {
 							Controller.showSongInfo();
 						}
-						if (Data.config.onSetupComplete !== 'undefined' && jQuery.isFunction(Data.config.onSetupComplete)) {
-							Data.config.onSetupComplete();
+						if (Config.props.onSetupComplete !== 'undefined' && jQuery.isFunction(Config.props.onSetupComplete)) {
+							Config.props.onSetupComplete();
 						}
 						LOGGER.info("Swagg Player ready!");
 					}
@@ -571,7 +570,7 @@
 			getDuration : function(soundobj) {
 				var duration;
 				if (!soundobj.loaded === true)
-					uration = soundobj.durationEstimate;
+					duration = soundobj.durationEstimate;
 				else {
 					duration = soundobj.duration;
 				}
@@ -637,7 +636,7 @@
 							Controller.play('switchArt() - by way of createElement',track);
 						}			
 						Data.curr_song = track;
-						if (Data.config.useArt === true) {
+						if (Config.props.useArt === true) {
 							Controller.switchArt(track, afterEffect);
 						}
 						else {
@@ -659,7 +658,7 @@
 				var imagesLoaded = ImageLoader.imagesLoaded;
 				var out, over;
 				var play = Controls.play;
-				var hover = (Data.config.buttonHover === 'undefined') ? false : Data.config.buttonHover;
+				var hover = (Config.props.buttonHover === 'undefined') ? false : Config.props.buttonHover;
 				
 				if (state === 1 ) { // play state
 					if (imagesLoaded === false) {
@@ -735,7 +734,7 @@
 				Controller.stopMusic(t);
 				inst.curr_song = t;
 				// if using album , use  transition
-				if (inst.config.useArt === true) {
+				if (Config.props.useArt === true) {
 					var afterEffect = function() {
 						Controller.showSongInfo();
 						Controller.play('skip',t);
@@ -826,14 +825,15 @@
 			progress : function(soundobj) {
 				// get current position of currently playing song
 				var pos = soundobj.position; 
+				var duration = 0;
 				var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
 				
 				if (soundobj.loaded === false) {
-					var duration = soundobj.durationEstimate;
+					duration = soundobj.durationEstimate;
 					Controller.millsToTime(duration, 0);
 				}
 				else {
-					var duration = soundobj.duration;
+					duration = soundobj.duration;
 				}
 				
 				// ratio of (current position / total duration of song)
