@@ -14,6 +14,7 @@
 	var controller = {
 		
 		buildScriptTag : function(scriptPath) {
+				console.log('Swagg Loader::Info::Loading Script ' + scriptPath);
 				var script  = $('<script>');
 				script.attr( 'type', 'text/javascript');
 				script.attr('src', scriptPath);
@@ -23,30 +24,26 @@
 				return script;
 		},	
 	
-		loadScripts : function(config) {
-			if (config.onBeforeLoad !== null && config.onBeforeLoad !== 'undefined') {
-				config.onBeforeLoad.apply(this, []);
-			}
-			
-			var array = config.scripts;
-			for (var i = 0; i < array.length; i++) {
-				var script = controller.buildScriptTag(array[i]);
-				if (array[i + 1] !== 'undefined') {
+		loadScripts : function(array, index) {
+				var script = controller.buildScriptTag(array[index]);
+				if ((index + 1) < array.length) {
 					script.ready(function(){
-						controller.buildScriptTag(array[i+1]);
+						controller.loadScripts(array, index + 1);
 					});	
-					i++;	
 				}
-			}
-			if (config.onLoad !== null && config.onLoad !== 'undefined') {
-				config.onLoad.apply(this, []);
-			}
-		} // end loadScripts
-		
+		} // end loadScripts	
 	} // end controller
 
 	$.fn.SwaggLoader = function(config) {
-		controller.loadScripts(config);
+		if (config.onBeforeLoad !== null && config.onBeforeLoad !== 'undefined') {
+			config.onBeforeLoad.apply(this, []);
+		}
+		
+		controller.loadScripts(config.scripts, 0);
+		
+		if (config.onLoad !== null && config.onLoad !== 'undefined') {
+			config.onLoad.apply(this, []);
+		}
 	};
 
 }(jQuery));
