@@ -346,7 +346,7 @@
 						// fire off onSeekPreview event
 						if (Config.props.onSeekPreview !== undefined && $.isFunction(Config.props.onSeekPreview)) {
 							internal.event_ref = e;
-							Config.props.onSeekPreview();	
+							Config.props.onSeekPreview.apply(this, []);	
 						}				
 					}
 				);	
@@ -488,34 +488,33 @@
 									Controller.millsToTime(this.duration, 0);	
 									Controller.playPauseButtonState(0);
 									if(Config.props.onPlay !== undefined && jQuery.isFunction(Config.props.onPlay)){
-										Config.props.onPlay();
+										Config.props.onPlay.apply(this,[]);
 									}
 								},
 								onpause: function(){
 									Controller.playPauseButtonState(1); 
 									if(Config.props.onPause !== undefined && jQuery.isFunction(Config.props.onPause)){
-										Config.props.onPause();
+										Config.props.onPause.apply(this,[]);
 									}
 								},
 								onstop: function(){
 									Controller.playPauseButtonState(1); 
 									if(Config.props.onStop !== undefined && jQuery.isFunction(Config.props.onStop)){
-										Config.props.onStop();
+										Config.props.onStop.apply(this,[]);
 									}
 								},
 								onresume: function(){
 									Controller.playPauseButtonState(0); 
 									if(Config.props.onResume !== undefined && jQuery.isFunction(Config.props.onResume)){
-										Config.props.onResume();
+										Config.props.onResume.apply(this,[]);
 									}
 								},
 								whileplaying: function(){
 									Controller.progress(this);
 									Controller.millsToTime(this.position, 1);
 									if(jQuery.isFunction(Config.props.whilePlaying)){
-										Config.props.whilePlaying();
+										Config.props.whilePlaying.apply(this,[]);
 									}
-									
 								}
 							});
 							temp.id = 'song-' + i.toString();
@@ -538,7 +537,7 @@
 							Controller.showSongInfo();
 						}
 						if (Config.props.onSetupComplete !== 'undefined' && jQuery.isFunction(Config.props.onSetupComplete)) {
-							Config.props.onSetupComplete();
+							Config.props.onSetupComplete.apply(this,[]);
 						}
 						LOGGER.info("Swagg Player ready!");
 					}
