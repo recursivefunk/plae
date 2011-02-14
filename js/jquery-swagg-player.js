@@ -7,10 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.7.7
+   v0.8.5.7.8
    
-   Change Log v0.8.5.7.7
-   - Code refactoring
+   Change Log
+   - Prevent seekTo while bytes are still loading
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, $: false */
@@ -313,16 +313,22 @@
 						var id = 'song-' + Data.curr_song;
 						var soundobj = soundManager.getSoundById(id);
 						var x = e.pageX - Html.loaded.offset().left;
+						var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
 						
 						var duration = Controller.getDuration(soundobj);
 						
 						// obtain the position clicked by the user
 						var newPosPercent = x / parseFloat(Html.progress_wrapper.css('width')); 
 						
+						var wrapper_width = parseFloat(Html.progress_wrapper.css('width'));
+						
+						var loaded = wrapper_width * loaded_ratio;
+						
 						// find the position within the song the location clicked correspondes to
 						var seekTo = Math.round(newPosPercent * duration);
-
-						soundobj.setPosition(seekTo);
+						if (loaded >= wrapper_width) {
+							soundobj.setPosition(seekTo);
+						}
 					}
 				});
 				

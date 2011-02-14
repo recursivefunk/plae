@@ -8,6 +8,9 @@
    	Code provided under the MIT License:
    	http://www.opensource.org/licenses/mit-license.php
    
+   
+	v 0.5.1
+	- script executes recursively as opposed to iteratively
 */
 (function($) {
 	
