@@ -11,8 +11,8 @@
 <body>
 <div class="spacer"></div>
 <div id="swagg-player"><br />
-	<div id="swagg-player-album-art">
-		<img src="loading.gif" id="swagg-player-art" border="0"/>
+	<div id="swagg-player-album-art" style="border:#000 medium solid;" class="swagg-player-album-art-init-dimentions">
+		<img src="loading.gif" id="swagg-player-loading" border="0"/>
     </div><br/><br/>
     <div id="swagg-player-controls">
 		<img class="swagg-player-button" src="images/play.png" id="swagg-player-play-button" border="0"/>
@@ -44,13 +44,14 @@ $(document).ready(function(){
 			"url": "sound/1.mp3",
 			"artist": "Artist1",
 			"title": "Song 1",
-			"thumb": "images/median.jpg" 
+			"thumb":"images/median.jpg"
+			
 		},
 		{
 			"url": "sound/2.mp3",
 			"artist": "Artist 2",
 			"title": "Song 2",
-			"thumb": "images/windowseat.jpg" 
+			"spriteClass" : "spriteme"
 		}
 	];
 	
@@ -61,10 +62,11 @@ $(document).ready(function(){
 			useArt: true,					// optional - using album? defaults to true
 			playList: true,
 			buttonHover: true,
+			defaultAlbumArtHeight: 100,
+			defaultAlbumArtWidth: 100,
+			spriteImg: 'images/swagg-sprite2.png',
 			debug: true,
-			html5Audio: 	false,
-			swaggplayer: 'js/jquery-swagg-player.js',
-			sm2: 'js/soundmanager2-nodebug-jsmin.js',
+			html5Audio: true,
 			whilePlaying: function(){
 				var api = $('#swagg-player-data').data('api');
 				$('#time').html( api.currentSong.time().getCurrTimeAsString() + ' / ' + api.currentSong.time().getTotalTimeAsString() );

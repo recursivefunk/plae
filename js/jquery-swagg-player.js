@@ -7,74 +7,29 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.7.8
+   v0.8.5.7.9
    
    Change Log
-   - Prevent seekTo while bytes are still loading
+   - Added the ability for album art to use CSS sprites
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, $: false */
 		
 		// logging utility
-		var LOGGER = {
-			
-			setup : function(){
-				
-				Date.prototype.formatMMDDYYYY = (function()
-				{
-					var amPm = '';
-					var month = parseInt(this.getMonth()) + 1;
-					var minutes = function(mns){
-						if (mns < 10) {
-							return '0' + mns;	
-						}
-						else {
-							return mns;	
-						}
-					}
-					var hours = function(hrs){
-						if (hrs > 12) {
-							amPm = 'PM';
-							return hrs - 12;	
-						} 
-						else {
-							amPm = 'AM';
-							return hrs;	
-						}
-					};
-					return this.getFullYear() + "-" + month + "-" +  this.getDate()  + " " + hours(this.getHours()) + ":" + minutes(this.getMinutes()) + amPm;
-				});
-			},			
-			
+		var LOGGER = {		
 			error: function(errMsg){
-				if (Config.props.debug === true) {
-					if ($.isFunction(Date.formatMMDDYYY) === false) {
-						console.log('Swagg Player::Error::' + errMsg);	
-					}
-					else {
-						console.log( new Date().formatMMDDYYYY() + ' Swagg Player::Error::' + errMsg);
-					}
+				if (Config.props.debug === true && Data.isIe === false) {
+					console.log('Swagg Player::Error::' + errMsg);	
 				}
 			},
 			info: function(info){
-				if (Config.props.debug === true) {
-					if ($.isFunction(Date.formatMMDDYYY) === false) {
-						console.log('Swagg Player::Info::' + info);
-					}
-					else {
-						console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Info::' + info);	
-					}
+				if (Config.props.debug === true && Data.isIe === false) {
+					console.log('Swagg Player::Info::' + info);
 				}
 			},
 			warn: function(warning) {
-				if (Config.props.debug === true) {
-					if ($.isFunction(Date.formatMMDDYYY) === false) {
-						console.log('Swagg Player::Warning::' + warning);
-					}
-					else {
-						console.log(new Date().formatMMDDYYYY() + ' Swagg Player::Warning::' + warning);		
-					}
-					
+				if (Config.props.debug === true && Data.isIe === false) {
+					console.log('Swagg Player::Warning::' + warning);
 				}
 			}
 		};
@@ -87,6 +42,7 @@
 		var Data = {
 			songs:{},
 			song:{},
+			curr_sprite_class: '',
 			isIe: false,
 			curr_song:0,
 			vol_interval:5,
@@ -98,7 +54,7 @@
 				// preload song album  and append an IDs to the songs - make configurable in the future
 				// to avoid having to loop through JSON array
 				for (var i = 0; i < size; i++) {
-					if (_config_.props.useArt === true) {
+					if (_config_.props.useArt === true && theData[i].thumb !== undefined) {
 						theData[i].image = new Image();
 						theData[i].image.src = theData[i].thumb;
 					}
@@ -137,14 +93,16 @@
 		var Html = {
 			player: $('#swagg-player'),
 			playlist: $('#swagg-player-list'),
-			art: $('#swagg-player-art'),
+			art: $('#swagg-player-album-art'),
+			loading_indication: $('#swagg-player-loading'),
 			progress_wrapper: $('#swagg-player-progress-wrapper'),
 			bar: $('#swagg-player-bar'),
 			loaded: $('#swagg-player-loaded'),
 			song_info: $('#swagg-player-song-info'),
 			controls_div: $('#swagg-player-controls'),
-			loading: '<img src="loading.gif"></img>',
 			bridge_data: null,
+			default_art_css: { height : '100px', width : '100px' },
+			user_art_css: {height:0, width:0},
 			
 			setupProgressBar : function() {
 				LOGGER.info('SetupProgressBar()');
@@ -201,7 +159,7 @@
 				var inst = Data;
 				var _images = ImageLoader.imagesLoaded;
 				var i = inst.img;
-				var usehover = (Config.props.buttonHover === 'undefined') ? false : Config.props.buttonHover;
+				var usehover = (Config.props.buttonHover === undefined) ? false : Config.props.buttonHover;
 				
 				Controls.play.bind({
 					click: function() {
@@ -373,13 +331,29 @@
 			backOver:null,
 			skip:null,
 			skipOver:null,
+			art:null,
 			imagesLoaded:false,
 			
+			setup : function(config) {
+				if (config.buttonsDir !== undefined) {
+					this.loadButtonImages(config.buttonsDir);
+					Controls.setup();	
+				}
+				else {
+					config.buttonHover = false;	
+				}
+				if (config.spriteImg !== undefined) {
+					this.art = new Image();
+					this.art.src = config.spriteImg;
+				}
+			},
+			
 			loadButtonImages: function(imagesDir) {
-				var hover = (Config.props.buttonHover === 'undefined') ? false : Config.props.buttonHover;
+				var hover = (Config.props.buttonHover === undefined) ? false : Config.props.buttonHover;
 				LOGGER.info('Loading images for controls...');
+				var controls = Controls;
 
-				if (Controls.play.length > 0) {
+				if (controls.play.length > 0) {
 					this.play = new Image();
 					this.play.src = imagesDir + 'play.png';
 					this.pause = new Image();
@@ -393,7 +367,7 @@
 					}
 				}
 				
-				if (Controls.skip.length > 0) {
+				if (controls.skip.length > 0) {
 					this.skip = new Image();
 					this.skip.src = imagesDir + 'skip.png';
 					
@@ -403,7 +377,7 @@
 					}
 				}
 				
-				if (Controls.back.length > 0) {
+				if (controls.back.length > 0) {
 					this.back = new Image();
 					this.back.src = imagesDir + 'back.png';
 					
@@ -413,7 +387,7 @@
 					}
 				}
 				
-				if (Controls.stop.length > 0) {
+				if (controls.stop.length > 0) {
 					this.stop = new Image();
 					this.stop.src = imagesDir + 'stop.png';
 					
@@ -433,9 +407,6 @@
 				
 				Data.isIe = Browser.isIe();
 				
-				// format date for log messages
-				LOGGER.setup();
-				
 				// get songs from server via XHR
 				Data.getSongs();
 				
@@ -445,21 +416,14 @@
 				// create invisible element which will hold user accessible data
 				Controller.setupApi();
 
+				ImageLoader.setup(config);
+
 				// check for soundManager support and warn or inform accordingly
 				if (!soundManager.supported()) {
 					LOGGER.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
 				}
 				else {
 					LOGGER.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
-				}
-					
-				// check if we're using button images. if so, preload them. if not, ignore.
-				if (config.buttonsDir !== undefined) {
-					ImageLoader.loadButtonImages(config.buttonsDir);
-					Controls.setup();	
-				}
-				else {
-					config.buttonHover = false;	
 				}
 				
 				if (Config.props.html5Audio === true && Browser.isSafari() === false) { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
@@ -530,19 +494,21 @@
 						} // end for
 						if (config.useArt === true) {
 							// initialize first song album 
-							Html.art.attr('src',songs_[Data.curr_song].image.src); 
+							var songs = Data.songs;
+							var index = Data.curr_song;
+							Html.loading_indication.remove();
+							Controller.setAlbumArtStyling(0);
 						}
-						//Controller.setupSeek();
 						Events.setupSeek();
-						if(Config.props.autoPlay !== 'undefined' && Config.props.autoPlay === true) {
-						setTimeout(function(){
-								Controller.play('',Data.curr_song);
-							},1000);
+						if(Config.props.autoPlay !== undefined && Config.props.autoPlay === true) {
+							setTimeout(function(){
+									Controller.play('',Data.curr_song);
+								},1000);
 						}
 						else {
 							Controller.showSongInfo();
 						}
-						if (Config.props.onSetupComplete !== 'undefined' && jQuery.isFunction(Config.props.onSetupComplete)) {
+						if (Config.props.onSetupComplete !== undefined && jQuery.isFunction(Config.props.onSetupComplete)) {
 							Config.props.onSetupComplete.apply(this,[]);
 						}
 						LOGGER.info("Swagg Player ready!");
@@ -663,7 +629,7 @@
 				var imagesLoaded = ImageLoader.imagesLoaded;
 				var out, over;
 				var play = Controls.play;
-				var hover = (Config.props.buttonHover === 'undefined') ? false : Config.props.buttonHover;
+				var hover = (Config.props.buttonHover === undefined) ? false : Config.props.buttonHover;
 				
 				if (state === 1 ) { // play state
 					if (imagesLoaded === false) {
@@ -740,17 +706,25 @@
 				inst.curr_song = t;
 				// if using album , use  transition
 				if (Config.props.useArt === true) {
-					var afterEffect = function() {
-						Controller.showSongInfo();
-						Controller.play('skip',t);
+					if (Config.props.onBeforeSkip !== 'undfined' && jQuery.isFunction(Config.props.onBeforeSkip)) {
+						Config.props.onBeforeSkip.apply(this,[]);
 					}
-					Controller.switchArt(t, afterEffect);
+					Controller.switchArt(t);
 				} // end if
 				// if not using album , just go to the next song
 				else {
 						Controller.showSongInfo();
 						Controller.play('skip',t);
 				} // end else	
+			},
+			
+			wipeArtCss : function() {
+				var art = Html.art;
+				art.removeClass(Data.curr_sprite_class);
+				art.css('height','');
+				art.css('width','');
+				art.css('background-image','');
+				art.css('background','');	
 			},
 			
 			// Resets the progress bar back to the beginning
@@ -793,15 +767,63 @@
 				}
 			},
 			
+			setAlbumArtStyling : function(track){
+				var art = Html.art;
+				var song = Data.songs[track];
+				var songs = Data.songs;
+				var data = Data;
+				var config = Config;
+				var html = Html;
+				Controller.wipeArtCss();
+				if (song.spriteClass !== undefined) {
+					art.addClass(song.spriteClass);
+					data.curr_sprite_class =  song.spriteClass;
+				}
+				else {
+					LOGGER.info('did not find sprite class for ' + song.title);
+					
+					art.css('background', ' transparent url(' + songs[track].image.src + ')');
+					if (song.thumbHeight !== undefined) {
+						html.user_art_css.height = song.thumbHeight.toString() + 'px';
+					}
+					else {
+						var height = (config.props.defaultAlbumArtHeight !== undefined) ? config.props.defaultAlbumArtHeight : '100';
+						html.user_art_css.height = height.toString() + 'px';	
+					}
+					
+					if (song.thumbWidth !== undefined) {
+						html.user_art_css.width = song.thumbWidth.toString() + 'px';
+					}
+					else {
+						var width = (config.props.defaultAlbumArtWidth !== undefined) ? config.props.defaultAlbumArtWidth : '100';						
+						html.user_art_css.width = width.toString() + 'px';	
+					}
+					art.css(html.user_art_css);
+					LOGGER.info('height: ' + art.css('height') + '  width: ' + art.css('width'));
+				}				
+			},
+			
 			// switches to the currently playing song's album  using fancy jquery slide effect
-			switchArt : function(track, afterEffect) {
+			switchArt : function(track) {
 				LOGGER.info('Will show  for song at index: ' + track);
 				var sound_id = 'song-' + track
 				var art = Html.art;
-
-				art.hide('slide', function() {
-					$(this).attr('src',Data.songs[track].image.src);
-					$(this).show('slide', afterEffect); 
+				var config = Config;
+				var data = Data;
+				var controller = Controller;
+				var songs = Data.songs;
+				var song = songs[track];
+				
+				art.fadeOut('slow', function() {
+					controller.wipeArtCss();
+					controller.setAlbumArtStyling(track);
+					$(this).fadeIn('slow', function(){
+						controller.showSongInfo();
+						controller.play('skip',track);
+						if (config.props.onAfterSkip !== undefined && $.isFunction(config.props.onAfterSkip)){
+							config.props.onAfterSkip.apply(this,[]);
+						}
+					});
 				});	
 			},
 			
