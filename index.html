@@ -57,14 +57,11 @@ $(document).ready(function(){
 	
 	var onload = function() {	
 		$('#swagg-player').SwaggPlayer({
-			data: mysongs,					// REQUIRED - path to your songs file JSON
-			buttonsDir: 'images/',			// optional - tells swagg player where to find your buttons
-			useArt: true,					// optional - using album? defaults to true
-			playList: true,
+			data: mysongs,					
+			buttonsDir: 'images/',								
 			buttonHover: true,
 			defaultAlbumArtHeight: 100,
 			defaultAlbumArtWidth: 100,
-			spriteImg: 'images/swagg-sprite2.png',
 			debug: true,
 			html5Audio: true,
 			whilePlaying: function(){

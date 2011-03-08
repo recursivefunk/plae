@@ -25,3 +25,31 @@
 	font-weight: normal;
 	font-style: normal;
 }
+.hero-light {
+	font-weight:normal;
+	font-style: normal; 
+	line-height:normal; 
+	font-family: 'HeroLight', sans-serif;	
+}
+
+@font-face {
+	font-family: 'HeroLight';
+	src: url('hero-light.otf');
+	url('code-light.otf') format('otf');
+	font-weight: normal;
+	font-style: normal;
+}
+.hero {
+	font-weight:normal;
+	font-style: normal; 
+	line-height:normal; 
+	font-family: 'Hero', sans-serif;	
+}
+
+@font-face {
+	font-family: 'Hero';
+	src: url('hero.otf');
+	url('code-light.otf') format('otf');
+	font-weight: normal;
+	font-style: normal;
+}

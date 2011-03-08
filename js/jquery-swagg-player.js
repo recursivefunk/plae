@@ -7,7 +7,7 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.7.9
+   v0.8.5.8
    
    Change Log
    - Added the ability for album art to use CSS sprites
@@ -35,7 +35,12 @@
 		};
 		
 		var Config = {
-			props : {}
+			props : {},
+			setup : function(){
+				Data.isIe = Browser.isIe();
+				Config.props.useArt = ($('#swagg-player-album-art').size() > 0);
+				Config.props.playList = ($('#swagg-player-list').size() > 0);
+			}
 		};
 		
 		// swagg player data and configuration
@@ -54,6 +59,7 @@
 				// preload song album  and append an IDs to the songs - make configurable in the future
 				// to avoid having to loop through JSON array
 				for (var i = 0; i < size; i++) {
+					LOGGER.info('Using album art');
 					if (_config_.props.useArt === true && theData[i].thumb !== undefined) {
 						theData[i].image = new Image();
 						theData[i].image.src = theData[i].thumb;
@@ -101,7 +107,6 @@
 			song_info: $('#swagg-player-song-info'),
 			controls_div: $('#swagg-player-controls'),
 			bridge_data: null,
-			default_art_css: { height : '100px', width : '100px' },
 			user_art_css: {height:0, width:0},
 			
 			setupProgressBar : function() {
@@ -350,7 +355,7 @@
 			
 			loadButtonImages: function(imagesDir) {
 				var hover = (Config.props.buttonHover === undefined) ? false : Config.props.buttonHover;
-				LOGGER.info('Loading images for controls...');
+				LOGGER.info('Loading images for controls');
 				var controls = Controls;
 
 				if (controls.play.length > 0) {
@@ -405,7 +410,8 @@
 			init : function(config) {
 				Config.props = $.extend(Config.props,config);	
 				
-				Data.isIe = Browser.isIe();
+				// initialize configuration
+				Config.setup();
 				
 				// get songs from server via XHR
 				Data.getSongs();
@@ -492,7 +498,7 @@
 								Controller.createElement(temp);
 							}
 						} // end for
-						if (config.useArt === true) {
+						if (Config.props.useArt === true) {
 							// initialize first song album 
 							var songs = Data.songs;
 							var index = Data.curr_song;
@@ -779,9 +785,7 @@
 					art.addClass(song.spriteClass);
 					data.curr_sprite_class =  song.spriteClass;
 				}
-				else {
-					LOGGER.info('did not find sprite class for ' + song.title);
-					
+				else {				
 					art.css('background', ' transparent url(' + songs[track].image.src + ')');
 					if (song.thumbHeight !== undefined) {
 						html.user_art_css.height = song.thumbHeight.toString() + 'px';
@@ -799,7 +803,6 @@
 						html.user_art_css.width = width.toString() + 'px';	
 					}
 					art.css(html.user_art_css);
-					LOGGER.info('height: ' + art.css('height') + '  width: ' + art.css('width'));
 				}				
 			},
 			
