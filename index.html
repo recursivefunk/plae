@@ -26,15 +26,17 @@
     <label id="swagg-player-song-info">Loading...</label><br /><br/>
     <div id="swagg-player-list"></div> 
 </div><br/>
+<div id="vol" style="width:200px; margin-left:auto; margin-right:auto;">
+	<input type="button" id="vol-up" value="+" /><input type="button" id="vol-down" value="-" />
+</div>
 <div class="spacer"></div>
 </body>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
-<script type="text/javascript" src="js/jquery-swaggloader.js"></script>
+<script src="js/LAB.min.js"></script>
 <script type="text/javascript">
-$(document).ready(function(){
 	var mysongs = 
 	[
-/*		{
+		/*		
+ 		{
 			"url": "sound/3.mp3",
 			"artist": "Artist 3",
 			"title": "Song 3",
@@ -51,33 +53,40 @@ $(document).ready(function(){
 			"url": "sound/2.mp3",
 			"artist": "Artist 2",
 			"title": "Song 2",
-			"spriteClass" : "spriteme"
+			"thumb": "images/windowseat.jpg"
 		}
 	];
 	
-	var onload = function() {	
-		$('#swagg-player').SwaggPlayer({
-			data: mysongs,					
-			buttonsDir: 'images/',								
-			buttonHover: true,
-			defaultAlbumArtHeight: 100,
-			defaultAlbumArtWidth: 100,
-			debug: true,
-			html5Audio: true,
-			whilePlaying: function(){
-				var api = $('#swagg-player-data').data('api');
-				$('#time').html( api.currentSong.time().getCurrTimeAsString() + ' / ' + api.currentSong.time().getTotalTimeAsString() );
-			},
-			onStop: function(){
-				 $('#time').html('00:00 / 00:00');	
-			}
+	(function(){
+		window.SM2_DEFER = true; // boiler plate so that SM2 knows to wait for manual execution
+		$LAB	
+		.script("http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js").wait()
+		.script("js/soundmanager2-nodebug-jsmin.js").wait()
+		.script("js/jquery-swagg-player.js").wait(function(){
+			$('#swagg-player').SwaggPlayer({
+				data: mysongs,					
+				buttonsDir: 'images/',								
+				buttonHover: true,
+				defaultAlbumArtHeight: 100,
+				defaultAlbumArtWidth: 100,
+				debug: true,
+				html5Audio: true,
+				whilePlaying: function(){
+					var api = $('#swagg-player-data').data('api');
+					$('#time').html( api.currentSong.time().getCurrTimeAsString() + ' / ' + api.currentSong.time().getTotalTimeAsString() );
+				},
+				onStop: function(){
+					 $('#time').html('00:00 / 00:00');	
+				}
+			});
+			$('#vol-up').click(function(){
+				$('#swagg-player-data').data('api').currentSong.playback().volumeUp();
+			});
+			$('#vol-down').click(function(){
+				$('#swagg-player-data').data('api').currentSong.playback().volumeDown();
+			});
 		});
-	}
+	})();
 	
-	$('body').SwaggLoader({ 
-		scripts : ['js/soundmanager2-nodebug-jsmin.js', 'js/jquery-swagg-player.js'],
-		onBeforeLoad : function(){window.SM2_DEFER = true;}, 
-		onLoad : onload});	
-	});
 </script>
 </html>

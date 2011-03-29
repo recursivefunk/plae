@@ -50,7 +50,7 @@
 			curr_sprite_class: '',
 			isIe: false,
 			curr_song:0,
-			vol_interval:5,
+			vol_interval:20,
 			interval_id:-1,
 			processSongs: function(theData){
 				LOGGER.info('Processing songs.');
@@ -1054,9 +1054,19 @@
 						return (r === true || r === false) ? r : false;
 					};
 					
+					volUp = function() {
+						Controller.volume(Data.curr_song, 1);
+					};
+					
+					volDown = function(){
+						Controller.volume(Data.curr_song, 0);
+					}
+					
 					return {
 						setRepeat : repeat,
-						repeatMode: inRepeat
+						repeatMode: inRepeat,
+						volumeUp:	volUp,
+						volumeDown:volDown
 					}; // end return
 				} // end playback
 				

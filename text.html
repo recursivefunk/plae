@@ -69,10 +69,8 @@
 </div>
 <div class="spacer"></div>
 </body>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
-<script type="text/javascript" src="js/jquery-swaggloader.js"></script>
+<script type="text/javascript" src="js/LAB.min.js"></script>
 <script type="text/javascript">
-$(document).ready(function(){
 	
 	var songs =
 	[
@@ -96,21 +94,18 @@ $(document).ready(function(){
 			"thumb": "images/windowseat.jpg" 
 		}
 	];
-	
-	var onload = function(){
-		$('#swagg-player').SwaggPlayer({
-			data: songs,		// REQUIRED - path to your songs file JSON OR literal object
-			useArt: false,					// optional - using album? defaults to true
-			playList: false,					// optional - don't set if you do not wish to have a playlist
+
+	(function(){
+		window.SM2_DEFER = true; // boiler plate so that SM2 knows to wait for manual execution
+		$LAB	
+		.script("http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js").wait()
+		.script("js/soundmanager2-nodebug-jsmin.js").wait()
+		.script("js/jquery-swagg-player.js").wait(function(){
+			$('#swagg-player').SwaggPlayer({
+				data: songs
+			});
 		});
-	}
+	})();
 	
-	$('body').SwaggLoader({ 
-		scripts : ['js/soundmanager2-nodebug-jsmin.js', 'js/jquery-swagg-player.js'],
-		onBeforeLoad : function(){window.SM2_DEFER = true;}, 
-		onLoad : onload	
-	});
-	
-});
 </script>
 </html>

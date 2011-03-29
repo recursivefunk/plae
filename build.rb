@@ -88,6 +88,13 @@ puts ""
 puts "moving files"
 FileUtils.mv("js/jquery-swagg-player.min.js", "js/min/jquery-swagg-player.min.js")
 FileUtils.mv("js/jquery-swagg-player-nodebug.min.js", "js/min/jquery-swagg-player-nodebug.min.js")
+
+puts ""
+puts "deploying to server"
+system "./deploy.sh"
+
+puts ""
+puts "done!"
 puts "Done!"
 
 

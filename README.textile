@@ -2,15 +2,10 @@
 <h2>Cross browser javascript music player for the web! Works in IE 7,8,9, FF 3.5+ (including FF4 RC), Chrome & Safari</h2>
 <p>I typically push out new code 2 or 3 times a week. If you'd like the last "stable" version please visit http://johnny-ray.com/swaggplayer.</p>
 
-<h2>Version 0.8.5.8 Change Log</h2>
+<h2>Version 0.8.5.9 Change Log</h2>
 <ul>
-	<li>Added buttonHover option</li>
-    <li>Added defaultAlbumArtHeight option</li>
-    <li>Added defaultAlbumArtWidth</li>
-    <li>Added the spriteImg configuration</li>
-    <li>Swagg Loader is redesigned</li>
-    <li>Removed the useArt option</li>
-    <li>Removed the playList option</li>
+	<li>RIP SwaggLoader - Now using Lab.js for async JavaScript</li>
+    <li>Exposed volume control through API</li>
 </ul>
 
 <p>A more in depth explaination can be found at http://johnny-ray.com/swaggplayer</p>
