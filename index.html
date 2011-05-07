@@ -10,30 +10,34 @@
 </head>
 <body>
 <div class="spacer"></div>
-<div id="swagg-player"><br />
-	<div id="swagg-player-album-art" style="border:#000 medium solid;" class="swagg-player-album-art-init-dimentions">
-		<img src="loading.gif" id="swagg-player-loading" border="0"/>
+<div id="swagg-player" class="swagg-player"><br />
+	<div style="border:#000 medium solid;" class="swagg-player-album-art swagg-player-album-art-init-dimentions">
+		<img src="loading.gif" class="swagg-player-loading" border="0"/>
     </div><br/><br/>
-    <div id="swagg-player-controls">
-		<img class="swagg-player-button" src="images/play.png" id="swagg-player-play-button" border="0"/>
-		<img class="swagg-player-button" src="images/back.png" id="swagg-player-back-button" border="0"/>
-		<img class="swagg-player-button" src="images/skip.png" id="swagg-player-skip-button" border="0"/>
-		<img class="swagg-player-button" src="images/stop.png" id="swagg-player-stop-button" border="0"/>
+    <div class="swagg-player-controls">
+		<img class="swagg-player-button swagg-player-play-button" src="images/play.png" border="0"/>
+		<img class="swagg-player-button swagg-player-back-button" src="images/back.png" border="0"/>
+		<img class="swagg-player-button swagg-player-skip-button" src="images/skip.png" border="0"/>
+		<img class="swagg-player-button swagg-player-stop-button" src="images/stop.png" border="0"/>
   	</div><br /><br/>
-    <div id="swagg-player-progress-wrapper"></div>
+    <div class="swagg-player-progress-wrapper" rel="me"></div>
     <div id="time"></div>
     <br/>
-    <label id="swagg-player-song-info">Loading...</label><br /><br/>
-    <div id="swagg-player-list"></div> 
+    <label class="swagg-player-song-info">Loading...</label><br /><br/>
+    <div class="swagg-player-list"></div> 
 </div><br/>
 <div id="vol" style="width:200px; margin-left:auto; margin-right:auto;">
-	<input type="button" id="vol-up" value="+" /><input type="button" id="vol-down" value="-" />
+	<input type="button" id="vol-up" value="+" /><input type="button" id="vol-down" value="-" /><input type="checkbox" id="repeat-check" onclick="toggle();" style="padding-left:50px;"/>repeat
 </div>
 <div class="spacer"></div>
 </body>
-<script src="js/LAB.min.js"></script>
+<!--<script src="js/LAB.min.js"></script>-->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+<script src="js/soundmanager2-nodebug-jsmin.js"></script>
+<script src="js/jquery-swagg-player.js"></script>
 <script type="text/javascript">
-	var mysongs = 
+$(document).ready(function(){
+		var mysongs = 
 	[
 		/*		
  		{
@@ -57,10 +61,43 @@
 		}
 	];
 	
+				$('#swagg-player').SwaggPlayer({
+						data: mysongs,					
+						buttonsDir: 'images/',								
+						buttonHover: true,
+						defaultAlbumArtHeight: 100,
+						defaultAlbumArtWidth: 100,
+						debug: true,
+						morphArt: true,
+						html5Audio: true,
+						whilePlaying: function(){
+							var api = $('#swagg-player-data').data('api');
+							$('#time').html( api.currentSong.time().getCurrTimeAsString() + ' / ' + api.currentSong.time().getTotalTimeAsString() );
+						},
+						onStop: function(){
+							 $('#time').html('00:00 / 00:00');	
+						}
+				})
+			
+			$('#vol-up').click(function(){
+				$('#swagg-player-data').data('api').currentSong.playback().volumeUp();
+			});
+			$('#vol-down').click(function(){
+				$('#swagg-player-data').data('api').currentSong.playback().volumeDown();
+			});
+			
+			$('#go').click(function(){
+				var api = $('#swagg-player-data').data('api');
+				var track = $('#track').val();
+				api.playback().playTrack(track);
+			});
+});
+
+	/*
 	(function(){
 		window.SM2_DEFER = true; // boiler plate so that SM2 knows to wait for manual execution
 		$LAB	
-		.script("http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js").wait()
+		.script("http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js").wait()
 		.script("js/soundmanager2-nodebug-jsmin.js").wait()
 		.script("js/jquery-swagg-player.js").wait(function(){
 			$('#swagg-player').SwaggPlayer({
@@ -79,14 +116,17 @@
 					 $('#time').html('00:00 / 00:00');	
 				}
 			});
+			
 			$('#vol-up').click(function(){
 				$('#swagg-player-data').data('api').currentSong.playback().volumeUp();
 			});
 			$('#vol-down').click(function(){
 				$('#swagg-player-data').data('api').currentSong.playback().volumeDown();
 			});
+			
 		});
 	})();
+	*/
 	
 </script>
 </html>

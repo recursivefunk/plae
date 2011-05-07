@@ -7,10 +7,15 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.8
+   v0.8.5.9.1
    
    Change Log
-   - Added the ability for album art to use CSS sprites
+   - Exposed onError function
+   - Fixes for repeat mode
+   - Fixed end of playlist bug
+   - Added morhpArt option
+   - Playlist does not repeat
+   - Use classes as opposed to div id's
 */
 (function ($){
 		/*global soundManager: false, setInterval: false, console: false, $: false */
@@ -31,20 +36,17 @@
 				if (Config.props.debug === true && Data.isIe === false) {
 					console.log('Swagg Player::Warning::' + warning);
 				}
-			}
-		};
-		
-		var Config = {
-			props : {},
-			setup : function(){
-				Data.isIe = Browser.isIe();
-				Config.props.useArt = ($('#swagg-player-album-art').size() > 0);
-				Config.props.playList = ($('#swagg-player-list').size() > 0);
+			},
+			apierror: function(errMsg) {
+				if (Config.props.debug === true && Data.isIe === false) {
+					console.log('Swagg Player::API Error::' + errMsg);	
+				}
 			}
 		};
 		
 		// swagg player data and configuration
 		var Data = {
+			last_song:0,
 			songs:{},
 			song:{},
 			curr_sprite_class: '',
@@ -66,7 +68,8 @@
 					}
 					theData[i].id = i.toString();
 				}
-				Data.songs = theData;				
+				Data.songs = theData;
+				Data.last_song= Data.songs.length - 1;			
 			},
 			
 			getSongs: function() {				
@@ -97,46 +100,76 @@
 		
 		// UI elements (divs)
 		var Html = {
-			player: $('#swagg-player'),
-			playlist: $('#swagg-player-list'),
-			art: $('#swagg-player-album-art'),
-			loading_indication: $('#swagg-player-loading'),
-			progress_wrapper: $('#swagg-player-progress-wrapper'),
-			bar: $('#swagg-player-bar'),
-			loaded: $('#swagg-player-loaded'),
-			song_info: $('#swagg-player-song-info'),
-			controls_div: $('#swagg-player-controls'),
+			div:null,
+			player: null,
+			playlist: null,
+			art: null,
+			loading_indication: null,
+			progress_wrapper: null,
+			bar: null,
+			loaded: null,
+			song_info: null,
+			controls_div: null,
 			bridge_data: null,
 			user_art_css: {height:0, width:0},
 			
 			setupProgressBar : function() {
 				LOGGER.info('SetupProgressBar()');
 				if (this.progress_wrapper.length > 0) {
-					var wrapper = $('#swagg-player-progress-wrapper');
+					var wrapper = $('#' + this.player + ' div.swagg-player-progress-wrapper');
 					var height = wrapper.css('height');
 					loaded = $('<div></div>');
-					loaded.attr("id","swagg-player-loaded");
+					loaded.addClass("swagg-player-loaded");
 					loaded.css('height', height).css('width',0).css('float','left').css('margin-left','0');
 					wrapper.append(loaded);
-					Html.loaded = loaded;
+					this.loaded = $('#' + this.player + ' div.swagg-player-loaded');
 					
 					var progress = $('<div></div>');
-					progress.attr("id","swagg-player-bar");
+					progress.addClass('swagg-player-bar');
 					progress.css('height', height).css('width',0).css('float','left').css('margin-left','auto');
 					loaded.append(progress);
-					Html.bar = progress;
+					this.bar = $('#' + this.player + ' div.swagg-player-bar');
 				}
+			},
+			
+			initHtml: function() {
+				LOGGER.info("initHtml()");
+				this.div = $('#' + this.player);
+				this.playlist = $('#' + this.player + ' div.swagg-player-list');
+				this.art = $('#' + this.player + ' div.swagg-player-album-art');
+				this.loading_indication = $('#' + this.player + ' img.swagg-player-loading');
+				this.progress_wrapper = $('#' + this.player + ' div.swagg-player-progress-wrapper');
+				this.bar = $('#' + this.player + ' div.swagg-player-bar');
+				this.loaded = $('#' + this.player + ' div.swagg-player-loaded');
+				this.song_info = $('#' + this.player + ' label.swagg-player-song-info');
+				this.controls_div = $('#' + this.player + ' div.swagg-player-controls');
+				this.user_art_css = {height:0, width:0};
+			}
+		};
+		
+		var Config = {
+			props : {},
+			setup : function(){
+				Data.isIe = Browser.isIe();
+				Config.props.useArt = (Html.art.length > 0);
+				Config.props.playList = (Html.playlist.length > 0);
 			}
 		};
 		
 		// encapsulate controlls
 		var Controls = {
-			play:	$('#swagg-player-play-button'),
-			skip:	$('#swagg-player-skip-button'),
-			back:	$('#swagg-player-back-button'),
-			stop:	$('#swagg-player-stop-button'),
+			play:	null,
+			skip:	null,
+			back:	null,
+			stop:	null,
 			
 			setup : function() {
+				
+				this.play =	$('#' + Html.player + ' .swagg-player-play-button');
+				this.skip =	$('#' + Html.player + ' .swagg-player-skip-button');
+				this.back =	$('#' + Html.player + ' .swagg-player-back-button');
+				this.stop =	$('#' + Html.player + ' .swagg-player-stop-button');
+				
 				if (ImageLoader.play !== null) {
 					this.play.css('cursor','pointer');	
 				}
@@ -273,7 +306,7 @@
 				// seek to a position in the song
 				Html.loaded.css('cursor', 'pointer').bind({
 					click : function(e) {
-						var id = 'song-' + Data.curr_song;
+						var id = Html.player + '-song-' + Data.curr_song;
 						var soundobj = soundManager.getSoundById(id);
 						var x = e.pageX - Html.loaded.offset().left;
 						var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
@@ -298,7 +331,7 @@
 				// seek preview data
 				Html.loaded.bind( 'mouseover hover mousemove', 
 					function(e){
-						var id = 'song-' + Data.curr_song;
+						var id = Html.player + '-song-' + Data.curr_song;
 						var soundobj = soundManager.getSoundById(id);
 						var x = e.pageX - Html.loaded.offset().left;
 						
@@ -341,8 +374,8 @@
 			
 			setup : function(config) {
 				if (config.buttonsDir !== undefined) {
+					Controls.setup();
 					this.loadButtonImages(config.buttonsDir);
-					Controls.setup();	
 				}
 				else {
 					config.buttonHover = false;	
@@ -408,7 +441,12 @@
 		// controller for the main functionality (play, pause etc)
 		var Controller = {
 			init : function(config) {
-				Config.props = $.extend(Config.props,config);	
+				
+				Config.props = $.extend(Config.props,config);
+				
+				Html.player = config.player;
+				
+				Html.initHtml();	
 				
 				// initialize configuration
 				Config.setup();
@@ -432,9 +470,7 @@
 					LOGGER.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
 				}
 				
-				if (Config.props.html5Audio === true && Browser.isSafari() === false) { // Safari HTML5 audio bug. ignore HTML5 audio if Safari
-					soundManager.useHTML5Audio = true;
-				}
+				soundManager.useHTML5Audio = true;
 				
 				// setup controller events
 				Events.setup();
@@ -449,12 +485,18 @@
 						var temp;
 						for (var i = 0, end = songs_.length; i < end; i++) {
 							temp = localSoundManager.createSound({	// create sound objects to hook event handlers
-								id: 'song-' + i.toString(),			// to button states
+								id: Html.player + '-song-' + i.toString(),			// to button states
 								url: songs_[i].url,
 								autoLoad: true,
 								onfinish: function(){
-									if (internal.repeat === false){
-										Controller.skip(1);
+									if (internal.repeatMode === false){
+										if (Data.curr_song !== Data.last_song) {
+											Controller.skip(1);
+										} else {
+											Controller.playPauseButtonState(1);
+											Controller.stopMusic(Data.curr_song);
+											var obj = temp.setPosition(0);
+										}
 									}
 									else {
 										Controller.repeat();	
@@ -493,7 +535,8 @@
 									}
 								}
 							});
-							temp.id = 'song-' + i.toString();
+							temp.id = Html.player + '-song-' + i.toString();
+							temp.repeat = internal.repeat;
 							if (Config.props.playList !== undefined && Config.props.playList === true) {
 								Controller.createElement(temp);
 							}
@@ -506,13 +549,11 @@
 							Controller.setAlbumArtStyling(0);
 						}
 						Events.setupSeek();
+						Controller.showSongInfo();
 						if(Config.props.autoPlay !== undefined && Config.props.autoPlay === true) {
 							setTimeout(function(){
 									Controller.play('',Data.curr_song);
 								},1000);
-						}
-						else {
-							Controller.showSongInfo();
 						}
 						if (Config.props.onSetupComplete !== undefined && jQuery.isFunction(Config.props.onSetupComplete)) {
 							Config.props.onSetupComplete.apply(this,[]);
@@ -537,7 +578,11 @@
 				  setTimeout(soundManager.reboot,20);
 				  setTimeout(function() {
 					if (!soundManager.supported()) {
-					  LOGGER.error('Something went wrong with loading Sound Manager. No tunes for you!');
+						LOGGER.error('Something went wrong with loading Sound Manager. No tunes for you!');
+						// call user defined onError function
+					  	if(Config.props.onError !== undefined && jQuery.isFunction(Config.props.onError)){
+							Config.props.onError.apply(this,[]);
+						}
 					}
 				  },1500);
 				}
@@ -554,9 +599,10 @@
 				return duration;
 			},
 			
+			// repeats the currently playing track
 			repeat : function(track) {
 				LOGGER.info('repeat()');
-				var sound_id = 'song-' + Data.curr_song;
+				var sound_id = Html.player + '-song-' + Data.curr_song;
 				var target = soundManager.getSoundById(sound_id);
 				Controller.resetProgressBar();
 				target.setPosition(0);
@@ -565,7 +611,7 @@
 			
 			// Plays a song based on the ID
 			play : function(caller, track){
-				var sound_id = 'song-' + track
+				var sound_id = Html.player + '-song-' + track
 				LOGGER.info('Playing track: ' + sound_id + '. Oh and ' + caller + ' called me!');
 				var target = soundManager.getSoundById(sound_id);
 				
@@ -587,15 +633,16 @@
 				Controller.showSongInfo();
 			},
 			
+			// creates the API element
 			setupApi : function() {
-				Html.player.append('<div id="swagg-player-data"></div>');
+				Html.div.append('<div id="swagg-player-data"></div>');
 				$('#swagg-player-data').css('display','none').data('api', API);				
 			},
 			
 			// Dynamically creates playlist items as songs are loaded
 			createElement : function(soundobj){
 				LOGGER.info('createElement()');
-				var song = Data.songs[parseInt(soundobj.id.split('-')[1])];
+				var song = Data.songs[parseInt(soundobj.id.split('-')[3])];
 				var id = 'item-' + song.id;
 				var listItem = $('<li></li>');
 				listItem.attr('id',id);
@@ -724,6 +771,24 @@
 				} // end else	
 			},
 			
+			jumpTo : function(t) {
+				var inst = Data;
+				Controller.stopMusic(t);
+				inst.curr_song = t;
+				// if using album , use  transition
+				if (Config.props.useArt === true) {
+					if (Config.props.onBeforeSkip !== 'undfined' && jQuery.isFunction(Config.props.onBeforeSkip)) {
+						Config.props.onBeforeSkip.apply(this,[]);
+					}
+					Controller.switchArt(t);
+				} // end if
+				// if not using album , just go to the next song
+				else {
+						Controller.showSongInfo();
+						Controller.play('skip',t);
+				} // end else	
+			},
+			
 			wipeArtCss : function() {
 				var art = Html.art;
 				art.removeClass(Data.curr_sprite_class);
@@ -735,8 +800,8 @@
 			
 			// Resets the progress bar back to the beginning
 			resetProgressBar : function(){
-				$('#swagg-player-bar').css('width', 0);
-				$('#swagg-player-loaded').css('width', 0);
+				Html.bar.css('width', 0);
+				Html.loaded.css('width', 0);
 			},	
 			
 			// resets the track time
@@ -755,7 +820,7 @@
 			
 			// Increases the volume of the specified song
 			volume : function(track, flag) {
-				var sound_id = 'song-' + track
+				var sound_id = Html.player + '-song-' + track
 				var sound = soundManager.getSoundById(sound_id);
 				
 				var curr_vol = sound.volume;
@@ -787,29 +852,31 @@
 				}
 				else {				
 					art.css('background', ' transparent url(' + songs[track].image.src + ')');
-					if (song.thumbHeight !== undefined) {
-						html.user_art_css.height = song.thumbHeight.toString() + 'px';
+					if (config.props.morphArt === true) {
+						if (song.thumbHeight !== undefined) {
+							html.user_art_css.height = song.thumbHeight.toString() + 'px';
+						}
+						else {
+							var height = (config.props.defaultAlbumArtHeight !== undefined) ? config.props.defaultAlbumArtHeight : '100';
+							html.user_art_css.height = height.toString() + 'px';	
+						}
+						
+						if (song.thumbWidth !== undefined) {
+							html.user_art_css.width = song.thumbWidth.toString() + 'px';
+						}
+						else {
+							var width = (config.props.defaultAlbumArtWidth !== undefined) ? config.props.defaultAlbumArtWidth : '100';						
+							html.user_art_css.width = width.toString() + 'px';	
+						}
+						art.css(html.user_art_css);
 					}
-					else {
-						var height = (config.props.defaultAlbumArtHeight !== undefined) ? config.props.defaultAlbumArtHeight : '100';
-						html.user_art_css.height = height.toString() + 'px';	
-					}
-					
-					if (song.thumbWidth !== undefined) {
-						html.user_art_css.width = song.thumbWidth.toString() + 'px';
-					}
-					else {
-						var width = (config.props.defaultAlbumArtWidth !== undefined) ? config.props.defaultAlbumArtWidth : '100';						
-						html.user_art_css.width = width.toString() + 'px';	
-					}
-					art.css(html.user_art_css);
 				}				
 			},
 			
 			// switches to the currently playing song's album  using fancy jquery slide effect
 			switchArt : function(track) {
 				LOGGER.info('Will show  for song at index: ' + track);
-				var sound_id = 'song-' + track
+				var sound_id = Html.player + '-song-' + track
 				var art = Html.art;
 				var config = Config;
 				var data = Data;
@@ -916,7 +983,7 @@
 			showSongInfo : function() {
 				var loc_inst = Data;
 				var song_ = loc_inst.songs[loc_inst.curr_song];
-				$('#swagg-player-song-info').html( "<p>" + song_.artist + "  <br/>" + song_.title + " </p>" );	
+				Html.song_info.html( "<p>" + song_.artist + "  <br/>" + song_.title + " </p>" );	
 			}
 		};
 		
@@ -932,7 +999,7 @@
 			currArtist:null,
 			currAlbum:null,
 			currTempo:null,
-			repeat:false,	
+			repeatMode:false,	
 			
 			update : function() {
 				this.currTitle = Data.songs[Data.curr_song].title;
@@ -1045,32 +1112,47 @@
 				}, // end data
 				
 				playback : function() {
-					repeat = function(flag) {
-						internal.repeat = (flag === true || flag === false) ? repeat : false;	
+					setRepeat_ = function(flag) {
+						internal.repeatMode = (flag === true || flag === false) ? flag : false;
 					};
 					
-					inRepeat = function() {
+					inRepeat_ = function() {
 						var r = internal.repeat;
 						return (r === true || r === false) ? r : false;
 					};
 					
-					volUp = function() {
+					volUp_ = function() {
 						Controller.volume(Data.curr_song, 1);
 					};
 					
-					volDown = function(){
+					volDown_ = function(){
 						Controller.volume(Data.curr_song, 0);
-					}
-					
+					};
+		
 					return {
-						setRepeat : repeat,
-						repeatMode: inRepeat,
-						volumeUp:	volUp,
-						volumeDown:volDown
+						setRepeat : setRepeat_,
+						repeatMode : inRepeat_,
+						volumeUp : volUp_,
+						volumeDown : volDown_,
 					}; // end return
 				} // end playback
 				
-			} // end song
+			}, // end song
+			
+			playback : function() {
+				play_ = function(track) {
+					var actualTrack = track - 1;
+					if (actualTrack <= (Data.last_song) && actualTrack >= 0) {
+						Controller.jumpTo(track - 1);
+					} else {
+						LOGGER.apierror("Invalid track number '" + track + "'");
+					}
+				}
+				
+				return {
+					playTrack : play_
+				}				
+			}
 		}; // end API
 		
 		
@@ -1104,6 +1186,7 @@
 						
 		$.fn.SwaggPlayer = function(options_) {
 			initializeSoundManager();
-			Controller.init(options_);
+			var opts = $.extend(options_,{player:this.attr("id")});
+			Controller.init(opts);
 		};
 })(jQuery);
