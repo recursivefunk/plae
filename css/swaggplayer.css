@@ -21,27 +21,21 @@
 		background-position: 0 0; width: 149px; height: 100px;
 		}
 	.swagg-player-progress-wrapper {
-		width:180px; 
+		width:200px; 
 		height:5px; 
 		margin-left:auto;
 		margin-right:auto;
-		background-color:#CCC;	
+		background-color:#CCC;
 	}
 	.list-over {
 		font-weight:bold;	
 		background-color:#F93;
 	}
 	.swagg-player-loaded {
-		width:0px; 
-		height:5px; 
 		background-color:#FC6;
 	}
 	.swagg-player-bar {
-		width:0px; 
-		height:5px; 
 		background-color:#F93;
-		float:left;
-		margin-left:0;
 	}
 	#time{padding-top:5px;}
 	.swagg-player-controls{

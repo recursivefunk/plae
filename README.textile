@@ -1,14 +1,18 @@
 <h1>Swagg Player</h1>
-<h2>Cross browser javascript music player for the web! Works in IE 7,8,9, FF 3.5+ (including FF4 RC), Chrome & Safari</h2>
-<p>I typically push out new code 2 or 3 times a week. If you'd like the last "stable" version please visit http://johnny-ray.com/swaggplayer.</p>
+<h2>Cross browser javascript music player for the web! Works in IE 7,8,9, FF 3.5+, Chrome & Safari</h2>
 
-<h2>Version 0.8.5.9 Change Log</h2>
+<h2>Version 0.8.5.9.1 Change Log</h2>
 <ul>
-	<li>RIP SwaggLoader - Now using Lab.js for async JavaScript</li>
-    <li>Exposed volume control through API</li>
+	<li>Exposed onError function</li>
+    <li>Fixes for repeat mode</li>
+    <li>Fixed end of playlist bug</li>
+    <li>Added morhpArt option</li>
+    <li>Playlist does not repeat</li>
+    <li>Using CSS classes as opposed to div id's</li>
+    <li>Added the ability to play a specific song via the API</li>
 </ul>
 
-<p>A more in depth explaination can be found at http://johnny-ray.com/swaggplayer</p>
+<p>A more in depth explaination of changes can be found at http://johnny-ray.com/swaggplayer</p>
 
 <h2>Building Swagg Player</h2>
 <p>Swagg Player is a JavaScript application so the build is simply a matter of optimizing the code (making it as small as possible).
@@ -30,7 +34,7 @@ good JS practices. Swagg Player does not YET pass jslint. It's a work and progre
 warnings when you run the script but no worries, things will compress fine. If you run into problems feel free to contact me!</p>
 
 <h2>Demos</h2>
-Examples are included in index.html and text.html. Production examples can be found at <a href="http://johnny-ray.com">here</a> and <a href="http://iamjray.com">here</a>.
+Examples are included in index.html. Production examples can be found at <a href="http://johnny-ray.com">here</a> and <a href="http://iamjray.com">here</a>.
 
 <p>The production examples cited above are typically anywhere between 1 and 10 (minor) versions ahead of what's downloadable at at the Swagg Player homepage. Documentation for some features found in the repo (and on my website) probably does not exist simply because it may or may not make it in the actual release or it may change substantially in design. 
 I try and keep the bleeding edge (un-documented) version on my web site to get some real world testing and to see if certain features "make sense". Feel free to contact me if you have any questions about features in the repo code that are not documented <a href="http://johnny-ray.com/swaggplayer">here</a>.</p>
