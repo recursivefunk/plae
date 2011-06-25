@@ -7,16 +7,10 @@
    Code provided under the MIT License:
    http://www.opensource.org/licenses/mit-license.php
 
-   v0.8.5.9.1
+   v0.8.5.9.2
    
    Change Log
-   - Exposed onError function
-   - Fixes for repeat mode
-   - Fixed end of playlist bug
-   - Added morhpArt option
-   - Playlist does not repeat
-   - Use classes as opposed to div id's
-   - Added ability to target specific songs in a playlist via the API
+   - Added lazy loading property
 */
 (function ($){
 	
@@ -502,13 +496,16 @@
 					if(Data.songs[0] !== undefined) {
 						clearInterval(Data.interval_id);
 						var songs_ = Data.songs;
-						var localSoundManager = soundManager;	
+						var localSoundManager = soundManager;
+						var confLoad = Config.props.lazyLoad;
+						var lazyLoad = (confLoad === 'undefined' || confLoad === undefined || confLoad === false) ? false : true;
+						LOGGER.info("Lazy loading set to : " + lazyLoad);	
 						var temp;
 						for (var i = 0, end = songs_.length; i < end; i++) {
 							temp = localSoundManager.createSound({	// create sound objects to hook event handlers
 								id: Html.player + '-song-' + i.toString(),			// to button states
 								url: songs_[i].url,
-								autoLoad: true,
+								autoLoad: lazyLoad,
 								onfinish: function(){
 									if (internal.repeatMode === false){
 										if (Data.curr_song !== Data.last_song) {
