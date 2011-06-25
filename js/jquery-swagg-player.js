@@ -498,14 +498,14 @@
 						var songs_ = Data.songs;
 						var localSoundManager = soundManager;
 						var confLoad = Config.props.lazyLoad;
-						var lazyLoad = (confLoad === 'undefined' || confLoad === undefined || confLoad === false) ? false : true;
-						LOGGER.info("Lazy loading set to : " + lazyLoad);	
+						var autoload = (confLoad === 'undefined' || confLoad === undefined || confLoad === false) ? true : false;
+						LOGGER.info("Auto load set to : " + autoload);	
 						var temp;
 						for (var i = 0, end = songs_.length; i < end; i++) {
 							temp = localSoundManager.createSound({	// create sound objects to hook event handlers
 								id: Html.player + '-song-' + i.toString(),			// to button states
 								url: songs_[i].url,
-								autoLoad: lazyLoad,
+								autoLoad: autoload,
 								onfinish: function(){
 									if (internal.repeatMode === false){
 										if (Data.curr_song !== Data.last_song) {
