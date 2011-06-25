@@ -32,7 +32,7 @@
 <div class="spacer"></div>
 
 </body>
-<!--<script src="js/LAB.min.js"></script>-->
+<!--<script src="js/LAB.min.js"></script> UNCOMMNENT TO USE ASYNC LOADING -->
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 <script src="js/soundmanager2-nodebug-jsmin.js"></script>
 <script src="js/jquery-swagg-player.js"></script>
@@ -40,13 +40,6 @@
 $(document).ready(function(){
 		var mysongs = 
 	[
-		/*		
- 		{
-			"url": "sound/3.mp3",
-			"artist": "Artist 3",
-			"title": "Song 3",
-			"thumb": "images/music.jpg" 
-		},*/
 		{
 			"url": "sound/1.mp3",
 			"artist": "Artist1",
@@ -96,6 +89,9 @@ $(document).ready(function(){
 });
 
 	/*
+	
+	ASYNC LOADING: THIS IS FASTER IN PRODUCTION BUT MAKES IT MORE DIFFICULT TO DEBUG DURING DEVELOPMENT
+	
 	(function(){
 		window.SM2_DEFER = true; // boiler plate so that SM2 knows to wait for manual execution
 		$LAB	
