@@ -88,6 +88,11 @@ $(document).ready(function(){
 			});
 });
 
+function play(t) {
+	var api = $('#swagg-player-data').data('api');
+				api.playback().playTrack(t);
+}
+
 	/*
 	
 	ASYNC LOADING: THIS IS FASTER IN PRODUCTION BUT MAKES IT MORE DIFFICULT TO DEBUG DURING DEVELOPMENT

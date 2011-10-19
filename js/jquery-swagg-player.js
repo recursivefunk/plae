@@ -11,6 +11,8 @@
    
    Change Log
    - Added lazy loading property
+   - IE fix
+   - Minor code refactoring
 */
 (function ($){
 	
@@ -18,7 +20,9 @@
 		/*global soundManager: false, setInterval: false, console: false, $: false */
 		
 		$.fn.SwaggPlayer = function(options_) {
-			initializeSoundManager();
+			if (!soundManager || soundManager === undefined || soundManager === 'undefined') {
+				initializeSoundManager();
+			}
 			var opts = $.extend(options_,{player:this.attr("id")});
 			Controller.init(opts);
 		};
@@ -126,15 +130,15 @@
 			setupProgressBar : function() {
 				LOGGER.info('SetupProgressBar()');
 				if (this.progress_wrapper.length > 0) {
-					var wrapper = $('#' + this.player + ' div.swagg-player-progress-wrapper');
-					var height = wrapper.css('height');
+					var wrapper = $('#' + this.player + ' div.swagg-player-progress-wrapper'),
+						height = wrapper.css('height'),
+						progress = $('<div></div>');
 					loaded = $('<div></div>');
 					loaded.addClass("swagg-player-loaded");
 					loaded.css('height', height).css('width',0).css('float','left').css('margin-left','0');
 					wrapper.append(loaded);
 					this.loaded = $('#' + this.player + ' div.swagg-player-loaded');
 					
-					var progress = $('<div></div>');
 					progress.addClass('swagg-player-bar');
 					progress.css('height', height).css('width',0).css('float','left').css('margin-left','auto');
 					loaded.append(progress);
@@ -209,10 +213,10 @@
 			
 			bindControllerEvents: function(){
 				LOGGER.info('Binding controller button events');
-				var inst = Data;
-				var _images = ImageLoader.imagesLoaded;
-				var i = inst.img;
-				var usehover = (Config.props.buttonHover === undefined) ? false : Config.props.buttonHover;
+				var inst = Data,
+					_images = ImageLoader.imagesLoaded,
+					i = inst.img,
+					usehover = (Config.props.buttonHover === undefined) ? false : Config.props.buttonHover;
 				
 				Controls.play.bind({
 					click: function() {
@@ -321,22 +325,17 @@
 				// seek to a position in the song
 				Html.loaded.css('cursor', 'pointer').bind({
 					click : function(e) {
-						var id = Html.player + '-song-' + Data.curr_song;
-						var soundobj = soundManager.getSoundById(id);
-						var x = e.pageX - Html.loaded.offset().left;
-						var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
-						
-						var duration = Controller.getDuration(soundobj);
-						
-						// obtain the position clicked by the user
-						var newPosPercent = x / parseFloat(Html.progress_wrapper.css('width')); 
-						
-						var wrapper_width = parseFloat(Html.progress_wrapper.css('width'));
-						
-						var loaded = wrapper_width * loaded_ratio;
-						
-						// find the position within the song the location clicked correspondes to
-						var seekTo = Math.round(newPosPercent * duration);
+						var id = Html.player + '-song-' + Data.curr_song,
+							soundobj = soundManager.getSoundById(id),
+							x = e.pageX - Html.loaded.offset().left,
+							loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal,
+							duration = Controller.getDuration(soundobj),
+							// obtain the position clicked by the user
+							newPosPercent = x / parseFloat(Html.progress_wrapper.css('width')),
+							wrapper_width = parseFloat(Html.progress_wrapper.css('width')),
+							loaded = wrapper_width * loaded_ratio,
+							// find the position within the song to which the location clicked corresponds
+							seekTo = Math.round(newPosPercent * duration);
 						if (loaded >= wrapper_width) {
 							soundobj.setPosition(seekTo);
 						}
@@ -346,17 +345,14 @@
 				// seek preview data
 				Html.loaded.bind( 'mouseover hover mousemove', 
 					function(e){
-						var id = Html.player + '-song-' + Data.curr_song;
-						var soundobj = soundManager.getSoundById(id);
-						var x = e.pageX - Html.loaded.offset().left;
-						
-						var duration = Controller.getDuration(soundobj);
-						
-						// obtain the position clicked by the user
-						var newPosPercent = x / parseFloat(Html.progress_wrapper.css('width')); 
-						
-						// find the position within the song the location clicked correspondes to
-						var seekTo = Math.round(newPosPercent * duration);
+						var id = Html.player + '-song-' + Data.curr_song,
+							soundobj = soundManager.getSoundById(id),
+							x = e.pageX - Html.loaded.offset().left,
+							duration = Controller.getDuration(soundobj),
+							// obtain the position clicked by the user
+							newPosPercent = x / parseFloat(Html.progress_wrapper.css('width')),
+							// find the position within the song to which the location clicked corresponds
+							seekTo = Math.round(newPosPercent * duration);
 
 						Controller.millsToTime(seekTo, -1);
 						
@@ -402,10 +398,9 @@
 			},
 			
 			loadButtonImages: function(imagesDir) {
-				var hover = (Config.props.buttonHover === undefined) ? false : Config.props.buttonHover;
+				var hover = (Config.props.buttonHover === undefined) ? false : Config.props.buttonHover,
+					controls = Controls;
 				LOGGER.info('Loading images for controls');
-				var controls = Controls;
-
 				if (controls.play.length > 0) {
 					this.play = new Image();
 					this.play.src = imagesDir + 'play.png';
@@ -495,12 +490,12 @@
 					LOGGER.info('createSongs()');
 					if(Data.songs[0] !== undefined) {
 						clearInterval(Data.interval_id);
-						var songs_ = Data.songs;
-						var localSoundManager = soundManager;
-						var confLoad = Config.props.lazyLoad;
-						var autoload = (confLoad === 'undefined' || confLoad === undefined || confLoad === false) ? true : false;
+						var songs_ = Data.songs,
+							localSoundManager = soundManager,
+							confLoad = Config.props.lazyLoad,
+							temp;
+							autoload = (confLoad === 'undefined' || confLoad === undefined || confLoad === false) ? true : false;
 						LOGGER.info("Auto load set to : " + autoload);	
-						var temp;
 						for (var i = 0, end = songs_.length; i < end; i++) {
 							temp = localSoundManager.createSound({	// create sound objects to hook event handlers
 								id: Html.player + '-song-' + i.toString(),			// to button states
@@ -561,8 +556,8 @@
 						} // end for
 						if (Config.props.useArt === true) {
 							// initialize first song album 
-							var songs = Data.songs;
-							var index = Data.curr_song;
+							var songs = Data.songs,
+								index = Data.curr_song;
 							Html.loading_indication.remove();
 							Controller.setAlbumArtStyling(0);
 						}
@@ -620,8 +615,8 @@
 			// repeats the currently playing track
 			repeat : function(track) {
 				LOGGER.info('repeat()');
-				var sound_id = Html.player + '-song-' + Data.curr_song;
-				var target = soundManager.getSoundById(sound_id);
+				var sound_id = Html.player + '-song-' + Data.curr_song,
+					target = soundManager.getSoundById(sound_id);
 				Controller.resetProgressBar();
 				target.setPosition(0);
 				target.play();
@@ -629,9 +624,9 @@
 			
 			// Plays a song based on the ID
 			play : function(caller, track){
-				var sound_id = Html.player + '-song-' + track
 				LOGGER.info('Playing track: ' + sound_id + '. Oh and ' + caller + ' called me!');
-				var target = soundManager.getSoundById(sound_id);
+				var sound_id = Html.player + '-song-' + track,
+					target = soundManager.getSoundById(sound_id);
 				
 				if (target.paused === true) { // if current track is paused, unpause
 					LOGGER.info('Unpausing song');
@@ -660,9 +655,9 @@
 			// Dynamically creates playlist items as songs are loaded
 			createElement : function(soundobj){
 				LOGGER.info('createElement()');
-				var song = Data.songs[parseInt(soundobj.id.split('-')[3])];
-				var id = 'item-' + song.id;
-				var listItem = $('<li></li>');
+				var song = Data.songs[parseInt(soundobj.id.split('-')[3])],
+					id = 'item-' + song.id,
+					listItem = $('<li></li>');
 				listItem.attr('id',id);
 				listItem.addClass('swagg-player-playlist-item');
 				listItem.html(song.title + ' - ' + song.artist);
@@ -671,12 +666,12 @@
 				listItem.data('song', song);
 				listItem.bind({
 					click: function(){
-						var track = parseInt($(this).data('song').id);
 						Controller.stopMusic(Data.curr_song);
-						var afterEffect = function() {
-							Controller.showSongInfo();
-							Controller.play('switchArt() - by way of createElement',track);
-						}			
+						var track = parseInt($(this).data('song').id),
+							afterEffect = function() {
+								Controller.showSongInfo();
+								Controller.play('switchArt() - by way of createElement',track);
+							}			
 						Data.curr_song = track;
 						if (Config.props.useArt === true) {
 							Controller.switchArt(track, afterEffect);
@@ -695,12 +690,12 @@
 			// toggles the play/pause button to the play state
 			playPauseButtonState : function(state){
 				LOGGER.info('PlayButtonState() state: ' + state);
-				var inst = Data;
-				var i = inst.img;
-				var imagesLoaded = ImageLoader.imagesLoaded;
-				var out, over;
-				var play = Controls.play;
-				var hover = (Config.props.buttonHover === undefined) ? false : Config.props.buttonHover;
+				var inst = Data,
+					i = inst.img,
+					imagesLoaded = ImageLoader.imagesLoaded,
+					out, over,
+					play = Controls.play,
+					hover = (Config.props.buttonHover === undefined) ? false : Config.props.buttonHover;
 				
 				if (state === 1 ) { // play state
 					if (imagesLoaded === false) {
@@ -749,9 +744,8 @@
 			// it goes back to the first song
 			skip : function(direction){
 				LOGGER.info('skip()');
-				var inst = Data;
-				//var songs_ = inst.songs;	
-				var t = inst.curr_song;
+				var inst = Data,
+					t = inst.curr_song;
 				
 				if (direction === 1) { // skip forward
 					if (t < inst.songs.length){
@@ -838,10 +832,9 @@
 			
 			// Increases the volume of the specified song
 			volume : function(track, flag) {
-				var sound_id = Html.player + '-song-' + track
-				var sound = soundManager.getSoundById(sound_id);
-				
-				var curr_vol = sound.volume;
+				var sound_id = Html.player + '-song-' + track,
+					sound = soundManager.getSoundById(sound_id),
+				 	curr_vol = sound.volume;
 
 				if (flag === 1) {
 					LOGGER.info('Vol up');
@@ -857,12 +850,13 @@
 			},
 			
 			setAlbumArtStyling : function(track){
-				var art = Html.art;
-				var song = Data.songs[track];
-				var songs = Data.songs;
-				var data = Data;
-				var config = Config;
-				var html = Html;
+				var art = Html.art,
+					song = Data.songs[track],
+					songs = Data.songs,
+					data = Data,
+					config = Config,
+					html = Html;
+					
 				Controller.wipeArtCss();
 				if (song.spriteClass !== undefined) {
 					art.addClass(song.spriteClass);
@@ -894,13 +888,13 @@
 			// switches to the currently playing song's album  using fancy jquery slide effect
 			switchArt : function(track) {
 				LOGGER.info('Will show  for song at index: ' + track);
-				var sound_id = Html.player + '-song-' + track
-				var art = Html.art;
-				var config = Config;
-				var data = Data;
-				var controller = Controller;
-				var songs = Data.songs;
-				var song = songs[track];
+				var sound_id = Html.player + '-song-' + track,
+					art = Html.art,
+					config = Config,
+					data = Data,
+					controller = Controller,
+					songs = Data.songs,
+					song = songs[track];
 				
 				if ($.ui) {
 					art.hide('slide', 200, function() {
@@ -952,9 +946,9 @@
 			
 			updateCanvas : function(soundobj) {
 				// get current position of currently playing song
-				var pos = soundobj.position; 
-				var duration = 0;
-				var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
+				var pos = soundobj.position,
+					duration = 0,
+					loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
 				
 				if (soundobj.loaded === false) {
 					duration = soundobj.durationEstimate;
@@ -965,22 +959,20 @@
 				}
 				
 				// ratio of (current position / total duration of song)
-				var pos_ratio = pos/duration; 
-
-				// angle to draw
-				var angle = pos_ration * 360;
-				
-				var ctx = Html.canvas.getContext('2d');
-				var c = this.canvasData;
-				ctx.arc(c.x, c.y, c.radius, c.lastAngle , angle, false);
+				var pos_ratio = pos/duration,
+					// angle to draw
+					angle = pos_ration * 360,
+					ctx = Html.canvas.getContext('2d'),
+					c = this.canvasData;
+					ctx.arc(c.x, c.y, c.radius, c.lastAngle , angle, false);
 			},
 			
 			// updates the UI progress bar
 			progress : function(soundobj) {
 				// get current position of currently playing song
 				var pos = soundobj.position; 
-				var duration = 0;
-				var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
+					duration = 0,
+					loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
 				
 				if (soundobj.loaded === false) {
 					duration = soundobj.durationEstimate;
@@ -991,19 +983,15 @@
 				}
 				
 				// ratio of (current position / total duration of song)
-				var pos_ratio = pos/duration; 
-				
-				// width of progress bar
-				var wrapper_width = parseFloat(Html.progress_wrapper.css('width'));
-				
-				var loaded = wrapper_width * loaded_ratio;
-				
-				// set width of inner progress bar equal to the width equivelant of the
-				// current position
-				var t = wrapper_width*pos_ratio;
+				var pos_ratio = pos/duration,
+					// width of progress bar
+					wrapper_width = parseFloat(Html.progress_wrapper.css('width')),
+					loaded = wrapper_width * loaded_ratio,
+					// set width of inner progress bar equal to the width equivelant of the
+					// current position
+					t = wrapper_width*pos_ratio;
 				Html.bar.css('width', t);
 				Html.loaded.css('width', loaded);
-					
 			},
 			
 			// calculates the total duration of a sound in terms of minutes
@@ -1012,8 +1000,8 @@
 			// flag 1 - says we're calculating the current potition of the song
 			// flag -1 = says we're calculating the arbitrary position of a song (seek preview)
 			millsToTime : function(duration, flag) {
-					var seconds = Math.floor(duration / 1000);
-					var minutes = 0;
+					var seconds = Math.floor(duration / 1000),
+						minutes = 0;
 					if (seconds > 60) {
 						minutes = Math.floor(seconds / 60);
 						seconds = Math.round(seconds % 60);		
@@ -1038,8 +1026,8 @@
 			
 			// displays ist and song title
 			showSongInfo : function() {
-				var loc_inst = Data;
-				var song_ = loc_inst.songs[loc_inst.curr_song];
+				var loc_inst = Data,
+					song_ = loc_inst.songs[loc_inst.curr_song];
 				Html.song_info.html( "<p>" + song_.artist + "  <br/>" + song_.title + " </p>" );	
 			}
 		};
@@ -1100,20 +1088,20 @@
 					var privateFuncs = {
 						currTimeAsString : function(){
 
-							var i = internal;
-							var currMin = (i.currMinutes > 9) ? i.currMinutes : '0' + 
-								i.currMinutes.toString();
-							var currSec = (i.currSeconds > 9) ? i.currSeconds : '0' + 
-								i.currSeconds.toString();	
+							var i = internal,
+								currMin = (i.currMinutes > 9) ? i.currMinutes : '0' + 
+									i.currMinutes.toString(),
+								currSec = (i.currSeconds > 9) ? i.currSeconds : '0' + 
+									i.currSeconds.toString();	
 							return currMin + ':' + currSec;
 						},
 						
 						totalTimeAsString : function() {
-							var i = internal;
-							var totalMin = (i.totalMinutes > 9) ? i.totalMinutes : '0' + 
-								i.totalMinutes.toString();
-							var totalSec = (i.totalSeconds > 9) ? i.totalSeconds : '0' + 
-								i.totalSeconds.toString();	
+							var i = internal,
+								totalMin = (i.totalMinutes > 9) ? i.totalMinutes : '0' + 
+									i.totalMinutes.toString(),
+								totalSec = (i.totalSeconds > 9) ? i.totalSeconds : '0' + 
+									i.totalSeconds.toString();	
 							return totalMin + ':' + totalSec;	
 						},
 						
@@ -1190,7 +1178,7 @@
 						setRepeat : setRepeat_,
 						repeatMode : inRepeat_,
 						volumeUp : volUp_,
-						volumeDown : volDown_,
+						volumeDown : volDown_
 					}; // end return
 				} // end playback
 				
