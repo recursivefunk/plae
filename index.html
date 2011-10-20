@@ -55,24 +55,34 @@ $(document).ready(function(){
 		}
 	];
 	
-				$('#swagg-player').SwaggPlayer({
-						data: mysongs,					
-						buttonsDir: 'images/',								
-						buttonHover: true,
-						defaultAlbumArtHeight: 100,
-						defaultAlbumArtWidth: 100,
-						debug: true,
-						lazyLoad: true,
-						morphArt: true,
-						html5Audio: true,
-						whilePlaying: function(){
-							var api = $('#swagg-player-data').data('api');
-							$('#time').html( api.currentSong.time().getCurrTimeAsString() + ' / ' + api.currentSong.time().getTotalTimeAsString() );
-						},
-						onStop: function(){
-							 $('#time').html('00:00 / 00:00');	
-						}
-				})
+	/*
+		Some people have expressed concerned about all of the parameters being used, please keep in mind the 'data' parameter
+		is the ONLY required parameter. Do not feel compelled to use everything I have listed here it's just here to show
+		you how to use them if you need to. Start with just configuring your songs with the 'data' parameter and add additional
+		configurations as you need to. Please refer to the documentation at http://swaggplayer.com or feel free to shoot me
+		an email at johnny.ray02@gmail.com
+	*/
+	
+	$('#swagg-player').SwaggPlayer({
+		data: mysongs,		     // <----- this is the ONLY required parameter!			
+		buttonsDir: 'images/',								
+		buttonHover: true,
+		defaultAlbumArtHeight: 100,
+		defaultAlbumArtWidth: 100,
+		debug: true,
+		lazyLoad: true,
+		morphArt: true,
+		html5Audio: true,
+		whilePlaying: function(){
+			var api = $('#swagg-player-data').data('api');
+			$('#time').html( api.currentSong.time().getCurrTimeAsString() + ' / ' + api.currentSong.time().getTotalTimeAsString() );
+		},
+		onStop: function(){
+			$('#time').html('00:00 / 00:00');	
+		}
+	})
+				
+			/* testing the API - not required to run swagg player */	
 			
 			$('#vol-up').click(function(){
 				$('#swagg-player-data').data('api').currentSong.playback().volumeUp();
@@ -92,44 +102,6 @@ function play(t) {
 	var api = $('#swagg-player-data').data('api');
 				api.playback().playTrack(t);
 }
-
-	/*
-	
-	ASYNC LOADING: THIS IS FASTER IN PRODUCTION BUT MAKES IT MORE DIFFICULT TO DEBUG DURING DEVELOPMENT
-	
-	(function(){
-		window.SM2_DEFER = true; // boiler plate so that SM2 knows to wait for manual execution
-		$LAB	
-		.script("http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js").wait()
-		.script("js/soundmanager2-nodebug-jsmin.js").wait()
-		.script("js/jquery-swagg-player.js").wait(function(){
-			$('#swagg-player').SwaggPlayer({
-				data: mysongs,					
-				buttonsDir: 'images/',								
-				buttonHover: true,
-				defaultAlbumArtHeight: 100,
-				defaultAlbumArtWidth: 100,
-				debug: true,
-				html5Audio: true,
-				whilePlaying: function(){
-					var api = $('#swagg-player-data').data('api');
-					$('#time').html( api.currentSong.time().getCurrTimeAsString() + ' / ' + api.currentSong.time().getTotalTimeAsString() );
-				},
-				onStop: function(){
-					 $('#time').html('00:00 / 00:00');	
-				}
-			});
-			
-			$('#vol-up').click(function(){
-				$('#swagg-player-data').data('api').currentSong.playback().volumeUp();
-			});
-			$('#vol-down').click(function(){
-				$('#swagg-player-data').data('api').currentSong.playback().volumeDown();
-			});
-			
-		});
-	})();
-	*/
 	
 </script>
 </html>
