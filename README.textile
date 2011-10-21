@@ -1,36 +1,19 @@
 <h1>Swagg Player</h1>
 <h2>Cross browser javascript music player for the web! Works in IE 7,8,9, FF 3.5+, Chrome & Safari</h2>
 
-<h2>Version 0.8.5.9.2 Change Log</h2>
+<h2>Version 0.8.5.9.3 Change Log</h2>
 <ul>
-	<li>Added lazy loading property</li>
+	<li>Performance enhancements</li>
+	<li>lazyLoad property disabled until related bug is resolved</li>
+	<li>Song continues to load even when paused</li>
+	<li>Minor code refactoring</li>
 </ul>
 
-<p>A more in depth explaination of changes can be found at http://johnny-ray.com/swaggplayer</p>
-
-<h2>Building Swagg Player</h2>
-<p>Swagg Player is a JavaScript application so the build is simply a matter of optimizing the code (making it as small as possible).
-A ruby build script is included which will create 5 additional versions of Swagg Player:</p>
-<ul>
-	<li>jquery-swagg-player.min.js (minified version of the full source including logging statements)</li>
-    <li>jquery-swagg-player-nodebug.js (source minus log statements. 'debug' option does nothing.)</li>
-    <li>jquery-swagg-player-nodebug.min.js (minified source with no log statements. 'debug' option does nothing.)</li>
-    <li>jquery-swagg-player.min.js.php (full source, minified, special gzip php header at the top of the file. must keep .php extention)</li>
-    <li>jquery-swagg-player-nodebug.min.js.php (no debugging code in source, minified, special gzip php header at the top of the file. must keep .php extention)</li>
-</ul>
-<p>I HIGHLY recommend enabling gzip on your server for JavaScriptas jquery.swagg-player-nodebug.min.js is about 5KB when gzipped! The build is fairly dumb right now and assumes swagg player is in a child directory named 'js' and outputs minified source in 'js/min/' and minified gzip ready source in 'js/min/gzipready/'. If you'd like to run the build script yourself you'll need the following:</p>
-<ul>
-	<li><a href="http://www.ruby-lang.org/en/">Ruby</a></li>
-    <li><a href="http://cjohansen.no/en/ruby/juicer_a_css_and_javascript_packaging_tool">Juicer</a></li>
-</ul>
-<p>Follow the instructions on the Juicer homepage in order to install the juicer gem, yui_compressor and jslint. Juicer uses jslint to validate
-good JS practices. Swagg Player does not YET pass jslint. It's a work and progress and I'll get there! So, for now, you will say a bunch of jslint
-warnings when you run the script but no worries, things will compress fine. If you run into problems feel free to contact me!</p>
+<p>A more in depth explanation of changes can be found at http://swaggplayer.com</p>
 
 <h2>Demos</h2>
-Examples are included in index.html. Production examples can be found at <a href="http://johnny-ray.com">here</a> and <a href="http://iamjray.com">here</a>.
+<p>Examples are included in index.html. Production examples can be found at <a href="http://johnny-ray.com">here</a> and <a href="http://iamjray.com">here</a>.</p>
 
-<p>The production examples cited above are typically anywhere between 1 and 10 (minor) versions ahead of what's downloadable at at the Swagg Player homepage. Documentation for some features found in the repo (and on my website) probably does not exist simply because it may or may not make it in the actual release or it may change substantially in design. 
-I try and keep the bleeding edge (un-documented) version on my web site to get some real world testing and to see if certain features "make sense". Feel free to contact me if you have any questions about features in the repo code that are not documented <a href="http://johnny-ray.com/swaggplayer">here</a>.</p>
+<p>API features will probably change until I reach version 1.0 so, when updating please read the change log and review the documentation to check to see if your code will be compatible with the new version.</p>
 
 johnny.ray02@gmail.com
