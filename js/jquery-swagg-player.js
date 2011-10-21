@@ -496,7 +496,7 @@
 						var songs_ = Data.songs,
 							localSoundManager = soundManager,
 							config = Config,
-							confLoad = config.props.lazyLoad,
+							confLoad = true, //config.props.lazyLoad, // disable for now
 							html = Html,
 							data = Data,
 							controller = Controller,
@@ -527,6 +527,9 @@
 									controller.playPauseButtonState(0);
 									if(Config.props.onPlay !== undefined && $.isFunction(config.props.onPlay)){
 										Config.props.onPlay.apply(this,[]);
+									}
+									if (controller.loaded(this) === true) {
+										controller.fillLoaded();
 									}
 								},
 								onpause: function(){
@@ -978,6 +981,15 @@
 					ctx = Html.canvas.getContext('2d'),
 					c = this.canvasData;
 					ctx.arc(c.x, c.y, c.radius, c.lastAngle , angle, false);
+			},
+			
+			fillLoaded : function() {
+				Html.loaded.css('width', Html.metadata.progressWrapperWidth);
+			},
+			
+			loaded : function(soundobj) {
+				if (soundobj.loaded === true && soundobj.readyState === 3 && soundobj.bytesLoaded === soundobj.bytesTotal) return true;
+				else return false;
 			},
 			
 			whileLoading : function(soundobj) {
