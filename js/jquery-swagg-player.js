@@ -7,11 +7,10 @@
    	Code provided under the MIT License:
    	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.5.9.3
+	v0.8.5.9.4
    
 	Change Log
-	- Song continues to load even when paused
-	- Minor performance tweaks
+	- Changes to API - this WILL break any api calls prior to this version
 */
 (function ($){
 	
@@ -64,7 +63,7 @@
 				LOGGER.info('Processing songs.');
 				var size = theData.length;
 				var _config_ = Config;
-				// preload song album  and append an IDs to the songs - make configurable in the future
+				// preload SONG album  and append an IDs to the songs - make configurable in the future
 				// to avoid having to loop through JSON array
 				for (var i = 0; i < size; i++) {
 					LOGGER.info('Using album art');
@@ -335,7 +334,7 @@
 							soundobj = soundManager.getSoundById(id),
 							x = e.pageX - Html.loaded.offset().left,
 							loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal,
-							duration = Controller.getDuration(soundobj),
+							duration = 	Controller.getDuration(soundobj),
 							// obtain the position clicked by the user
 							newPosPercent = x / progressWrapperWidth,
 							loaded = progressWrapperWidth * loaded_ratio,
@@ -664,8 +663,7 @@
 			
 			// creates the API element
 			setupApi : function() {
-				Html.div.append('<div id="swagg-player-data"></div>');
-				$('#swagg-player-data').css('display','none').data('api', API);				
+				window.swaggPlayerApi = new API();				
 			},
 			
 			// Dynamically creates playlist items as songs are loaded
@@ -1030,7 +1028,6 @@
 					// current position
 					t = wrapper_width*pos_ratio;
 				Html.bar.css('width', t);
-				//Html.loaded.css('width', loaded);
 			},
 			
 			// calculates the total duration of a sound in terms of minutes
@@ -1121,124 +1118,90 @@
 		};
 
 		// external API devs can use to extend Swagg Player. Exposes song data, events etc
-		var API = {
-			currentSong : {
-				time : function() {			
-					var privateFuncs = {
-						currTimeAsString : function(){
-
-							var i = internal,
-								currMin = (i.currMinutes > 9) ? i.currMinutes : '0' + 
-									i.currMinutes.toString(),
-								currSec = (i.currSeconds > 9) ? i.currSeconds : '0' + 
-									i.currSeconds.toString();	
-							return currMin + ':' + currSec;
-						},
-						
-						totalTimeAsString : function() {
-							var i = internal,
-								totalMin = (i.totalMinutes > 9) ? i.totalMinutes : '0' + 
-									i.totalMinutes.toString(),
-								totalSec = (i.totalSeconds > 9) ? i.totalSeconds : '0' + 
-									i.totalSeconds.toString();	
-							return totalMin + ':' + totalSec;	
-						},
-						
-						getEventRef : function(){
-							return internal.event_ref;
-						},
-						
-						previewAsString : function() {
-							var i = internal;
-							if ( !isNaN(i.minutes) && !isNaN(i.seconds)) {
-								var mins = (i.minutes > 9) ? i.minutes : '0' + 
-									i.minutes.toString();
-								var secs = (i.seconds > 9) ? i.seconds : '0' + 
-									i.seconds.toString();	
-								return mins + ':' + secs;			
-							}
-							else {
-								return "wait."	
-							}							
-						} // end as string
-					};
-					
-					// public methods
-					return {
-						previewAsString	:	privateFuncs.previewAsString,
-						getSeekEvent	:	privateFuncs.getEventRef,
-						getCurrTimeAsString	:	privateFuncs.currTimeAsString,
-						getTotalTimeAsString:	privateFuncs.totalTimeAsString
-					};
-				}, // end time
+		var API = function() {
+			var self = this;
+			self.currSong = {
+				// operations for the current song
+				getCurrTimeAsString : function() {
+					var i = internal,
+						currMin = (i.currMinutes > 9) ? i.currMinutes : '0' + 
+							i.currMinutes.toString(),
+						currSec = (i.currSeconds > 9) ? i.currSeconds : '0' + 
+							i.currSeconds.toString();	
+					return currMin + ':' + currSec;					
+				},
+				getTotalTimeAsString : function() {
+					var i = internal,
+						totalMin = (i.totalMinutes > 9) ? i.totalMinutes : '0' + 
+							i.totalMinutes.toString(),
+						totalSec = (i.totalSeconds > 9) ? i.totalSeconds : '0' + 
+							i.totalSeconds.toString();	
+					return totalMin + ':' + totalSec;	
+				},	
+				getEventRef : function(){
+					return internal.event_ref;
+				},
 				
-				data : function(){
-					var privateDataFuncs = {
-						title : function() {
-							return (internal.currTitle !== null) ? internal.currTitle : 'Unknown Title';	
-						},
-						artist : function() {
-							return (internal.currArtist !== null) ? internal.currArtist : 'Unknown Artist';	
-						},
-						album : function() {
-							return (internal.currAlbum !== null) ? internal.currAlbum : 'Unknown Album';	
-						},
-						tempo : function(){
-							return (internal.currTempo !== null) ? internal.currTempo : 'Unknown Tempo'; 	
-						}
-					}; // end private
-					return  {
-						getTitle	: 	privateDataFuncs.title,
-						getArtist	:	privateDataFuncs.artist,
-						getAlbum	:	privateDataFuncs.album,
-						getTempo	:	privateDataFuncs.tempo						
-					};
-				}, // end data
-				
-				playback : function() {
-					setRepeat_ = function(flag) {
-						internal.repeatMode = (flag === true || flag === false) ? flag : false;
-					};
-					
-					inRepeat_ = function() {
-						var r = internal.repeat;
-						return (r === true || r === false) ? r : false;
-					};
-					
-					volUp_ = function() {
-						Controller.volume(Data.curr_song, 1);
-					};
-					
-					volDown_ = function(){
-						Controller.volume(Data.curr_song, 0);
-					};
-		
-					return {
-						setRepeat : setRepeat_,
-						repeatMode : inRepeat_,
-						volumeUp : volUp_,
-						volumeDown : volDown_
-					}; // end return
-				} // end playback
-				
-			}, // end song
+				previewAsString : function() {
+					var i = internal;
+					if ( !isNaN(i.minutes) && !isNaN(i.seconds)) {
+						var mins = (i.minutes > 9) ? i.minutes : '0' + 
+							i.minutes.toString();
+						var secs = (i.seconds > 9) ? i.seconds : '0' + 
+							i.seconds.toString();	
+						return mins + ':' + secs;			
+					}
+					else {
+						return "wait."	
+					}							
+				}, // end as string
+				title : function() {
+					return (internal.currTitle !== null) ? internal.currTitle : 'Unknown Title';	
+				},
+				artist : function() {
+					return (internal.currArtist !== null) ? internal.currArtist : 'Unknown Artist';	
+				},
+				album : function() {
+					return (internal.currAlbum !== null) ? internal.currAlbum : 'Unknown Album';	
+				},
+				tempo : function(){
+					return (internal.currTempo !== null) ? internal.currTempo : 'Unknown Tempo'; 	
+				}
+			}; // end current song funcs
 			
-			playback : function() {
-				play_ = function(track) {
+			
+			
+			self.playback = {
+				setRepeat : function(flag) {
+					internal.repeatMode = (flag === true || flag === false) ? flag : false;
+				},
+				
+				inRepeat : function() {
+					var r = internal.repeat;
+					return (r === true || r === false) ? r : false;
+				},
+				
+				volUp : function() {
+					Controller.volume(Data.curr_song, 1);
+				},
+				
+				volDown : function(){
+					Controller.volume(Data.curr_song, 0);
+				},
+
+				playTrack : function(track) {
 					var actualTrack = track - 1;
 					if (actualTrack <= (Data.last_song) && actualTrack >= 0) {
 						Controller.jumpTo(track - 1);
 					} else {
 						LOGGER.apierror("Invalid track number '" + track + "'");
 					}
-				}
-				
-				return {
-					playTrack : play_
 				}				
-			}
-		}; // end API
+			}; // end playback funcs
+		}; // end api
+
 		
+
 		
 		//	BEGIN BROWSER DETECT
 		var Browser = {

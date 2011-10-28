@@ -21,13 +21,13 @@
 		<img class="swagg-player-button swagg-player-stop-button" src="images/stop.png" border="0"/>
   	</div><br /><br/>
     <div class="swagg-player-progress-wrapper" rel="me"></div>
-    <div id="time"></div>
+    <div id="time">00:00 / 00:00</div>
     <br/>
     <label class="swagg-player-song-info">Loading...</label><br /><br/>
     <div class="swagg-player-list"></div> 
 </div><br/>
 <div id="vol" style="width:200px; margin-left:auto; margin-right:auto;">
-	<input type="button" id="vol-up" value="+" /><input type="button" id="vol-down" value="-" /><input type="checkbox" id="repeat-check" onclick="toggle();" style="padding-left:50px;"/>repeat
+	<input type="button" id="vol-up" value="+" /><input type="button" id="vol-down" value="-" /><!--<input type="checkbox" id="repeat-check" onclick="toggle();" style="padding-left:50px;"/>repeat-->
 </div>
 <div class="spacer"></div>
 
@@ -74,8 +74,8 @@ $(document).ready(function(){
 		morphArt: true,
 		html5Audio: true,
 		whilePlaying: function(){
-			var api = $('#swagg-player-data').data('api');
-			$('#time').html( api.currentSong.time().getCurrTimeAsString() + ' / ' + api.currentSong.time().getTotalTimeAsString() );
+			var api = window.swaggPlayerApi;
+			$('#time').html( api.currSong.getCurrTimeAsString() + ' / ' + api.currSong.getTotalTimeAsString() );
 		},
 		onStop: function(){
 			$('#time').html('00:00 / 00:00');	
@@ -85,16 +85,18 @@ $(document).ready(function(){
 			/* testing the API - not required to run swagg player */	
 			
 			$('#vol-up').click(function(){
-				$('#swagg-player-data').data('api').currentSong.playback().volumeUp();
+				//$('#swagg-player-data').data('api').currentSong.playback().volumeUp();
+				window.swaggPlayerApi.playback.volUp();
 			});
 			$('#vol-down').click(function(){
-				$('#swagg-player-data').data('api').currentSong.playback().volumeDown();
+				//$('#swagg-player-data').data('api').currentSong.playback().volumeDown();
+				window.swaggPlayerApi.playback.volDown();
 			});
 			
 			$('#go').click(function(){
-				var api = $('#swagg-player-data').data('api');
+				//var api = $('#swagg-player-data').data('api');
 				var track = $('#track').val();
-				api.playback().playTrack(track);
+				window.swaggPlayerApi.playback.playTrack(track);
 			});
 });
 
