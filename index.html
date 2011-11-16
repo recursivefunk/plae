@@ -56,11 +56,11 @@ $(document).ready(function(){
 	];
 	
 	/*
-		Some people have expressed concerned about all of the parameters being used, please keep in mind the 'data' parameter
+		Some people have expressed concerned about all of the parameters being used. Please keep in mind the 'data' parameter
 		is the ONLY required parameter. Do not feel compelled to use everything I have listed here it's just here to show
 		you how to use them if you need to. Start with just configuring your songs with the 'data' parameter and add additional
 		configurations as you need to. Please refer to the documentation at http://swaggplayer.com or feel free to shoot me
-		an email at johnny.ray02@gmail.com
+		an email at johnny.ray02@gmail.com if you have any questions about parameters
 	*/
 	
 	$('#swagg-player').SwaggPlayer({
@@ -85,16 +85,13 @@ $(document).ready(function(){
 			/* testing the API - not required to run swagg player */	
 			
 			$('#vol-up').click(function(){
-				//$('#swagg-player-data').data('api').currentSong.playback().volumeUp();
 				window.swaggPlayerApi.playback.volUp();
 			});
 			$('#vol-down').click(function(){
-				//$('#swagg-player-data').data('api').currentSong.playback().volumeDown();
 				window.swaggPlayerApi.playback.volDown();
 			});
 			
 			$('#go').click(function(){
-				//var api = $('#swagg-player-data').data('api');
 				var track = $('#track').val();
 				window.swaggPlayerApi.playback.playTrack(track);
 			});
@@ -102,7 +99,7 @@ $(document).ready(function(){
 
 function play(t) {
 	var api = $('#swagg-player-data').data('api');
-				api.playback().playTrack(t);
+				window.swaggPlayerApi.playback().playTrack(t);
 }
 	
 </script>

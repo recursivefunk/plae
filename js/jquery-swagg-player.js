@@ -11,6 +11,7 @@
    
 	Change Log
 	- Changes to API - this WILL break any api calls prior to this version
+	- Fixed more IE bugs
 */
 (function ($){
 	
@@ -61,19 +62,37 @@
 			interval_id:-1,
 			processSongs: function(theData){
 				LOGGER.info('Processing songs.');
-				var size = theData.length;
-				var _config_ = Config;
+				var _songs = new Array(),
+					size = theData.length,
+					_config_ = Config;
+						
+				Song = function(obj, id) {
+					this.url = obj.url;
+					this.artist = obj.artist;
+					this.title = obj.title;
+					this.id = id;							
+				};
+
+				Song.prototype.configureArt = function(thumb) {
+					this.image = new Image();
+					this.image.src = thumb;
+				};
+						
+
 				// preload SONG album  and append an IDs to the songs - make configurable in the future
 				// to avoid having to loop through JSON array
 				for (var i = 0; i < size; i++) {
 					LOGGER.info('Using album art');
+					var tmp = new Song(theData[i], i);
 					if (_config_.props.useArt === true && theData[i].thumb !== undefined) {
+						tmp.configureArt(theData[i].thumb);
 						theData[i].image = new Image();
 						theData[i].image.src = theData[i].thumb;
 					}
-					theData[i].id = i.toString();
+					_songs.push(tmp);
+
 				}
-				Data.songs = theData;
+				Data.songs = _songs; //theData;
 				Data.last_song= Data.songs.length - 1;			
 			},
 			
@@ -499,8 +518,9 @@
 							html = Html,
 							data = Data,
 							controller = Controller,
-							temp;
+							temp,
 							autoload = (confLoad === 'undefined' || confLoad === undefined || confLoad === false) ? true : false;
+
 						LOGGER.info("Auto load set to : " + autoload);	
 						for (var i = 0, end = songs_.length; i < end; i++) {
 							temp = localSoundManager.createSound({	// create sound objects to hook event handlers
@@ -1121,7 +1141,9 @@
 		var API = function() {
 			var self = this;
 			self.currSong = {
-				// operations for the current song
+				/*
+					Deals with functions available for the current song
+				*/
 				getCurrTimeAsString : function() {
 					var i = internal,
 						currMin = (i.currMinutes > 9) ? i.currMinutes : '0' + 
@@ -1170,10 +1192,13 @@
 			}; // end current song funcs
 			
 			
-			
+			/*
+				Deals with play back functionality of the player in general
+			*/
 			self.playback = {
 				setRepeat : function(flag) {
 					internal.repeatMode = (flag === true || flag === false) ? flag : false;
+					return self;
 				},
 				
 				inRepeat : function() {
@@ -1183,10 +1208,12 @@
 				
 				volUp : function() {
 					Controller.volume(Data.curr_song, 1);
+					return self;
 				},
 				
 				volDown : function(){
 					Controller.volume(Data.curr_song, 0);
+					return self;
 				},
 
 				playTrack : function(track) {
@@ -1196,6 +1223,7 @@
 					} else {
 						LOGGER.apierror("Invalid track number '" + track + "'");
 					}
+					return self;
 				}				
 			}; // end playback funcs
 		}; // end api
