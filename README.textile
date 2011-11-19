@@ -1,18 +1,14 @@
 <h1>Swagg Player</h1>
 <h2>Cross browser javascript music player for the web! Works in IE 7,8,9, FF 3.5+, Chrome & Safari</h2>
 
-<h2>Version 0.8.5.9.3 Change Log</h2>
+<h2>Version 0.8.5.9.4 Change Log</h2>
 <ul>
-	<li>Performance enhancements</li>
-	<li>lazyLoad property disabled until related bug is resolved</li>
-	<li>Song continues to load even when paused</li>
-	<li>Minor code refactoring</li>
+	<li>Changes to API - this WILL break any api calls prior to this version</li>
+	<li>Fixed more IE bugs/li>
 </ul>
 
-<p>A more in depth explanation of changes can be found at http://swaggplayer.com</p>
-
 <h2>Demos</h2>
-<p>Examples are included in index.html. Production examples can be found at <a href="http://johnny-ray.com">here</a> and <a href="http://iamjray.com">here</a>.</p>
+<p>Examples are included in index.html. Production examples can be found at <a href="http://johnny-ray.com">here</a> and <a href="http://swaggplayer.no.de/demos">here</a>.</p>
 
 <p>API features will probably change until I reach version 1.0 so, when updating please read the change log and review the documentation to check to see if your code will be compatible with the new version.</p>
 

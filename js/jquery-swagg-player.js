@@ -92,7 +92,7 @@
 					_songs.push(tmp);
 
 				}
-				Data.songs = _songs; //theData;
+				Data.songs = _songs;
 				Data.last_song= Data.songs.length - 1;			
 			},
 			
@@ -581,6 +581,9 @@
 								},
 								onerror: function() {
 									LOGGER.error('An error occured while attempting to play this song. Sorry about that.')
+									if(config.props.onError !== undefined && $.isFunction(config.props.onError)){
+										config.props.onError.apply(this,[]);
+									}
 								}
 							});
 							temp.id = Html.player + '-song-' + i.toString();
@@ -1224,6 +1227,10 @@
 						LOGGER.apierror("Invalid track number '" + track + "'");
 					}
 					return self;
+				},
+				
+				stop : function() {
+					Controller.stopMusic(null);
 				}				
 			}; // end playback funcs
 		}; // end api
