@@ -7,11 +7,10 @@
    	Code provided under the MIT License:
    	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.5.9.4
+	v0.8.5.9.5
    
 	Change Log
-	- Changes to API - this WILL break any api calls prior to this version
-	- Fixed more IE bugs
+	- Removed old unused experimental code
 */
 (function ($){
 	
@@ -54,7 +53,6 @@
 		var Data = {
 			last_song:0,
 			songs:{},
-			song:{},
 			curr_sprite_class: '',
 			isIe: false,
 			curr_song:0,
@@ -66,7 +64,7 @@
 					size = theData.length,
 					_config_ = Config;
 						
-				Song = function(obj, id) {
+				var Song = function(obj, id) {
 					this.url = obj.url;
 					this.artist = obj.artist;
 					this.title = obj.title;
@@ -135,13 +133,6 @@
 			song_info: null,
 			controls_div: null,
 			bridge_data: null,
-			canvas: null,
-			canvasData : {
-				x : 0,
-				y : 0,
-				lastAngle : 0,
-				radius : 50
-			},
 			user_art_css: {height:0, width:0},
 			metadata : {
 				progressWrapperWidth : 0
@@ -164,10 +155,6 @@
 					loaded.append(progress);
 					this.bar = $('#' + this.player + ' div.swagg-player-bar');
 					this.metadata.progressWrapperWidth = parseFloat(this.progress_wrapper.css('width'));
-				} else if (this.canvas.length > 0) {
-					// start at the top vertical top and the horizontal middle
-					this.canvasData.x = parseInt(this.canvas.css('width') / 2);
-					this.canvasData.y = parseInt(this.canvas.css('height'));
 				}
 			},
 			
@@ -182,7 +169,7 @@
 				this.loaded = $('#' + this.player + ' .swagg-player-loaded');
 				this.song_info = $('#' + this.player + ' .swagg-player-song-info');
 				this.controls_div = $('#' + this.player + ' .swagg-player-controls');
-				this.canvas = $('#' + this.player + ' .swagg-player-canvas')
+				//this.canvas = $('#' + this.player + ' .swagg-player-canvas')
 				this.user_art_css = {height:0, width:0};
 			}
 		};
@@ -222,6 +209,9 @@
 				if (imageLoader.stop !== null) {
 					this.stop.css('cursor','pointer');		
 				}
+
+				$('.swagg-player-controls img').css('cursor', 'pointer');
+
 			}
 		};
 		
@@ -979,29 +969,6 @@
 					song.artist = soundobj.id3.artist;	
 				}
 				else{}
-			},
-			
-			updateCanvas : function(soundobj) {
-				// get current position of currently playing song
-				var pos = soundobj.position,
-					duration = 0,
-					loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
-				
-				if (soundobj.loaded === false) {
-					duration = soundobj.durationEstimate;
-					Controller.millsToTime(duration, 0);
-				}
-				else {
-					duration = soundobj.duration;
-				}
-				
-				// ratio of (current position / total duration of song)
-				var pos_ratio = pos/duration,
-					// angle to draw
-					angle = pos_ration * 360,
-					ctx = Html.canvas.getContext('2d'),
-					c = this.canvasData;
-					ctx.arc(c.x, c.y, c.radius, c.lastAngle , angle, false);
 			},
 			
 			fillLoaded : function() {

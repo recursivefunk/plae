@@ -4,7 +4,7 @@
 <h2>Version 0.8.5.9.4 Change Log</h2>
 <ul>
 	<li>Changes to API - this WILL break any api calls prior to this version</li>
-	<li>Fixed more IE bugs/li>
+	<li>Fixed more IE bugs</li>
 </ul>
 
 <h2>Demos</h2>
