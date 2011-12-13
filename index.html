@@ -10,6 +10,7 @@
 </head>
 <body>
 <div class="spacer"></div>
+
 <div id="swagg-player" class="swagg-player"><br />
 	<div style="border:#000 medium solid;" class="swagg-player-album-art swagg-player-album-art-init-dimentions">
 		<img src="loading.gif" class="swagg-player-loading" border="0"/>
@@ -21,14 +22,12 @@
 		<img class="swagg-player-button swagg-player-stop-button" src="images/stop.png" border="0"/>
   	</div><br /><br/>
     <div class="swagg-player-progress-wrapper" rel="me"></div>
-    <div id="time">00:00 / 00:00</div>
+   <div id="time">00:00 / 00:00</div><input type="button" value="+" id="vol-up"/><input type="button" value="-" id="vol-down" />
     <br/>
     <label class="swagg-player-song-info">Loading...</label><br /><br/>
     <div class="swagg-player-list"></div> 
-</div><br/>
-<div id="vol" style="width:200px; margin-left:auto; margin-right:auto;">
-	<input type="button" id="vol-up" value="+" /><input type="button" id="vol-down" value="-" /><!--<input type="checkbox" id="repeat-check" onclick="toggle();" style="padding-left:50px;"/>repeat-->
 </div>
+
 <div class="spacer"></div>
 
 </body>
@@ -81,27 +80,24 @@ $(document).ready(function(){
 		onStop: function(){
 			$('#time').html('00:00 / 00:00');	
 		}
-	})
-				
-			/* testing the API - not required to run swagg player */	
+	});
+
+	/*
+		Demo for API functionality. Not required to get Swagg Player working
+	*/
+	
+	
+	var api = window.swaggPlayerApi;	
+	
+	$('#vol-up').click(function(){
+		api.playback.volUp();
+	});
+	$('#vol-down').click(function(){
+		api.playback.volDown();
+	});
 			
-			$('#vol-up').click(function(){
-				window.swaggPlayerApi.playback.volUp();
-			});
-			$('#vol-down').click(function(){
-				window.swaggPlayerApi.playback.volDown();
-			});
-			
-			$('#go').click(function(){
-				var track = $('#track').val();
-				window.swaggPlayerApi.playback.playTrack(track);
-			});
 });
 
-function play(t) {
-	var api = $('#swagg-player-data').data('api');
-				window.swaggPlayerApi.playback().playTrack(t);
-}
 	
 </script>
 </html>

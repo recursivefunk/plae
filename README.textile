@@ -1,10 +1,9 @@
 <h1>Swagg Player</h1>
 <h2>Cross browser javascript music player for the web! Works in IE 7,8,9, FF 3.5+, Chrome & Safari</h2>
 
-<h2>Version 0.8.5.9.4 Change Log</h2>
+<h2>Version 0.8.6 Change Log</h2>
 <ul>
-	<li>Changes to API - this WILL break any api calls prior to this version</li>
-	<li>Fixed more IE bugs</li>
+	<li>Complete OO code re-factoring</li>
 </ul>
 
 <h2>Demos</h2>
