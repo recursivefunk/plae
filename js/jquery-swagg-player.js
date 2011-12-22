@@ -7,9 +7,10 @@
    	Code provided under the MIT License:
    	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.6.2
+	v0.8.6.3
    
 	Change Log
+	- fixed skip bug
 	- more refactoring	
 */
 (function ($){
@@ -145,7 +146,7 @@
 
 				}
 				this.songs = _songs;
-				this.last_song = this.songs.length - 1;			
+				this.last_song = this.songs.length - 1;		
 			},
 
 			getSongs : function() {				
@@ -300,7 +301,7 @@
 					_config_ = p._config,
 					//i = inst.img,
 					imageLoader = p._imageLoader,
-					usehover = (_config_.props.buttonHover === undefined) ? false : _config_.props.buttonHover;
+					usehover = _config_.props.buttonHover || false;
 
 				p._logger.info('Binding controller button events');
 				
@@ -501,7 +502,7 @@
 			loadButtonImages : function(imagesDir) {
 				
 				var player = this.PLAYER,
-					hover = (player._config.props.buttonHover === undefined) ? false : player._config.props.buttonHover,
+					hover = player._config.props.buttonHover || false,
 					controls = player._controls;
 
 				player._logger.info('Loading images for controls');
@@ -588,10 +589,10 @@
 							var songs_ = _data_.songs,
 								localSoundManager = soundManager,
 								config = me._config,
-								confLoad = true, //config.props.lazyLoad, // disable for now
+								confLoad = false, //config.props.lazyLoad, // disable for now
 								_html_ = me._html,
 								temp,
-								autoload = (confLoad === 'undefined' || confLoad === undefined || confLoad === false) ? true : false;
+								autoload = confLoad || false;
 
 							me._logger.info("Auto load set to : " + autoload);	
 							for (var i = 0, end = songs_.length; i < end; i++) {
@@ -601,13 +602,14 @@
 									autoLoad: autoload,
 									usePolicyFile: false,
 									onfinish: function(){
-										if (internal.repeatMode === false){
-											if (_data_.curr_song !== _data_.last_song) {
-												controller.skip(1);
+										if (me.internal.repeatMode === false){
+											if (_data_.curr_song < _data_.last_song) {
+												me.skip(1);
 											} else {
 												me.playPauseButtonState(1);
 												me.stopMusic(_data_.curr_song);
 												var obj = temp.setPosition(0);
+												me.resetProgressBar();
 											}
 										}
 										else {
@@ -900,7 +902,7 @@
 					out, 
 					over,
 					play = me._controls.play,
-					hover = (me._config.props.buttonHover === undefined) ? false : me._config.props.buttonHover;
+					hover = me._config.props.buttonHover || false;
 				
 				if (state === 1 ) { // play state
 					if (imagesLoaded === false) {
@@ -1083,7 +1085,7 @@
 							me._html.user_art_css.height = song.thumbHeight.toString() + 'px';
 						}
 						else {
-							var height = (config.props.defaultAlbumArtHeight !== undefined) ? config.props.defaultAlbumArtHeight : '100';
+							var height = config.props.defaultAlbumArtHeight || '100';
 							me._html.user_art_css.height = height.toString() + 'px';	
 						}
 						
@@ -1091,7 +1093,7 @@
 							me._html.user_art_css.width = song.thumbWidth.toString() + 'px';
 						}
 						else {
-							var width = (config.props.defaultAlbumArtWidth !== undefined) ? config.props.defaultAlbumArtWidth : '100';						
+							var width = config.props.defaultAlbumArtWidth || '100';						
 							me._html.user_art_css.width = width.toString() + 'px';	
 						}
 						art.css(me._html.user_art_css);
@@ -1352,16 +1354,16 @@
 					}							
 				}, // end as string
 				title : function() {
-					return (controller.internal.currTitle !== null) ? controller.internal.currTitle : 'Unknown Title';	
+					return (controller.internal.currTitle || 'Unknown Title');	
 				},
 				artist : function() {
-					return (controller.internal.currArtist !== null) ? controller.internal.currArtist : 'Unknown Artist';	
+					return (controller.internal.currArtist || 'Unknown Artist');	
 				},
 				album : function() {
-					return (controller.internal.currAlbum !== null) ? controller.internal.currAlbum : 'Unknown Album';	
+					return (controller.internal.currAlbum ||'Unknown Album');	
 				},
 				tempo : function(){
-					return (controller.internal.currTempo !== null) ? controller.internal.currTempo : 'Unknown Tempo'; 	
+					return (controller.internal.currTempo || 'Unknown Tempo'); 	
 				}
 			}; // end current song funcs
 			
