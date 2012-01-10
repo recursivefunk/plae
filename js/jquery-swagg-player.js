@@ -30,8 +30,8 @@
 					var opts = $.extend(options_, id),
 						player = new Controller();
 					player.init(opts);
-					window.INSTANCES.push(player);
-					console.log('There are ======================= ' + INSTANCES.length + ' instances of swaggplayer');
+					//window.INSTANCES.push(player);
+					//console.log('There are ======================= ' + INSTANCES.length + ' instances of swaggplayer');
 				} else {
 					$.error('An error occured while initializing soundManager!');
 				}
