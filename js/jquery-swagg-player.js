@@ -7,10 +7,10 @@
    	Code provided under the MIT License:
    	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.6.4
+	v0.8.6.5
    
 	Change Log
-	- added ability to add tracks dynamically via the api
+	- refactoring
 */
 (function ($){
 	
@@ -18,9 +18,7 @@
 	
 		$.fn.SwaggPlayer = function(options_) {
 			var id = {};
-			//var INSTANCES = new Array();
 			id['id'] = this.attr('id');
-
 
 			if (id['id']) {
 				if (console && console.time) {
@@ -101,6 +99,9 @@
 			}
 		});
 
+		/*
+			Creates soundManager sound objects
+		*/
 		var SoundFactory = function(p) {
 			this.player = p;
 		}
@@ -167,6 +168,7 @@
 		});
 
 
+		/* Model for songs */
 		var Song = function(obj, id) {
 			this.url = obj.url;
 			this.artist = obj.artist;
@@ -653,67 +655,69 @@
 
 				me.initComponents(config);
 
-				// configure soundManager, create song objects, and hook event listener actions
 				if (!soundManager.createSongs) {
-					soundManager.createSongs = function() {
+					soundManager.createSongs = function(callback) {
 						me._logger.info('createSongs()');
-						var _data_ = me._data;
-						if(_data_.songs[0] !== undefined) {
-							clearInterval(_data_.interval_id);
-							var songs_ = _data_.songs,
-								localSoundManager = soundManager,
-								config = me._config,
-								confLoad = false, //config.props.lazyLoad, // disable for now
-								_html_ = me._html,
-								temp,
-								autoload = confLoad || false,
-								factory = new SoundFactory(me);
-
-							me._logger.info("Auto load set to : " + autoload);	
-							for (var i = 0, end = songs_.length; i < end; i++) {
-								var s = songs_[i];
-								var tmp = factory.createSound(s);
-
-							} // end for
-							_html_.loading_indication.remove();
-							_data_.curr_song = 0;
-							if (_html_.useArt === true) {
-								me._logger.info('Intializing album art...');
-								// initialize first song album 
-								var songs = _data_.songs;
-									//index = _data_.curr_song;
-								me.setAlbumArtStyling(0);
+						var data = me._data,
+							songs = data.songs;
+						if(data.songs[0] !== undefined) {
+							var	config = me._config,
+								html = me._html,
+								factory = new SoundFactory(me),
+								s, tmp;
+	
+							for (var i = 0, end = songs.length; i < end; i++) {
+								s = songs[i],
+								tmp = factory.createSound(s);
 							}
-							me._events.setupSeek();
-							me.showSongInfo();
-							if(config.props.autoPlay !== undefined && config.props.autoPlay === true) {
-								setTimeout(function(){
-										me.play('', _data_.curr_song);
-									},1000);
-							}
-							if (config.props.onSetupComplete !== undefined && $.isFunction(config.props.onSetupComplete)) {
-								config.props.onSetupComplete.apply(this,[]);
-							}
-							if (console && console.timeEnd) {
-								console.timeEnd('SwaggPlayerStart');
-							}
-							me._logger.info("Swagg Player ready!");
-						} // end if (Data.songs[0] !== undefined) 
+							callback.apply(this, [me]); 
+						} else {
+							me._logger.error('No Songs!!');
+						}
+						
 					};
 				}
 				
 				// init soundManager
 				soundManager.onload =  function() {
-					// try to init sound manager every 5 milliseconds in case songs AJAX callback
-					// has not completed execution	
-					me._data.interval_id = setInterval('soundManager.createSongs()', 5); 
+					soundManager.createSongs(function(controller) {
+						var html = controller._html,
+							data = controller._data,
+							config = controller._config;
+
+						html.loading_indication.remove();
+						data.curr_song = 0;
+
+						if (html.useArt === true) {
+							controller._logger.info('Intializing album art...');
+							// initialize first song album 
+							controller.setAlbumArtStyling(0);
+						}
+						
+						controller._events.setupSeek();
+						controller.showSongInfo();
+
+						if(config.props.autoPlay !== undefined && config.props.autoPlay === true) {
+							setTimeout(function(){
+									controller.play('', data.curr_song);
+								},1000);
+						}
+
+						if (config.props.onSetupComplete !== undefined && $.isFunction(config.props.onSetupComplete)) {
+							config.props.onSetupComplete.apply(this,[]);
+						}
+
+						if (console && console.timeEnd) {
+							console.timeEnd('SwaggPlayerStart');
+						}
+						controller._logger.info("Swagg Player ready!");
+					});
 				}; // end soundManager onload function	
 					
 				// if there's an error loading sound manager, try a reboot
 				soundManager.onerror = function() {
 				  me._logger.error('An error has occured with loading Sound Manager! Rebooting.');
 				  soundManager.flashLoadTimeout = 0;
-				  clearInterval(_data.interval_id);
 				  soundManager.url = 'swf';
 				  setTimeout(soundManager.reboot,20);
 				  setTimeout(function() {
