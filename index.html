@@ -23,7 +23,9 @@
   	</div><br /><br/>
     <div class="swagg-player-progress-wrapper" rel="me"></div>
    <div id="time">00:00 / 00:00</div><input type="button" value="+" id="vol-up"/><input type="button" value="-" id="vol-down" />
-    <br/><br/>
+    <br/>
+    <input id="add" type="button" value="add track" />
+    <br/>
     <span class="swagg-player-artist"></span><br /><span class="swagg-player-title"></span></br><br/>
     <div class="swagg-player-list"></div> 
 </div>
@@ -33,10 +35,12 @@
 </body>
 <!--<script src="js/LAB.min.js"></script> UNCOMMNENT TO USE ASYNC LOADING -->
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
 <script src="js/soundmanager2-nodebug-jsmin.js"></script>
 <script src="js/jquery-swagg-player.js"></script>
 <script type="text/javascript">
 $(document).ready(function(){
+	window.INSTANCES = new Array();
 		var mysongs = 
 	[
 		{
@@ -96,6 +100,15 @@ $(document).ready(function(){
 		api.playback.volDown();
 	});
 			
+	$('#add').click(function(){
+		api.playback.addTrack({		
+			url: "sound/2.mp3",
+			artist: "Artist 3",
+			title: "Song 3",
+			thumb: "images/windowseat.jpg"
+		
+		});
+	})
 });
 
 	

@@ -7,11 +7,10 @@
    	Code provided under the MIT License:
    	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.6.3
+	v0.8.6.4
    
 	Change Log
-	- fixed skip bug
-	- more refactoring	
+	- added ability to add tracks dynamically via the api
 */
 (function ($){
 	
@@ -19,7 +18,9 @@
 	
 		$.fn.SwaggPlayer = function(options_) {
 			var id = {};
+			//var INSTANCES = new Array();
 			id['id'] = this.attr('id');
+
 
 			if (id['id']) {
 				if (console && console.time) {
@@ -31,6 +32,8 @@
 					var opts = $.extend(options_, id),
 						player = new Controller();
 					player.init(opts);
+					window.INSTANCES.push(player);
+					console.log('There are ======================= ' + INSTANCES.length + ' instances of swaggplayer');
 				} else {
 					$.error('An error occured while initializing soundManager!');
 				}
@@ -56,6 +59,7 @@
 		var Config = function(p) {
 			this.PLAYER = p;
 			this.props = {};
+			this.callbacks = {};
 			this.consoleSupport = false;
 			if (console) {
 				this.consoleSupport = true;
@@ -96,6 +100,88 @@
 				}
 			}
 		});
+
+		var SoundFactory = function(p) {
+			this.player = p;
+		}
+
+		$.extend(SoundFactory.prototype,{
+			createSound : function(songObj) {
+			var	self = this,
+				html = self.player._html,
+				config = self.player._config,
+				songs = self.player._data.songs,
+				id = songObj.id;
+
+				if (html.useArt === true && songObj.thumb !== undefined) {
+					songObj.configureArt();
+					songObj.image = new Image();
+					songObj.image.src = songObj.thumb;
+				}
+
+				if (!songs[songObj.id]) {
+					self.player._data.songs.push(songObj);
+				}
+
+				var myid = self.player._html.player + '-song-' + id.toString();
+				var newSound = window.soundManager.createSound({
+					id: myid,
+					url: songObj.url,
+					autoLoad: false,
+					usePolicyFile: false,
+					onplay: function(){
+						self.player._onplay(this);
+					},
+					onpause: function(){
+						self.player._onpause(this);
+					},
+					onstop: function(){
+						self.player._onstop(this);
+					},
+					onfinish: function(){
+						self.player._onstop(this);
+					},
+					onresume: function(){
+						self.player._onresume(this);
+					},
+					whileplaying: function() {
+						self.player._whileplaying(this);
+					},
+					whileloading: function(){
+						self.player._whileloading(this);
+					},
+					onerror: function(){
+						self.player._onerror(this);
+					}
+				});		
+				newSound.id = myid;
+				newSound.repeat = self.player.internal.repeat;
+				self.player._data.last_song = songObj.id;
+	
+				if (html.playList !== undefined && html.playList === true) {
+					self.player.createElement(newSound);
+				}
+
+				return newSound;
+			}
+		});
+
+
+		var Song = function(obj, id) {
+			this.url = obj.url;
+			this.artist = obj.artist;
+			this.title = obj.title;
+			this.thumb = obj.thumb;
+			this.id = id;							
+		};
+
+		$.extend(Song.prototype, {
+			configureArt : function(thumb) {
+				this.image = new Image();
+				this.image.src = thumb || this.thumb;
+			}
+		});
+
 	
 		/*
 			=============================================== swagg player data
@@ -103,11 +189,11 @@
 		*/
 		var Data = function(p) {
 			this.PLAYER = p,
-			this.last_song = 0;
-			this.songs = {};
+			this.last_song = -1;
+			this.songs = [];
 			this.curr_sprite_class = '';
 			this.isIe = Browser.isIe();;
-			this.curr_song = 0;
+			this.curr_song = -1;
 			this.vol_interval = 20;
 			this.interval_id = -1;
 		}
@@ -120,18 +206,6 @@
 					_html = player._html,
 					_config_ = player._config;
 						
-				var Song = function(obj, id) {
-					this.url = obj.url;
-					this.artist = obj.artist;
-					this.title = obj.title;
-					this.id = id;							
-				};
-
-				Song.prototype.configureArt = function(thumb) {
-					this.image = new Image();
-					this.image.src = thumb;
-				};
-				
 
 				// preload SONG album  and append an IDs to the songs - make configurable in the future
 				// to avoid having to loop through JSON array
@@ -572,7 +646,7 @@
 			this._imageLoader = null;
 		}
 
-		$.extend(Controller.prototype, {
+		Controller.prototype = {
 		 
 			init : function(config) {
 				var me = this;
@@ -592,87 +666,22 @@
 								confLoad = false, //config.props.lazyLoad, // disable for now
 								_html_ = me._html,
 								temp,
-								autoload = confLoad || false;
+								autoload = confLoad || false,
+								factory = new SoundFactory(me);
 
 							me._logger.info("Auto load set to : " + autoload);	
 							for (var i = 0, end = songs_.length; i < end; i++) {
-								temp = localSoundManager.createSound({	// create sound objects to hook event handlers
-									id: _html_.player + '-song-' + i.toString(),	// to button states
-									url: songs_[i].url,
-									autoLoad: autoload,
-									usePolicyFile: false,
-									onfinish: function(){
-										if (me.internal.repeatMode === false){
-											if (_data_.curr_song < _data_.last_song) {
-												me.skip(1);
-											} else {
-												me.playPauseButtonState(1);
-												me.stopMusic(_data_.curr_song);
-												var obj = temp.setPosition(0);
-												me.resetProgressBar();
-											}
-										}
-										else {
-											me.repeat();	
-										}
-									},
-									onplay: function(){
-										me.millsToTime(this.duration, 0);	
-										me.playPauseButtonState(0);
-										if(config.props.onPlay !== undefined && $.isFunction(config.props.onPlay)){
-											config.props.onPlay.apply(this,[]);
-										}
-										if (me.loaded(this) === true) {
-											me.fillLoaded();
-										}
-									},
-									onpause: function(){
-										me.playPauseButtonState(1); 
-										if(config.props.onPause !== undefined && $.isFunction(config.props.onPause)){
-											config.props.onPause.apply(this,[]);
-										}
-									},
-									onstop: function(){
-										me.playPauseButtonState(1); 
-										if(config.props.onStop !== undefined && $.isFunction(config.props.onStop)){
-											config.props.onStop.apply(this,[]);
-										}
-									},
-									onresume: function(){
-										me.playPauseButtonState(0); 
-										if(config.props.onResume !== undefined && $.isFunction(config.props.onResume)){
-											config.props.onResume.apply(this,[]);
-										}
-									},
-									whileplaying: function(){
-										me.progress(this);
-										me.millsToTime(this.position, 1);
-										if($.isFunction(config.props.whilePlaying)){
-											config.props.whilePlaying.apply(this,[]);
-										}
-									},
-									whileloading: function() {
-										me.whileLoading(this);
-									},
-									onerror: function() {
-										_logger.error('An error occured while attempting to play this song. Sorry about that.')
-										if(config.props.onError !== undefined && $.isFunction(config.props.onError)){
-											config.props.onError.apply(this,[]);
-										}
-									}
-								});
-								temp.id = me._html.player + '-song-' + i.toString();
-								temp.repeat = me.internal.repeat;
-								if (_html_.playList !== undefined && _html_.playList === true) {
-									me.createElement(temp);
-								}
+								var s = songs_[i];
+								var tmp = factory.createSound(s);
+
 							} // end for
 							_html_.loading_indication.remove();
+							_data_.curr_song = 0;
 							if (_html_.useArt === true) {
 								me._logger.info('Intializing album art...');
 								// initialize first song album 
-								var songs = _data_.songs,
-									index = _data_.curr_song;
+								var songs = _data_.songs;
+									//index = _data_.curr_song;
 								me.setAlbumArtStyling(0);
 							}
 							me._events.setupSeek();
@@ -777,6 +786,69 @@
 				}
 	
 			},
+
+			_whileplaying : function(sound) {
+				this.progress(sound);
+				this.millsToTime(sound.position, 1);
+				if($.isFunction(this._config.props.whilePlaying)){
+					this._config.props.whilePlaying.apply(sound,[]);
+				}	
+			},
+
+			_onplay : function(sound) {
+				this.millsToTime(sound.duration, 0);	
+				this.playPauseButtonState(0);
+				if(this._config.props.onPlay !== undefined && $.isFunction(this._config.props.onPlay)){
+					this._config.props.onPlay.apply(sound,[]);
+				}
+				if (this.loaded(sound) === true) {
+					this.fillLoaded();
+				}	
+			},
+
+			_onpause : function(sound) {
+				this.playPauseButtonState(1); 
+				if(this._config.props.onPause !== undefined && $.isFunction(this._config.props.onPause)){
+					this._config.props.onPause.apply(sound,[]);
+				}
+			},
+
+			_onstop : function(sound) {
+				if(this._config.props.onStop !== undefined && $.isFunction(this._config.props.onStop)){
+					this._config.props.onStop.apply(sound,[]);
+				}
+			},
+
+			_onfinish : function(sound) {
+				if (this.internal.repeatMode === false){
+					if (this._data.curr_song < this._data.last_song) {
+						this.skip(1);
+					} else {
+						this.stopMusic(_data.curr_song);
+					}
+				}
+				else {
+					this.repeat();	
+				}	
+			},
+
+			_onresume : function(sound) {
+				this.playPauseButtonState(0); 
+				if(this._config.props.onResume !== undefined && $.isFunction(this._config.props.onResume)){
+					this._config.props.onResume.apply(sound,[]);
+				}
+			},
+
+			_whileloading : function(sound) {
+				this.whileLoading(sound);
+			},
+
+			_onerror : function(sound) {
+				this._logger.error('An error occured while attempting to play this song. Sorry about that.')
+				if(this._config.props.onError !== undefined && $.isFunction(this,_config.props.onError)){
+					this._config.props.onError.apply(sound,[]);
+				}
+			},
 		
 			// get the duration of a song in milliseconds
 			getDuration : function(soundobj) {
@@ -858,7 +930,8 @@
 			createElement : function(soundobj){
 				
 				var me = this,
-					song = me. _data.songs[parseInt(soundobj.id.split('-')[3])],
+					tmp = soundobj.id.split('-')[3],
+					song = me._data.songs[parseInt(tmp)],
 					_html = me._html,
 					id = 'item-' + song.id,
 					listItem = $('<li></li>');
@@ -1040,6 +1113,7 @@
 				var me = this;
 				me._logger.info('stopMusic()');
 				soundManager.stopAll();
+				me.playPauseButtonState(1);
 				me.resetProgressBar();
 				me.resetTrackTime();
 			},
@@ -1195,11 +1269,12 @@
 				
 				if (soundobj.loaded === false) {
 					duration = soundobj.durationEstimate;
-					me.millsToTime(duration, 0);
+					//me.millsToTime(duration, 0);
 				}
 				else {
 					duration = soundobj.duration;
 				}
+				me.millsToTime(duration, 0);
 				
 				// ratio of (current position / total duration of song)
 				var pos_ratio = pos/duration,
@@ -1247,10 +1322,16 @@
 			showSongInfo : function() {
 				var me = this,
 					loc_inst = me._data,
-					song_ = loc_inst.songs[loc_inst.curr_song];
+					curr_song = loc_inst.curr_song > -1 ? loc_inst.curr_song : 0,
+					song_ = loc_inst.songs[curr_song];
 
-				me._html.artist.html(song_.artist);
-				me._html.title.html(song_.title);
+				var info = [
+					{ Artist : song_.artist, Title : song_.title }
+				];
+
+					me._html.artist.html(song_.artist);
+					me._html.title.html(song_.title);
+				
 				//me._html.song_info.html( "<p>" + song_.artist + "  <br/>" + song_.title + " </p>" );	
 			},
 	
@@ -1311,7 +1392,7 @@
 					this.event_ref = e;
 				}						
 			}
-		});
+		};
 
 		// external API devs can use to extend Swagg Player. Exposes song data, events etc
 		var API = function(controller) {
@@ -1404,6 +1485,14 @@
 				
 				stop : function() {
 					controller.stopMusic(null);
+				},
+				
+				addTrack : function(trackData) {
+					var player = controller.PLAYER,
+						factory = new SoundFactory(controller),
+						t = controller._data.last_song,
+						songObj = new Song(trackData, t+1),
+						s = factory.createSound(songObj);
 				}				
 			}; // end playback funcs
 		}; // end api
