@@ -219,14 +219,16 @@
 						theData[i].image.src = theData[i].thumb;
 					}
 					_songs.push(tmp);
-
 				}
 				this.songs = _songs;
 				this.last_song = this.songs.length - 1;		
 			},
 
 			getSongs : function() {				
-				var theData = this.PLAYER._config.props.data;
+				var self = this,
+					config = this.PLAYER._config,
+					theData = config.props.data;
+					
 				
 				// Check if dataString points to a json file if so, fetch it.
 				// if not, assume string is a literal JSON object
@@ -236,10 +238,14 @@
 						url: theData,
 						dataType: 'json',
 						success: function(data){
-							_data.processSongs(data);
+							self.processSongs(data);
 						},
 						error: function(xhr, ajaxOptions, thrownError){
-							_logger.error('There was a problem fetching your songs from the server: ' + thrownError);
+							var msg = 'There was a problem fetching your songs from the server: ' + thrownError;
+							self.PLAYER._logger.error(msg);
+						  	if(config.props.onError !== undefined && $.isFunction(config.props.onError)){
+								config.props.onError.apply(this,[msg]);
+							}
 						}
 					});	
 				} // end if
@@ -722,10 +728,11 @@
 				  setTimeout(soundManager.reboot,20);
 				  setTimeout(function() {
 					if (!soundManager.supported()) {
+						var msg = 'Something went wrong with loading Sound Manager. No tunes for you!';
 						_logger.error('Something went wrong with loading Sound Manager. No tunes for you!');
 						// call user defined onError function
 					  	if(config.props.onError !== undefined && jQuery.isFunction(config.props.onError)){
-							config.props.onError.apply(this,[]);
+							config.props.onError.apply(this,[msg]);
 						}
 					}
 				  },1500);
@@ -848,9 +855,10 @@
 			},
 
 			_onerror : function(sound) {
-				this._logger.error('An error occured while attempting to play this song. Sorry about that.')
+				var msg = 'An error occured while attempting to play this song. Sorry about that.';
+				this._logger.error(msg)
 				if(this._config.props.onError !== undefined && $.isFunction(this,_config.props.onError)){
-					this._config.props.onError.apply(sound,[]);
+					this._config.props.onError.apply(sound,[msg]);
 				}
 			},
 		

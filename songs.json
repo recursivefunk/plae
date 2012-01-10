@@ -1,0 +1,15 @@
+[
+	{
+		"url": "sound/1.mp3",
+		"artist": "Artist1",
+		"title": "Song 1",
+		"thumb":"images/median.jpg"
+		
+	},
+	{
+		"url": "sound/2.mp3",
+		"artist": "Artist 2",
+		"title": "Song 2",
+		"thumb": "images/windowseat.jpg"
+	}
+]
