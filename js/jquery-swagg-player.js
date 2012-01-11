@@ -7,10 +7,13 @@
    	Code provided under the MIT License:
    	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.6.5
+	v0.8.7
    
 	Change Log
-	- refactoring
+	- some api data is now returned via callback parameters
+	- api is no longer attached to the window object it's returned via the 'onSetupComplete' callback
+	- new 'onListComplete' callback function
+	- new 'whileLoading' callback function
 */
 (function ($){
 	
@@ -30,8 +33,6 @@
 					var opts = $.extend(options_, id),
 						player = new Controller();
 					player.init(opts);
-					//window.INSTANCES.push(player);
-					//console.log('There are ======================= ' + INSTANCES.length + ' instances of swaggplayer');
 				} else {
 					$.error('An error occured while initializing soundManager!');
 				}
@@ -140,7 +141,7 @@
 						self.player._onstop(this);
 					},
 					onfinish: function(){
-						self.player._onstop(this);
+						self.player._onfinish(this);
 					},
 					onresume: function(){
 						self.player._onresume(this);
@@ -243,9 +244,7 @@
 						error: function(xhr, ajaxOptions, thrownError){
 							var msg = 'There was a problem fetching your songs from the server: ' + thrownError;
 							self.PLAYER._logger.error(msg);
-						  	if(config.props.onError !== undefined && $.isFunction(config.props.onError)){
-								config.props.onError.apply(this,[msg]);
-							}
+							this.executeIfExists('onError', this, []);
 						}
 					});	
 				} // end if
@@ -531,15 +530,11 @@
 							// obtain the position clicked by the user
 							newPosPercent = x / _html_.metadata.progressWrapperWidth,
 							// find the position within the song to which the location clicked corresponds
-							seekTo = Math.round(newPosPercent * duration);
-
-						p.millsToTime(seekTo, -1);
+							seekTo = Math.round(newPosPercent * duration),
+							time = p.millsToTime(seekTo, -1);
 						
 						// fire off onSeekPreview event
-						if (_config_.props.onSeekPreview !== undefined && $.isFunction(_config_.props.onSeekPreview)) {
-							internal.event_ref = e;
-							_config_.props.onSeekPreview.apply(this, []);	
-						}				
+						p.executeIfExists('onSeekPreview', this, [e, time]);				
 					}
 				);	
 			}
@@ -652,6 +647,7 @@
 			this._events = null;
 			this._controls = null;
 			this._imageLoader = null;
+			this._swaggPlayerApi = null;
 		}
 
 		Controller.prototype = {
@@ -709,9 +705,7 @@
 								},1000);
 						}
 
-						if (config.props.onSetupComplete !== undefined && $.isFunction(config.props.onSetupComplete)) {
-							config.props.onSetupComplete.apply(this,[]);
-						}
+						me.executeIfExists('onSetupComplete', this, [me._swaggPlayerApi]);
 
 						if (console && console.timeEnd) {
 							console.timeEnd('SwaggPlayerStart');
@@ -731,9 +725,7 @@
 						var msg = 'Something went wrong with loading Sound Manager. No tunes for you!';
 						_logger.error('Something went wrong with loading Sound Manager. No tunes for you!');
 						// call user defined onError function
-					  	if(config.props.onError !== undefined && jQuery.isFunction(config.props.onError)){
-							config.props.onError.apply(this,[msg]);
-						}
+						this.executeIfExists('onErrorComplete', onError, [msg]);
 					}
 				  },1500);
 				}
@@ -801,17 +793,20 @@
 			_whileplaying : function(sound) {
 				this.progress(sound);
 				this.millsToTime(sound.position, 1);
-				if($.isFunction(this._config.props.whilePlaying)){
-					this._config.props.whilePlaying.apply(sound,[]);
-				}	
+				var curr = this._swaggPlayerApi.currSong.getCurrTimeAsString(),
+					total = this._swaggPlayerApi.currSong.getTotalTimeAsString()
+					arguments = {
+						currTime : curr,
+						totalTime : total
+					};
+				this.executeIfExists('whilePlaying', sound, [arguments]);
 			},
 
 			_onplay : function(sound) {
 				this.millsToTime(sound.duration, 0);	
 				this.playPauseButtonState(0);
-				if(this._config.props.onPlay !== undefined && $.isFunction(this._config.props.onPlay)){
-					this._config.props.onPlay.apply(sound,[]);
-				}
+				this.executeIfExists('onPlay', sound, []);
+
 				if (this.loaded(sound) === true) {
 					this.fillLoaded();
 				}	
@@ -819,23 +814,22 @@
 
 			_onpause : function(sound) {
 				this.playPauseButtonState(1); 
-				if(this._config.props.onPause !== undefined && $.isFunction(this._config.props.onPause)){
-					this._config.props.onPause.apply(sound,[]);
-				}
+				this.executeIfExists('onPause', sound, []);
 			},
 
 			_onstop : function(sound) {
-				if(this._config.props.onStop !== undefined && $.isFunction(this._config.props.onStop)){
-					this._config.props.onStop.apply(sound,[]);
-				}
+				this.executeIfExists('onStop', sound, []);
 			},
 
 			_onfinish : function(sound) {
 				if (this.internal.repeatMode === false){
-					if (this._data.curr_song < this._data.last_song) {
+					var id = parseInt(sound.id.split('-')[3]),
+						last = this._data.songs.length - 1;
+					if (id < last) {
 						this.skip(1);
 					} else {
-						this.stopMusic(_data.curr_song);
+						this.stopMusic(id);
+						this.executeIfExists('onListComplete', sound, []);
 					}
 				}
 				else {
@@ -845,20 +839,24 @@
 
 			_onresume : function(sound) {
 				this.playPauseButtonState(0); 
-				if(this._config.props.onResume !== undefined && $.isFunction(this._config.props.onResume)){
-					this._config.props.onResume.apply(sound,[]);
-				}
+				this.executeIfExists('onResume', sound, []);
 			},
 
 			_whileloading : function(sound) {
-				this.whileLoading(sound);
+				var percent = this.whileLoading(sound).toFixed(2) * 100;
+				this.executeIfExists('whileLoading', sound, [percent]);
 			},
 
 			_onerror : function(sound) {
 				var msg = 'An error occured while attempting to play this song. Sorry about that.';
 				this._logger.error(msg)
-				if(this._config.props.onError !== undefined && $.isFunction(this,_config.props.onError)){
-					this._config.props.onError.apply(sound,[msg]);
+				this.executeIfExists('onError', sound, []);
+			},
+
+			executeIfExists : function(func, scope, args) {
+				var config = this._config;
+				if (config.props[func] && $.isFunction(config.props[func])) {
+					config.props[func].apply(scope, args);
 				}
 			},
 		
@@ -914,29 +912,9 @@
 				
 			// creates the API element
 			setupApi : function() {
-				/*
-				EXPERIMENTAL STUFF FOR MULTIPLE INSTANCES FEATURE
-				if (!window.swaggPlayerApiRefs) {
-					window.swaggPlayerApiRefs = {};
-				}
-				window.swaggPlayerApiRefs[this._html.player] = new API(this);
-				*/
-				window.swaggPlayerApi = new API(this);
+				this._swaggPlayerApi = new API(this);
 				this.internal.player = this;				
 			},
-
-			/*
-			EXPERIMENTAL STUFF FOR MULTIPLE INSTANCES FEATURE
-
-			window.fetchApiForPlayer = function(player) {
-				var p = $('#' + player)
-				if (p && window.swaggPlayerApiRefs[p.attr('id')]) {
-					return window.swaggPlayerApiRefs[p.attr('id')];
-				} else {
-					return null;
-				}
-			},
-			*/
 			
 			// Dynamically creates playlist items as songs are loaded
 			createElement : function(soundobj){
@@ -1065,9 +1043,7 @@
 				inst.curr_song = t;
 				// if using album , use  transition
 				if (me._html.useArt === true) {
-					if (me._config.props.onBeforeSkip !== 'undfined' && jQuery.isFunction(me._config.props.onBeforeSkip)) {
-						me._config.props.onBeforeSkip.apply(this,[]);
-					}
+					me.executeIfExists('onBeforeSkip', me, []);
 					me.switchArt(t);
 				} // end if
 				// if not using album , just go to the next song
@@ -1084,9 +1060,7 @@
 				inst.curr_song = t;
 				// if using album , use  transition
 				if (me._html.useArt === true) {
-					if (me._config.props.onBeforeSkip !== 'undfined' && jQuery.isFunction(me._config.props.onBeforeSkip)) {
-						me._config.props.onBeforeSkip.apply(this,[]);
-					}
+					me.executeIfExists('onBeforeSkip', me, []);
 					me.switchArt(t);
 				} // end if
 				// if not using album , just go to the next song
@@ -1207,9 +1181,7 @@
 						$(this).show('slide', function(){
 							me.showSongInfo();
 							me.play('skip',track);
-							if (config.props.onAfterSkip !== undefined && $.isFunction(config.props.onAfterSkip)){
-								config.props.onAfterSkip.apply(this,[]);
-							}
+							me.executeIfExists('onAfterSkip', me, []);
 						});
 					});	
 				} else {
@@ -1219,9 +1191,7 @@
 						$(this).fadeIn('fast', function(){
 							me.showSongInfo();
 							me.play('skip',track);
-							if (config.props.onAfterSkip !== undefined && $.isFunction(config.props.onAfterSkip)){
-								config.props.onAfterSkip.apply(this,[]);
-							}
+							me.executeIfExists('onAfterSkip', me, []);
 						});
 					});	
 				}
@@ -1268,7 +1238,8 @@
 				var	wrapper_width = me._html.metadata.progressWrapperWidth,
 					loaded = wrapper_width * loaded_ratio;
 
-				me._html.loaded.css('width', loaded);				
+				me._html.loaded.css('width', loaded);
+				return loaded_ratio;				
 			},
 			
 			// updates the UI progress bar
@@ -1323,7 +1294,8 @@
 						me.internal.fillCurrentTime(minutes,seconds);
 					}
 					else if(flag === -1){
-						me.internal.fillPreview(minutes,seconds);
+						me.internal.fillPreview(minutes,seconds); // this line of code will go away soon!
+						return {'mins' : minutes, 'secs' : seconds};
 					}
 					else {
 						_logger.error('Invalid flag passed to millsToTime()');	
@@ -1343,8 +1315,6 @@
 
 					me._html.artist.html(song_.artist);
 					me._html.title.html(song_.title);
-				
-				//me._html.song_info.html( "<p>" + song_.artist + "  <br/>" + song_.title + " </p>" );	
 			},
 	
 

@@ -14,7 +14,9 @@
 <div id="swagg-player" class="swagg-player"><br />
 	<div style="border:#000 medium solid;" class="swagg-player-album-art swagg-player-album-art-init-dimentions">
 		<img src="loading.gif" class="swagg-player-loading" border="0"/>
-    </div><br/><br/>
+    </div>
+    <!--<span style="float:right; border:solid black thin; height:20px; width:50px;" id="preview"></span>-->
+    <br/><br/>
     <div class="swagg-player-controls">
 		<img class="swagg-player-button swagg-player-play-button" src="images/play.png" border="0"/>
 		<img class="swagg-player-button swagg-player-back-button" src="images/back.png" border="0"/>
@@ -22,9 +24,11 @@
 		<img class="swagg-player-button swagg-player-stop-button" src="images/stop.png" border="0"/>
   	</div><br /><br/>
     <div class="swagg-player-progress-wrapper" rel="me"></div>
-   <div id="time">00:00 / 00:00</div><input type="button" value="+" id="vol-up"/><input type="button" value="-" id="vol-down" />
+   <div id="time">00:00 / 00:00</div>
+   <label>Load Status: </label><span id="loadstatus">0</span>%<br/>
+   <input type="button" value="-" id="vol-down" /><input type="button" value="+" id="vol-up"/>
     <br/>
-    <input id="add" type="button" value="add track" />
+    <input id="add" type="button" value="add a new track" />
     <br/>
     <span class="swagg-player-artist"></span><br /><span class="swagg-player-title"></span></br><br/>
     <div class="swagg-player-list"></div> 
@@ -40,7 +44,7 @@
 <script src="js/jquery-swagg-player.js"></script>
 <script type="text/javascript">
 $(document).ready(function(){
-	window.INSTANCES = new Array();
+		var api;
 		var mysongs = 
 	[
 		{
@@ -77,21 +81,32 @@ $(document).ready(function(){
 		lazyLoad: true,
 		morphArt: true,
 		html5Audio: true,
-		whilePlaying: function(){
-			var api = window.swaggPlayerApi;
-			$('#time').html( api.currSong.getCurrTimeAsString() + ' / ' + api.currSong.getTotalTimeAsString() );
+		whilePlaying: function(time){
+			$('#time').html(time.currTime + ' / ' + time.totalTime);
 		},
 		onStop: function(){
-			$('#time').html('00:00 / 00:00');	
+			resetTime();	
+		},
+		onListComplete: function(){
+			resetTime();
+		},
+		onSeekPreview: function(event, time) {
+			console.log(time.mins + ':' + time.secs)
+		},
+		onSetupComplete: function(swaggPlayerApiRef) {
+			api = swaggPlayerApiRef;
+		},
+		whileLoading: function(percentLoaded) {
+			// this may be hard to see with the short songs i've included
+			// in the example as it will jump to 100% fairly quickly
+			// use a longer song if you'd like to see this work
+			$('#loadstatus').html(percentLoaded);
 		}
 	});
 
 	/*
 		Demo for API functionality. Not required to get Swagg Player working
 	*/
-	
-	
-	var api = window.swaggPlayerApi;	
 	
 	$('#vol-up').click(function(){
 		api.playback.volUp();
@@ -109,6 +124,10 @@ $(document).ready(function(){
 		
 		});
 	})
+
+	function resetTime() {
+		$('#time').html('00:00 / 00:00');	
+	}
 });
 
 	
