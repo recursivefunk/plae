@@ -845,7 +845,7 @@
 
 			_whileloading : function(sound) {
 				var percent = this.whileLoading(sound).toFixed(2) * 100;
-				this.executeIfExists('whileLoading', sound, [percent]);
+				this.executeIfExists('whileLoading', sound, [Math.round(percent)]);
 			},
 
 			_onerror : function(sound) {
