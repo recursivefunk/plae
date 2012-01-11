@@ -14,6 +14,7 @@
 	- api is no longer attached to the window object it's returned via the 'onSetupComplete' callback
 	- new 'onListComplete' callback function
 	- new 'whileLoading' callback function
+	- fixed ajax
 */
 (function ($){
 	
