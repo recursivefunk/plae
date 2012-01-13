@@ -1,9 +1,13 @@
 <h1>Swagg Player</h1>
 <h2>Cross browser javascript music player for the web! Works in IE 7,8,9, FF 3.5+, Chrome & Safari</h2>
 
-<h2>Version 0.8.6.4 Change Log</h2>
+<h2>Version 0.8.y Change Log</h2>
 <ul>
-	<li>Added ability to add tracks dynamically via the api</li>
+	<li>some api data is now returned via callback parameters</li>
+	<li>api is no longer attached to the window object it's returned via the 'onSetupComplete' callback</li>
+	<li>new 'onListComplete' callback function</li>
+	<li>new 'whileLoading' callback function</li>
+	<li>fixed ajax</li>
 </ul>
 
 <h2>Demos</h2>
