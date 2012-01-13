@@ -851,7 +851,7 @@
 			_onerror : function(sound) {
 				var msg = 'An error occured while attempting to play this song. Sorry about that.';
 				this._logger.error(msg)
-				this.executeIfExists('onError', sound, []);
+				this.executeIfExists('onError', sound, [msg]);
 			},
 
 			executeIfExists : function(func, scope, args) {
