@@ -7,14 +7,12 @@
    	Code provided under the MIT License:
    	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.7
+	v0.8.7.2
    
 	Change Log
-	- some api data is now returned via callback parameters
-	- api is no longer attached to the window object it's returned via the 'onSetupComplete' callback
-	- new 'onListComplete' callback function
-	- new 'whileLoading' callback function
-	- fixed ajax
+	- refactoring
+	- support for jquery templating
+	- updated soundmanager
 */
 (function ($){
 	
@@ -38,7 +36,6 @@
 					$.error('An error occured while initializing soundManager!');
 				}
 			} else {
-
 				$.error('Swagg Player element missing id attribute!');
 			}
 			
@@ -74,38 +71,58 @@
 		var Logger = function(p, _id) {
 			this.PLAYER = p;
 			this.log = p._config.consoleSupport;
-			this.debug = p._config.props.debug;
+			this.logging = p._config.props.logging || []
+			this.levelall = this.logging.indexOf('all') > -1;
+			this.levelinfo = this.levelall === true ? true : this.logging.indexOf('info') > -1;
+			this.levelerror = this.levelall === true ? true : this.logging.indexOf('error') > -1;
+			this.levelapierror = this.levelall === true ? true : this.logging.indexOf('apierror') > -1;
+			this.levelwarn = this.levelall === true ? true : this.logging.indexOf('warn') > -1;
+			this.leveldebug = this.levelall === true ? true : this.logging.indexOf('debug') > -1;
 			this.id = _id;
 		}
 		
 		$.extend(Logger.prototype, {
 			error : function(errMsg){
-				if (this.debug === true && this.log === true) {
+				if (this.levelerror && this.log) {
 					console.error('Swagg Player::' + this.id + '::Error::' + errMsg);	
 				}
 			},
 			info : function(info){
-				if (this.debug === true && this.log === true) {
+				if (this.levelinfo && this.log) {
 					console.log('Swagg Player::' + this.id + '::Info::' + info);
 				}
 			},
 			warn : function(warning) {
-				if (this.debug === true && this.log === true) {
+				if (this.levelwarn && this.log) {
 					console.warn('Swagg Player::' + this.id + '::Warning::' + warning);
 				}
 			},
+			debug : function(warning) {
+				if (this.leveldebug && this.log) {
+					console.warn('Swagg Player::' + this.id + '::Debug::' + warning);
+				}
+			},
 			apierror : function(errMsg) {
-				if (this.debug === true && this.log === true) {
+				if (this.levelapierror && this.log) {
 					console.error('Swagg Player::' + this.id + '::API Error::' + errMsg);	
 				}
 			}
 		});
+
+		Utils = function(){}
+
+		Utils.prototype.timeString = function(str) {
+			var tmp = parseInt(str),
+				t = tmp > 9 ? str : '0' + str;
+			return t !== '60' ? t : '00';
+		};
 
 		/*
 			Creates soundManager sound objects
 		*/
 		var SoundFactory = function(p) {
 			this.player = p;
+			p._logger.debug('SoundFactory Initiated')
 		}
 
 		$.extend(SoundFactory.prototype,{
@@ -133,28 +150,68 @@
 					autoLoad: false,
 					usePolicyFile: false,
 					onplay: function(){
-						self.player._onplay(this);
+						var sound = this;
+						$.when(self.player._onplay(sound)).done(
+							function(args) {
+								self.player.executeIfExists('onPlay', sound, args);
+							}
+						);
 					},
 					onpause: function(){
-						self.player._onpause(this);
+						var sound = this;
+						$.when(self.player._onpause(sound)).done(
+							function(args) {
+								self.player.executeIfExists('onPause', sound, args);
+							}
+						);
 					},
 					onstop: function(){
-						self.player._onstop(this);
+						var sound = this;
+						$.when(self.player._onstop(sound)).done(
+							function(args) {
+								self.player.executeIfExists('onStop', sound, args);
+							}
+						);
 					},
 					onfinish: function(){
-						self.player._onfinish(this);
+						var sound = this;
+						$.when(self.player._onfinish(sound)).done(
+							function(args) {
+								self.player.executeIfExists('onFinish', sound, args);
+							}
+						);
 					},
 					onresume: function(){
-						self.player._onresume(this);
+						var sound = this;
+						$.when(self.player._onresume(sound)).done(
+							function(args) {
+								self.player.executeIfExists('onResume', sound, args);
+							}
+						);
 					},
 					whileplaying: function() {
-						self.player._whileplaying(this);
+						var sound = this;
+						$.when(self.player._whileplaying(sound)).done(
+							function(args) {
+								self.player.executeIfExists('whilePlaying', sound, args);
+							}
+						);
 					},
 					whileloading: function(){
-						self.player._whileloading(this);
+						var sound = this;
+						$.when(self.player._whileloading(sound)).done(
+							function(args) {
+								self.player.executeIfExists('whileLoading', sound, args);
+							}
+						);
 					},
 					onerror: function(){
-						self.player._onerror(this);
+						var sound = this;
+						$.when(self.player._onerror(sound)).done(
+							function(args) {
+								self.player.executeIfExists('onError', sound, args);
+							}
+						);
 					}
 				});		
 				newSound.id = myid;
@@ -162,20 +219,18 @@
 				self.player._data.last_song = songObj.id;
 	
 				if (html.playList !== undefined && html.playList === true) {
-					self.player.createElement(newSound);
+					self.player.appendToPlaylist(newSound);
 				}
 
 				return newSound;
 			}
 		});
 
-
 		/* Model for songs */
 		var Song = function(obj, id) {
-			this.url = obj.url;
-			this.artist = obj.artist;
-			this.title = obj.title;
-			this.thumb = obj.thumb;
+			for (prop in obj) {
+				this[prop] = obj[prop];
+			}
 			this.id = id;							
 		};
 
@@ -192,6 +247,7 @@
 			handles the fetching and processing of songs
 		*/
 		var Data = function(p) {
+			p._logger.debug('Data intializing');
 			this.PLAYER = p,
 			this.last_song = -1;
 			this.songs = [];
@@ -241,16 +297,18 @@
 						dataType: 'json',
 						success: function(data){
 							self.processSongs(data);
+							return null;
 						},
 						error: function(xhr, ajaxOptions, thrownError){
 							var msg = 'There was a problem fetching your songs from the server: ' + thrownError;
 							self.PLAYER._logger.error(msg);
-							this.executeIfExists('onError', this, []);
+							return msg;
 						}
 					});	
 				} // end if
 				else {
 					this.processSongs(theData);
+					return null;
 				}
 			}
 		});	
@@ -289,8 +347,7 @@
 
 		$.extend(Html.prototype, {
 			initHtml : function(config) {
-				this.PLAYER._logger.info("initHtml()");
-				
+				this.PLAYER._logger.debug('Html initializing');
 				this.player = config.id;
 				this.playlist = $('#' + this.player + ' .swagg-player-list');
 				this.art = $('#' + this.player + ' .swagg-player-album-art');
@@ -308,12 +365,13 @@
 			},
 
 			setupProgressBar : function() {
-				this.PLAYER._logger.info('SetupProgressBar()');
+				this.PLAYER._logger.debug('setting up progress bar');
 				if (this.progress_wrapper.length > 0) {
 					var wrapper = $('#' + this.player + ' div.swagg-player-progress-wrapper'),
 						height = wrapper.css('height'),
 						progress = $('<div></div>'),
 						loaded = $('<div></div>');
+
 					loaded.addClass("swagg-player-loaded");
 					loaded.css('height', height).css('width',0).css('float','left').css('margin-left','0');
 					wrapper.append(loaded);
@@ -344,6 +402,7 @@
 			setup : function(img) {
 				var p = this.PLAYER,
 					imageLoader = p._imageLoader;
+				p._logger.debug('setting up controls')
 				this.play =	$('#' + p._html.player + ' .swagg-player-play-button');	
 				this.skip =	$('#' + p._html.player + ' .swagg-player-skip-button');
 				this.back =	$('#' + p._html.player + ' .swagg-player-back-button');
@@ -385,11 +444,11 @@
 					imageLoader = p._imageLoader,
 					usehover = _config_.props.buttonHover || false;
 
-				p._logger.info('Binding controller button events');
+				p._logger.debug('Binding controller button events');
 				
 				controls.play.bind({
 					click: function() {
-						 p.play('playlink click', p._data.curr_song);
+						 p.play(p._data.curr_song);
 						 return false;
 					},
 					mouseover: function() {
@@ -460,16 +519,15 @@
 				
 				var p = this.PLAYER,
 					curr_song = p._data.curr_song;
-						
-					
-				p._logger.info('Binding media key events');		
+
+				p._logger.debug('Binding media key events');		
 				$(document).keydown(function(e) {
 	
 					if (!e) e = window.event;
 				
 						switch(e.which) {
 						  case 179:
-							p.play('Media key event switch', curr_song);
+							p.play(curr_song);
 							return false;
 					
 						  case 178:
@@ -499,6 +557,8 @@
 				// seek to a position in the song
 				var p = this.PLAYER;
 					_html_ = p._html;
+
+				p._logger.debug('setting up seek events');
 
 				_html_.loaded.css('cursor', 'pointer').bind({
 					click : function(e) {
@@ -532,7 +592,7 @@
 							newPosPercent = x / _html_.metadata.progressWrapperWidth,
 							// find the position within the song to which the location clicked corresponds
 							seekTo = Math.round(newPosPercent * duration),
-							time = p.millsToTime(seekTo, -1);
+							time = p.millsToTime(seekTo, null);
 						
 						// fire off onSeekPreview event
 						p.executeIfExists('onSeekPreview', this, [e, time]);				
@@ -563,6 +623,7 @@
 
 		$.extend(ImageLoader.prototype, {
 			setup : function() {
+				this.PLAYER._logger.debug('setting up image loader')
 				var config = this.PLAYER._config.props;
 				if (config.buttonsDir !== undefined) {
 					this.PLAYER._controls.setup(this.PLAYER._html.controls_div);
@@ -583,7 +644,7 @@
 					hover = player._config.props.buttonHover || false,
 					controls = player._controls;
 
-				player._logger.info('Loading images for controls');
+				player._logger.debug('Loading images for controls');
 
 				if (controls.play.length > 0) {
 					this.play = new Image();
@@ -629,6 +690,7 @@
 					}
 				}
 				this.imagesLoaded = true;
+				this.PLAYER._logger.info('Images Loaded.')
 			}
 		});
 
@@ -677,7 +739,6 @@
 						} else {
 							me._logger.error('No Songs!!');
 						}
-						
 					};
 				}
 				
@@ -702,7 +763,7 @@
 
 						if(config.props.autoPlay !== undefined && config.props.autoPlay === true) {
 							setTimeout(function(){
-									controller.play('', data.curr_song);
+									controller.play(data.curr_song);
 								},1000);
 						}
 
@@ -742,84 +803,99 @@
 				// setup logging
 				me._logger = new Logger(me, config.id);
 
+				me._logger.info('initializing swagg player components');
+
 				// initialize data (songs)
 				me._data = new Data(me);
 
 				// setup html elements
 				me._html = new Html(me);
 				me._html.initHtml(config);
-				
-				// get songs from server via XHR
-				me._data.getSongs();
-				
-				// init onSeek events
-				me._html.setupProgressBar();
-				
-				// create invisible element which will hold user accessible data
-				me.setupApi();
-
-				// controls, images
-				me._controls = new Controls(me);
-				me._imageLoader = new ImageLoader(me);
-				me._imageLoader.setup();
-			
-
-				if (config.buttonsDir !== undefined) {
-					me._controls.setup(me._html.controls_div);
-				}
-				else {
-					config.buttonHover = false;	
-				}
-				if (config.spriteImg !== undefined) {
-					me._imageLoader.art = new Image();
-					me._ImageLoader.art.src = config.spriteImg;
-				}
-
-				// setup controller events
-				me._events = new Events(me);
-				me._events.bindControllerEvents();
-				me._events.bindMediaKeyEvents();
 
 
-				// check for soundManager support and warn or inform accordingly
-				if (!soundManager.supported()) {
-					me._logger.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
-				}
-				else {
-					me._logger.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
-				}
-	
+				$.when(me._data.getSongs()).done(function(err){
+					
+					if (err) {
+						this.executeIfExists('onError', this, []);
+					} else {
+						// init onSeek events
+						me._html.setupProgressBar();
+						
+						// create invisible element which will hold user accessible data
+						me.setupApi();
+
+						// controls, images
+						me._controls = new Controls(me);
+						me._imageLoader = new ImageLoader(me);
+						me._imageLoader.setup();
+					
+
+						if (config.buttonsDir !== undefined) {
+							me._controls.setup(me._html.controls_div);
+						}
+						else {
+							config.buttonHover = false;	
+						}
+						if (config.spriteImg !== undefined) {
+							me._imageLoader.art = new Image();
+							me._ImageLoader.art.src = config.spriteImg;
+						}
+
+						// setup controller events
+						me._events = new Events(me);
+						me._events.bindControllerEvents();
+						me._events.bindMediaKeyEvents();
+
+						// check for soundManager support and warn or inform accordingly
+						if (!soundManager.supported()) {
+							me._logger.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
+						}
+						else {
+							me._logger.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
+						}
+					} // end else
+				});
 			},
 
 			_whileplaying : function(sound) {
 				this.progress(sound);
-				this.millsToTime(sound.position, 1);
-				var curr = this._swaggPlayerApi.currSong.getCurrTimeAsString(),
-					total = this._swaggPlayerApi.currSong.getTotalTimeAsString()
+				var duration = sound.loaded === true ? sound.duration : sound.durationEstimate,
+					curr = this.millsToTime(sound.position, null),
+					total = this.millsToTime(duration, null);
 					arguments = {
 						currTime : curr,
 						totalTime : total
 					};
-				this.executeIfExists('whilePlaying', sound, [arguments]);
+					return [arguments];
 			},
 
 			_onplay : function(sound) {
-				this.millsToTime(sound.duration, 0);	
-				this.playPauseButtonState(0);
-				this.executeIfExists('onPlay', sound, []);
+				var data = this._data,
+					song = data.songs[data.curr_song],
+					arg = {};
 
+				for (prop in song) {
+					if (prop != 'id' && $.isFunction(song[prop]) === false) {
+						arg[prop] = song[prop];
+					}
+				}
+				this.playPauseButtonState(0);
+
+				// if the song has already fully loaded the whileloading callback won't fire
+				// so we need to just go ahead and fill the bar
 				if (this.loaded(sound) === true) {
 					this.fillLoaded();
-				}	
+				}
+				return [arg];	
 			},
 
 			_onpause : function(sound) {
 				this.playPauseButtonState(1); 
-				this.executeIfExists('onPause', sound, []);
+				return [];
 			},
 
 			_onstop : function(sound) {
-				this.executeIfExists('onStop', sound, []);
+				return [];
 			},
 
 			_onfinish : function(sound) {
@@ -830,7 +906,7 @@
 						this.skip(1);
 					} else {
 						this.stopMusic(id);
-						this.executeIfExists('onListComplete', sound, []);
+						return []
 					}
 				}
 				else {
@@ -840,18 +916,18 @@
 
 			_onresume : function(sound) {
 				this.playPauseButtonState(0); 
-				this.executeIfExists('onResume', sound, []);
+				return [];
 			},
 
 			_whileloading : function(sound) {
 				var percent = this.whileLoading(sound).toFixed(2) * 100;
-				this.executeIfExists('whileLoading', sound, [Math.round(percent)]);
+				return [Math.round(percent)];
 			},
 
 			_onerror : function(sound) {
 				var msg = 'An error occured while attempting to play this song. Sorry about that.';
 				this._logger.error(msg)
-				this.executeIfExists('onError', sound, [msg]);
+				return [msg];
 			},
 
 			executeIfExists : function(func, scope, args) {
@@ -874,7 +950,6 @@
 			
 			// repeats the currently playing track
 			repeat : function(track) {
-				
 				var sound_id = _html.player + '-song-' + _data.curr_song,
 					target = soundManager.getSoundById(sound_id),
 					me = this;
@@ -885,41 +960,39 @@
 			},
 				
 			// Plays a song based on the ID
-			play : function(caller, track){
-				
-				var me = this,
-					sound_id = me._html.player + '-song-' + track,
+			play : function(track){
+				var	sound_id = this._html.player + '-song-' + track,
 					target = soundManager.getSoundById(sound_id);
 				
-				me._logger.info('Playing track: ' + sound_id + '. Oh and ' + caller + ' called me!');
+				this._logger.debug('Playing track: ' + sound_id);
 
 				if (target.paused === true) { // if current track is paused, unpause
-					me._logger.info('Unpausing song');
+					this._logger.debug('Unpausing song');
 					target.resume();
 				}
 				else { // track is not paused
 					if (target.playState === 1) {// if track is already playing, pause it
-						me._logger.info('Pausing current track');
+						this._logger.info('Pausing current track');
 						target.pause();
 					}
 					else { // track is is not playing (it's in a stopped or uninitialized stated, play it
-						me.internal.update();
-						me._logger.info('Playing current track from beginning');
+						//me.internal.update();
+						this._logger.info('Playing current track from beginning');
 						target.play();
 					}
 				}
-				me.showSongInfo();
+				this.showSongInfo();
 			},
 				
 			// creates the API element
 			setupApi : function() {
+				this._logger.debug('setting up api');
 				this._swaggPlayerApi = new API(this);
 				this.internal.player = this;				
 			},
 			
 			// Dynamically creates playlist items as songs are loaded
-			createElement : function(soundobj){
-				
+			appendToPlaylist : function(soundobj){
 				var me = this,
 					tmp = soundobj.id.split('-')[3],
 					song = me._data.songs[parseInt(tmp)],
@@ -927,7 +1000,7 @@
 					id = 'item-' + song.id,
 					listItem = $('<li></li>');
 
-				me._logger.info('createElement()');
+				me._logger.debug('appending to playlist: ' + song.title);
 
 				listItem.attr('id',id);
 				listItem.addClass('swagg-player-playlist-item');
@@ -941,7 +1014,7 @@
 						var track = parseInt($(this).data('song').id),
 							afterEffect = function() {
 								me.showSongInfo();
-								me.play('switchArt() - by way of createElement',track);
+								me.play(track);
 							}			
 						me._data.curr_song = track;
 						if (me._html.useArt === true) {
@@ -949,7 +1022,7 @@
 						}
 						else {
 							me.showSongInfo();
-							me.play('switchArt() - by way of createElement',track);	
+							me.play(track);	
 						}
 						return false;
 					}
@@ -960,7 +1033,6 @@
 			
 			// toggles the play/pause button to the play state
 			playPauseButtonState : function(state){
-				
 				var me = this,
 					imagesLoaded = me._imageLoader.imagesLoaded,
 					out, 
@@ -1012,7 +1084,6 @@
 			// Skips to the next song. If the currently playing song is the last song in the list
 			// it goes back to the first song
 			skip : function(direction){
-				
 				var me = this,
 					inst = me._data,
 					_html = me._html,
@@ -1050,7 +1121,7 @@
 				// if not using album , just go to the next song
 				else {
 						me.showSongInfo();
-						me.play('skip',t);
+						me.play(t);
 				} // end else	
 			},
 			
@@ -1059,6 +1130,9 @@
 					me = this;
 				me.stopMusic(t);
 				inst.curr_song = t;
+
+				this._logger.debug('jumping to track ' + t);
+
 				// if using album , use  transition
 				if (me._html.useArt === true) {
 					me.executeIfExists('onBeforeSkip', me, []);
@@ -1067,7 +1141,7 @@
 				// if not using album , just go to the next song
 				else {
 						me.showSongInfo();
-						me.play('skip',t);
+						me.play(t);
 				} // end else	
 			},
 				
@@ -1083,26 +1157,17 @@
 			
 			// Resets the progress bar back to the beginning
 			resetProgressBar : function(){
-				var me = this;
-				me._html.bar.css('width', 0);
-				me._html.loaded.css('width', 0);
+				this._html.bar.css('width', 0);
+				this._html.loaded.css('width', 0);
 			},
-			
-			// resets the track time
-			resetTrackTime : function() {
-				this._logger.info('Resetting track time');
-				this.internal.fillTime(0,0,0,0);
-			},
+		
 				
 			// Stops the specified song
 			stopMusic : function(track) {
-				
-				var me = this;
-				me._logger.info('stopMusic()');
+				this._logger.debug('stopping music');
 				soundManager.stopAll();
-				me.playPauseButtonState(1);
-				me.resetProgressBar();
-				me.resetTrackTime();
+				this.playPauseButtonState(1);
+				this.resetProgressBar();
 			},
 				
 			// Increases the volume of the specified song
@@ -1113,15 +1178,15 @@
 				 	curr_vol = sound.volume;
 
 				if (flag === 1) {
-					me._logger.info('Vol up');
+					me._logger.debug('increasing volume');
 					soundManager.setVolume(sound_id, curr_vol + me._data.vol_interval);
 				}
 				else if (flag === 0) {
-					me._logger.info('Vol down');
+					me._logger.debug('decreasing volume');
 					soundManager.setVolume(sound_id, curr_vol - me._data.vol_interval);
 				}
 				else {
-					me._logger.info('Invalid volume flag!');	
+					me._logger.error('Invalid volume flag!');	
 				}
 			},
 			
@@ -1164,7 +1229,6 @@
 			
 			// switches to the currently playing song's album  using fancy jquery slide effect
 			switchArt : function(track) {
-				
 				var me = this,
 					sound_id = me._html.player + '-song-' + track,
 					art = me._html.art,
@@ -1181,7 +1245,7 @@
 						me.setAlbumArtStyling(track);
 						$(this).show('slide', function(){
 							me.showSongInfo();
-							me.play('skip',track);
+							me.play(track);
 							me.executeIfExists('onAfterSkip', me, []);
 						});
 					});	
@@ -1191,7 +1255,7 @@
 						me.setAlbumArtStyling(track);
 						$(this).fadeIn('fast', function(){
 							me.showSongInfo();
-							me.play('skip',track);
+							me.play(track);
 							me.executeIfExists('onAfterSkip', me, []);
 						});
 					});	
@@ -1253,54 +1317,31 @@
 				
 				if (soundobj.loaded === false) {
 					duration = soundobj.durationEstimate;
-					//me.millsToTime(duration, 0);
 				}
 				else {
 					duration = soundobj.duration;
 				}
-				me.millsToTime(duration, 0);
 				
 				// ratio of (current position / total duration of song)
 				var pos_ratio = pos/duration,
 					// width of progress bar
 					wrapper_width = me._html.metadata.progressWrapperWidth,
-					//loaded = wrapper_width * loaded_ratio,
 					// set width of inner progress bar equal to the width equivelant of the
 					// current position
 					t = wrapper_width*pos_ratio;
 				me._html.bar.css('width', t);
 			},
 			
-			// calculates the total duration of a sound in terms of minutes
-			// and seconds based on the total duration in milliseconds.
-			// flag 0 - says we're calculating the total duration of the song
-			// flag 1 - says we're calculating the current potition of the song
-			// flag -1 = says we're calculating the arbitrary position of a song (seek preview)
 			millsToTime : function(duration, flag) {
-					var seconds = Math.floor(duration / 1000),
+					var utils = new Utils(),
+						seconds = Math.floor(duration / 1000),
 						me = this,
 						minutes = 0;
 					if (seconds > 60) {
 						minutes = Math.floor(seconds / 60);
 						seconds = Math.round(seconds % 60);		
 					}
-					
-					
-					// total duration
-					if (flag === 0) { 
-						me.internal.fillTotalTime(minutes,seconds);
-					}
-					// current position
-					else if (flag === 1) { 
-						me.internal.fillCurrentTime(minutes,seconds);
-					}
-					else if(flag === -1){
-						me.internal.fillPreview(minutes,seconds); // this line of code will go away soon!
-						return {'mins' : minutes, 'secs' : seconds};
-					}
-					else {
-						_logger.error('Invalid flag passed to millsToTime()');	
-					}
+					return {mins: utils.timeString(minutes), secs : utils.timeString(seconds)};
 			},
 			
 			// displays 1st and song title
@@ -1310,12 +1351,17 @@
 					curr_song = loc_inst.curr_song > -1 ? loc_inst.curr_song : 0,
 					song_ = loc_inst.songs[curr_song];
 
-				var info = [
-					{ Artist : song_.artist, Title : song_.title }
-				];
 
+				if ($.tmpl) {
+					var info = [
+						{ artist : song_.artist, title : song_.title }
+					];
+					$("#swagg-player-song-info").empty();
+					$("#swagg-player-song-info-template").tmpl(info).appendTo("#swagg-player-song-info");
+				} else {
 					me._html.artist.html(song_.artist);
 					me._html.title.html(song_.title);
+				}
 			},
 	
 
@@ -1327,111 +1373,13 @@
 		
 			internal : {
 				player : null,
-				totalMinutes:null,
-				totalSeconds:null,
-				currMinutes:null,
-				currSeconds:null,
-				seconds:null,
-				minutes:null,
-				event_ref:null,
-				currTitle:null,
-				currArtist:null,
-				currAlbum:null,
-				currTempo:null,
-				repeatMode:false,	
-				
-				update : function() {
-					var _data_ = this.player._data,
-						t = _data_.curr_song;
-					this.currTitle = _data_.songs[t].title;
-					this.currArtist = _data_.songs[t].artist;
-					this.currAlbum = _data_.songs[t].album;	
-					this.currTempo = _data_.songs[t].tempo;
-					this.player._logger.info('Current song: [' + this.currArtist + '] [' + this.currTitle + '] [' + this.currTempo + ']'  );	
-				},	
-				
-				fillTime : function(tMins, tSecs, cMins, cSecs) {
-					this.totalMinutes = tMins;
-					this.totalSeconds = tSecs;
-					this.currMinutes = cMins;
-					this.currSeconds = cSecs;
-				},
-							
-				fillTotalTime : function(tMins, tSecs) {
-					this.totalMinutes = tMins;
-					this.totalSeconds = tSecs; 	
-				},
-							
-				fillCurrentTime : function(cMins, tSecs) {
-					this.currMinutes = cMins;
-					this.currSeconds = tSecs;
-				},
-				fillPreview : function(pMins,pSecs) {
-					this.minutes = pMins;
-					this.seconds = pSecs;	
-				},
-				
-				setEventRef : function(e) {
-					this.event_ref = e;
-				}						
+				repeatMode:false					
 			}
 		};
 
 		// external API devs can use to extend Swagg Player. Exposes song data, events etc
 		var API = function(controller) {
-			var self = this;
-			self.currSong = {
-				/*
-					Deals with functions available for the current song
-				*/
-				getCurrTimeAsString : function() {
-					var i = controller.internal,
-						currMin = (i.currMinutes > 9) ? i.currMinutes : '0' + 
-							i.currMinutes.toString(),
-						currSec = (i.currSeconds > 9) ? i.currSeconds : '0' + 
-							i.currSeconds.toString();	
-					return currMin + ':' + currSec;					
-				},
-				getTotalTimeAsString : function() {
-					var i = controller.internal,
-						totalMin = (i.totalMinutes > 9) ? i.totalMinutes : '0' + 
-							i.totalMinutes.toString(),
-						totalSec = (i.totalSeconds > 9) ? i.totalSeconds : '0' + 
-							i.totalSeconds.toString();	
-					return totalMin + ':' + totalSec;	
-				},	
-				getEventRef : function(){
-					return controller.internal.event_ref;
-				},
-				
-				previewAsString : function() {
-					var i = controller.internal;
-					if ( !isNaN(i.minutes) && !isNaN(i.seconds)) {
-						var mins = (i.minutes > 9) ? i.minutes : '0' + 
-							i.minutes.toString();
-						var secs = (i.seconds > 9) ? i.seconds : '0' + 
-							i.seconds.toString();	
-						return mins + ':' + secs;			
-					}
-					else {
-						return "wait."	
-					}							
-				}, // end as string
-				title : function() {
-					return (controller.internal.currTitle || 'Unknown Title');	
-				},
-				artist : function() {
-					return (controller.internal.currArtist || 'Unknown Artist');	
-				},
-				album : function() {
-					return (controller.internal.currAlbum ||'Unknown Album');	
-				},
-				tempo : function(){
-					return (controller.internal.currTempo || 'Unknown Tempo'); 	
-				}
-			}; // end current song funcs
-			
-			
+			var self = this;		
 			/*
 				Deals with play back functionality of the player in general
 			*/
@@ -1473,9 +1421,19 @@
 				addTrack : function(trackData) {
 					var player = controller.PLAYER,
 						factory = new SoundFactory(controller),
+						t, songObj, s;
+					
+					if ($.isArray(trackData)) {
+						for (i = 0; i < trackData.length; i++) {
+							t = controller._data.last_song,
+							songObj = new Song(trackData[i], t+1),
+							s = factory.createSound(songObj);
+						}
+					} else {
 						t = controller._data.last_song,
 						songObj = new Song(trackData, t+1),
 						s = factory.createSound(songObj);
+					}
 				}				
 			}; // end playback funcs
 		}; // end api

@@ -1,3 +1,9 @@
+<!-- 
+	PLEASE EXCUSE THE UGLY MARKUP IN THIS EXAMPLE FILE. MY INTENTION WAS TO PROVIDE A QUICK AND DIRTY
+	REFERENCE FOR SWAGG PLAYER'S FEATURES BUT THIS FILE HAS GROWN SIGNIFICANTLY SINCE THE BEGINNING OF THE PROJECT
+	SOON I WILL REPLACE THIS WITH A MUCH MORE ATTRACTIVE LOOKING EXAMPLE
+-->
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -6,6 +12,9 @@
 <style>
 	.spacer{height:100px;}
 	#swagg-player{margin-left:auto; margin-right:auto;}
+	#swagg-player-artist {display:block;}
+	#swagg-player-title{display:block;}
+	#swagg-player-song-info{margin-left:auto; margin-right:auto;}
 </style>
 </head>
 <body>
@@ -25,20 +34,29 @@
   	</div>
   	<br /><br/>
     <div class="swagg-player-progress-wrapper" rel="me"></div>
+    <br/>
+    <div id="swagg-player-song-info" style="width:100px; heigh:30px;"></div>
+    <br/>
    <div id="time">00:00 / 00:00</div>
    <label>Load Status: </label><span id="loadstatus">0</span>%<br/>
    <input type="button" value="-" id="vol-down" /><input type="button" value="+" id="vol-up"/>
     <br/>
     <input id="add" type="button" value="add a new track" />
     <br/>
-    <span class="swagg-player-artist"></span><br /><span class="swagg-player-title"></span></br><br/>
     <div class="swagg-player-list"></div> 
 </div>
 
+<!-- 
+	this example is using jQuery templates (which is no longer being developed). 
+	you don't have to use templates. just take the code in this template out, put it someplace else
+	and remove the template variable and swagg player will just insert the text for title and artist
+-->
+<script id="swagg-player-song-info-template" type="text/x-jQuery-tmpl">
+	<span class="swagg-player-artist">${artist}</span><br/><span class="swagg-player-title">${title}</span>
+</script>
 <div class="spacer"></div>
-
+	
 </body>
-<!--<script src="js/LAB.min.js"></script> UNCOMMNENT TO USE ASYNC LOADING -->
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 <script src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
 <script src="js/soundmanager2-nodebug-jsmin.js"></script>
@@ -51,15 +69,16 @@ $(document).ready(function(){
 		{
 			"url": "sound/1.mp3",
 			"artist": "Artist1",
-			"title": "Song 1",
-			"thumb":"images/1.jpg"
-			
+			"title": "Song1",
+			"thumb":"images/1.jpg",
+			"custom": "myCustomData1"	
 		},
 		{
 			"url": "sound/2.mp3",
-			"artist": "Artist 2",
-			"title": "Song 2",
-			"thumb": "images/2.jpg"
+			"artist": "Artist2",
+			"title": "Song2",
+			"thumb": "images/2.jpg",
+			"custom": "myCostomData2"
 		}
 	];
 	
@@ -78,12 +97,13 @@ $(document).ready(function(){
 		defaultAlbumArtHeight: 100,
 		defaultAlbumArtWidth: 100,
 		autoPlay : true,
-		debug: true,
+		logging: ['all'],
 		lazyLoad: true,
 		morphArt: true,
 		html5Audio: true,
 		whilePlaying: function(time){
-			$('#time').html(time.currTime + ' / ' + time.totalTime);
+			$('#time').html(time.currTime.mins + ':' + time.currTime.secs + 
+				' / ' + time.totalTime.mins + ':' + time.totalTime.secs);
 		},
 		onStop: function(){
 			resetTime();	
@@ -102,6 +122,9 @@ $(document).ready(function(){
 			// in the example as it will jump to 100% fairly quickly
 			// use a longer song if you'd like to see this work
 			$('#loadstatus').html(percentLoaded);
+		},
+		onPlay: function(data) {
+			console.log('currently playing ' + data.title + ' by ' + data.artist + '. And I have this custom data: ' + data.custom);
 		}
 	});
 
@@ -117,13 +140,15 @@ $(document).ready(function(){
 	});
 			
 	$('#add').click(function(){
-		api.playback.addTrack({		
-			url: "sound/3.mp3",
-			artist: "Artist 3",
-			title: "Song 3",
-			thumb: "images/3.jpg"
-		
-		});
+		api.playback.addTrack([
+			{		
+				url: "sound/3.mp3",
+				artist: "Artist 3",
+				title: "Song 3",
+				thumb: "images/3.jpg",
+				custom: "custom3"
+			}
+		]);
 	})
 
 	function resetTime() {
