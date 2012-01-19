@@ -7,12 +7,10 @@
    	Code provided under the MIT License:
    	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.7.2
+	v0.8.7.3
    
 	Change Log
-	- refactoring
-	- support for jquery templating
-	- updated soundmanager
+	- ie fix
 */
 (function ($){
 	
@@ -28,6 +26,7 @@
 				}
 
 				Init.initializeSoundManager();
+				Init.ieStuff();
 				if (soundManager) {
 					var opts = $.extend(options_, id),
 						player = new Controller();
@@ -1467,6 +1466,41 @@
 					soundManager.flashLoadTimeout = 1000;
 		    		soundManager.beginDelayedInit();
 	    		}
+			},
+
+			ieStuff : function() {
+				if (!Array.prototype.indexOf) {  
+				    Array.prototype.indexOf = function (searchElement, fromIndex ) {  
+				        "use strict";  
+				        if (this == null) {  
+				            throw new TypeError();  
+				        }  
+				        var t = Object(this);  
+				        var len = t.length >>> 0;  
+				        if (len === 0) {  
+				            return -1;  
+				        }  
+				        var n = 0;  
+				        if (arguments.length > 0) {  
+				            n = Number(arguments[1]);  
+				            if (n != n) { // shortcut for verifying if it's NaN  
+				                n = 0;  
+				            } else if (n != 0 && n != Infinity && n != -Infinity) {  
+				                n = (n > 0 || -1) * Math.floor(Math.abs(n));  
+				            }  
+				        }  
+				        if (n >= len) {  
+				            return -1;  
+				        }  
+				        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);  
+				        for (; k < len; k++) {  
+				            if (k in t && t[k] === searchElement) {  
+				                return k;  
+				            }  
+				        }  
+				        return -1;  
+					}
+				}
 			}
 		}
 })(jQuery);
