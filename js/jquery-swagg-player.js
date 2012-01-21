@@ -21,8 +21,10 @@
 			id['id'] = this.attr('id');
 
 			if (id['id']) {
-				if (console && console.time) {
-					console.time('SwaggPlayerStart');
+				if (!Browser.isIe()) {
+					if (console.time) {
+						console.time('SwaggPlayerStart');
+					}
 				}
 
 				Init.initializeSoundManager();
@@ -768,9 +770,12 @@
 
 						me.executeIfExists('onSetupComplete', this, [me._swaggPlayerApi]);
 
-						if (console && console.timeEnd) {
-							console.timeEnd('SwaggPlayerStart');
+						if (!Browser.isIe()) {
+							if (console.timeEnd) {
+								console.timeEnd('SwaggPlayerStart');
+							}
 						}
+
 						controller._logger.info("Swagg Player ready!");
 					});
 				}; // end soundManager onload function	
