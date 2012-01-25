@@ -7,10 +7,11 @@
    	Code provided under the MIT License:
    	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.7.3
+	v0.8.7.4
    
 	Change Log
-	- ie fix
+	- added onSeekHide callback
+	- added the ability to seek while a song is loaded (there is latency though)
 */
 (function ($){
 	
@@ -574,7 +575,10 @@
 							loaded = progressWrapperWidth * loaded_ratio,
 							// find the position within the song to which the location clicked corresponds
 							seekTo = Math.round(newPosPercent * duration);
-						if (loaded >= progressWrapperWidth) {
+						// if (loaded >= progressWrapperWidth) {
+						// 	soundobj.setPosition(seekTo);
+						// }
+						if (seekTo < soundobj.bytesLoaded) {
 							soundobj.setPosition(seekTo);
 						}
 					}
@@ -599,6 +603,12 @@
 						p.executeIfExists('onSeekPreview', this, [e, time]);				
 					}
 				);	
+
+				_html_.loaded.bind('mouseout',
+					function(e) {
+						p.executeIfExists('onSeekHide', this, [e]);
+					}
+				);
 			}
 		});
 
