@@ -1,23 +1,91 @@
+"use strict";
 /*
 	Swagg Player: Music Player for the web
-   	--------------------------------------------
-   	http://swaggplayer.no.de
+	--------------------------------------------
+	http://swaggplayer.no.de
 
-   	Copyright (c) 2010, Johnny Austin. All rights reserved.
-   	Code provided under the MIT License:
-   	http://www.opensource.org/licenses/mit-license.php
+	Copyright (c) 2010, Johnny Austin. All rights reserved.
+	Code provided under the MIT License:
+	http://www.opensource.org/licenses/mit-license.php
 
 	v0.8.7.4
    
 	Change Log
 	- added onSeekHide callback
-	- added the ability to seek while a song is loaded (there is latency though)
+	- added the ability to seek while a song is loaded (there is latency)
+	- 'use strict' mode enabled
+	- code passes javascript lint (http://www.JavaScriptLint.com)
 */
-(function ($){
-	
-		/*global soundManager: false, setInterval: false, console: false, $: false */
-	
-		$.fn.SwaggPlayer = function(options_) {
+(function ($) {
+	/*global soundManager: false, setInterval: false, console: false, $: false */
+
+		//	BEGIN BROWSER DETECT
+		var Browser = {
+			isIe : function(){
+				return (navigator.userAgent.indexOf('MSIE') > -1) ? true : false;
+			},
+			isSafari : function(){
+				return (navigator.userAgent.indexOf('AppleWebKit') > -1 && navigator.userAgent.indexOf('Chrome') === -1);
+			}
+		}; // END BROWSER DETECT
+
+		var Init = {
+			initializeSoundManager : function() {
+				//_logger.info('Initializing SoundManager2');
+				if (!soundManager) {
+					window.soundManager = new SoundManager();
+					soundManager.url = 'swf';
+					soundManager.wmode = 'transparent';
+					soundManager.useFastPolling = true;
+					soundManager.useHTML5Audio = true;
+					if (Browser.isSafari()) {
+						soundManager.useHighPerformance = false;
+					}
+					else {
+						soundManager.useHighPerformance = true;	
+					}
+					soundManager.flashLoadTimeout = 1000;
+		    		soundManager.beginDelayedInit();
+	    		}
+			},
+
+			ieStuff : function() {
+				if (!Array.prototype.indexOf) {  
+				    Array.prototype.indexOf = function (searchElement, fromIndex ) {  
+				        "use strict";  
+				        if (this === null) {  
+				            throw new TypeError();  
+				        }  
+				        var t = Object(this);  
+				        var len = t.length >>> 0;  
+				        if (len === 0) {  
+				            return -1;  
+				        }  
+				        var n = 0;  
+				        if (arguments.length > 0) {  
+				            n = Number(arguments[1]);  
+				            if (n === NaN) {
+				                n = 0;  
+				            } else if (n !== 0 && n !== Infinity && n !== -Infinity) {  
+				                n = (n > 0 || -1) * Math.floor(Math.abs(n));  
+				            }  
+				        }  
+				        if (n >= len) {  
+				            return -1;  
+				        }  
+				        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);  
+				        for (; k < len; k++) {  
+				            if (k in t && t[k] === searchElement) {  
+				                return k;  
+				            }  
+				        }  
+				        return -1;  
+					};
+				}
+			}
+		};
+
+		$.fn.SwaggPlayer = function (options_) {
 			var id = {};
 			id['id'] = this.attr('id');
 
@@ -44,14 +112,6 @@
 		};
 
 		/*
-			----------------------------------------------------------------------------------------------------------------------------------------------------
-			----------------------------------------------------------------------------------------------------------------------------------------------------
-			--------------------------------------------------- classes for data model
-			----------------------------------------------------------------------------------------------------------------------------------------------------
-			----------------------------------------------------------------------------------------------------------------------------------------------------
-		*/
-
-		/*
 			============================================================ configuration	
 			Encapsulation for passed in configuration
 		*/	
@@ -63,7 +123,7 @@
 			if (console) {
 				this.consoleSupport = true;
 			}
-		}
+		};
 		
 		/*
 			============================================================ logging utility
@@ -73,7 +133,7 @@
 		var Logger = function(p, _id) {
 			this.PLAYER = p;
 			this.log = p._config.consoleSupport;
-			this.logging = p._config.props.logging || []
+			this.logging = p._config.props.logging || [];
 			this.levelall = this.logging.indexOf('all') > -1;
 			this.levelinfo = this.levelall === true ? true : this.logging.indexOf('info') > -1;
 			this.levelerror = this.levelall === true ? true : this.logging.indexOf('error') > -1;
@@ -81,7 +141,7 @@
 			this.levelwarn = this.levelall === true ? true : this.logging.indexOf('warn') > -1;
 			this.leveldebug = this.levelall === true ? true : this.logging.indexOf('debug') > -1;
 			this.id = _id;
-		}
+		};
 		
 		$.extend(Logger.prototype, {
 			error : function(errMsg){
@@ -111,10 +171,10 @@
 			}
 		});
 
-		Utils = function(){}
+		var Utils = function(){};
 
 		Utils.prototype.timeString = function(str) {
-			var tmp = parseInt(str),
+			var tmp = parseInt(str,10),
 				t = tmp > 9 ? str : '0' + str;
 			return t !== '60' ? t : '00';
 		};
@@ -124,8 +184,8 @@
 		*/
 		var SoundFactory = function(p) {
 			this.player = p;
-			p._logger.debug('SoundFactory Initiated')
-		}
+			p._logger.debug('SoundFactory Initiated');
+		};
 
 		$.extend(SoundFactory.prototype,{
 			createSound : function(songObj) {
@@ -230,6 +290,7 @@
 
 		/* Model for songs */
 		var Song = function(obj, id) {
+			var prop;
 			for (prop in obj) {
 				this[prop] = obj[prop];
 			}
@@ -250,15 +311,15 @@
 		*/
 		var Data = function(p) {
 			p._logger.debug('Data intializing');
-			this.PLAYER = p,
+			this.PLAYER = p;
 			this.last_song = -1;
 			this.songs = [];
 			this.curr_sprite_class = '';
-			this.isIe = Browser.isIe();;
+			this.isIe = Browser.isIe();
 			this.curr_song = -1;
 			this.vol_interval = 20;
 			this.interval_id = -1;
-		}
+		};
 
 		$.extend(Data.prototype, {
 			processSongs : function(theData){
@@ -306,7 +367,8 @@
 							self.PLAYER._logger.error(msg);
 							return msg;
 						}
-					});	
+					});
+					return null;	
 				} // end if
 				else {
 					this.processSongs(theData);
@@ -321,7 +383,7 @@
 		*/
 
 		var Html = function(p) {
-			this.PLAYER = p,
+			this.PLAYER = p;
 			this.div = null;
 			this.player = null;
 			this.playlist = null;
@@ -344,8 +406,8 @@
 			this.metadata = 
 			{
 				progressWrapperWidth : 0
-			}
-		}
+			};
+		};
 
 		$.extend(Html.prototype, {
 			initHtml : function(config) {
@@ -398,13 +460,13 @@
 			this.skip = null;
 			this.back = null;
 			this.stop = null;
-		}
+		};
 
 		$.extend(Controls.prototype, {
 			setup : function(img) {
 				var p = this.PLAYER,
 					imageLoader = p._imageLoader;
-				p._logger.debug('setting up controls')
+				p._logger.debug('setting up controls');
 				this.play =	$('#' + p._html.player + ' .swagg-player-play-button');	
 				this.skip =	$('#' + p._html.player + ' .swagg-player-skip-button');
 				this.back =	$('#' + p._html.player + ' .swagg-player-back-button');
@@ -433,7 +495,7 @@
 		*/
 		var Events = function(p) {
 			this.PLAYER = p;
-		}
+		};
 
 		$.extend(Events.prototype, {
 			bindControllerEvents : function() {		
@@ -525,7 +587,7 @@
 				p._logger.debug('Binding media key events');		
 				$(document).keydown(function(e) {
 	
-					if (!e) e = window.event;
+					if (!e) { e = window.event; }
 				
 						switch(e.which) {
 						  case 179:
@@ -551,13 +613,16 @@
 						case 174:
 							p.volume(curr_song, 0);
 							return false;
+
+						default:
+							return false;
 					}
 				});				
 			},
 
 			setupSeek : function() {
 				// seek to a position in the song
-				var p = this.PLAYER;
+				var p = this.PLAYER,
 					_html_ = p._html;
 
 				p._logger.debug('setting up seek events');
@@ -617,9 +682,9 @@
 			Loades images for buttons
 		*/
 		var ImageLoader = function(p) {
-			this.PLAYER = p,
+			this.PLAYER = p;
 			this.play = null;
-			this.playOver = null
+			this.playOver = null;
 			this.pause = null;
 			this.pauseOver = null;
 			this.stop = null;
@@ -630,11 +695,11 @@
 			this.skipOver = null;
 			this.art = null;
 			this.imagesLoaded = false;
-		}
+		};
 
 		$.extend(ImageLoader.prototype, {
 			setup : function() {
-				this.PLAYER._logger.debug('setting up image loader')
+				this.PLAYER._logger.debug('setting up image loader');
 				var config = this.PLAYER._config.props;
 				if (config.buttonsDir !== undefined) {
 					this.PLAYER._controls.setup(this.PLAYER._html.controls_div);
@@ -701,19 +766,11 @@
 					}
 				}
 				this.imagesLoaded = true;
-				this.PLAYER._logger.info('Images Loaded.')
+				this.PLAYER._logger.info('Images Loaded.');
 			}
 		});
 
-
-		/*
-			----------------------------------------------------------------------------------------------------------------------------------------------------
-			----------------------------------------------------------------------------------------------------------------------------------------------------
-			--------------------------------------------------- controller for the main functionality (play, pause etc) 
-			----------------------------------------------------------------------------------------------------------------------------------------------------
-			----------------------------------------------------------------------------------------------------------------------------------------------------
-		*/
-		Controller = function(){
+		var Controller = function(){
 			this._logger = null;
 			this._data = null;
 			this._html = null;
@@ -722,7 +779,7 @@
 			this._controls = null;
 			this._imageLoader = null;
 			this._swaggPlayerApi = null;
-		}
+		};
 
 		Controller.prototype = {
 		 
@@ -743,7 +800,7 @@
 								s, tmp;
 	
 							for (var i = 0, end = songs.length; i < end; i++) {
-								s = songs[i],
+								s = songs[i];
 								tmp = factory.createSound(s);
 							}
 							callback.apply(this, [me]); 
@@ -804,7 +861,7 @@
 						this.executeIfExists('onErrorComplete', onError, [msg]);
 					}
 				  },1500);
-				}
+				};
 			}, // end Controller.init
 
 			initComponents : function(config) {
@@ -876,17 +933,18 @@
 				var duration = sound.loaded === true ? sound.duration : sound.durationEstimate,
 					curr = this.millsToTime(sound.position, null),
 					total = this.millsToTime(duration, null);
-					arguments = {
+					args = {
 						currTime : curr,
 						totalTime : total
 					};
-					return [arguments];
+					return [args];
 			},
 
 			_onplay : function(sound) {
 				var data = this._data,
 					song = data.songs[data.curr_song],
-					arg = {};
+					arg = {},
+					prop;
 
 				for (prop in song) {
 					if (prop != 'id' && $.isFunction(song[prop]) === false) {
@@ -914,18 +972,20 @@
 
 			_onfinish : function(sound) {
 				if (this.internal.repeatMode === false){
-					var id = parseInt(sound.id.split('-')[3]),
+					var id = parseInt(sound.id.split('-')[3],10),
+						ret = null,
 						last = this._data.songs.length - 1;
 					if (id < last) {
 						this.skip(1);
 					} else {
 						this.stopMusic(id);
-						return []
+						ret = [];
 					}
 				}
 				else {
 					this.repeat();	
 				}	
+				return ret;
 			},
 
 			_onresume : function(sound) {
@@ -940,7 +1000,7 @@
 
 			_onerror : function(sound) {
 				var msg = 'An error occured while attempting to play this song. Sorry about that.';
-				this._logger.error(msg)
+				this._logger.error(msg);
 				return [msg];
 			},
 
@@ -954,9 +1014,9 @@
 			// get the duration of a song in milliseconds
 			getDuration : function(soundobj) {
 				var duration;
-				if (!soundobj.loaded === true)
+				if (!soundobj.loaded === true) {
 					duration = soundobj.durationEstimate;
-				else {
+				} else {
 					duration = soundobj.duration;
 				}
 				return duration;
@@ -1009,7 +1069,7 @@
 			appendToPlaylist : function(soundobj){
 				var me = this,
 					tmp = soundobj.id.split('-')[3],
-					song = me._data.songs[parseInt(tmp)],
+					song = me._data.songs[parseInt(tmp,10)],
 					_html = me._html,
 					id = 'item-' + song.id,
 					listItem = $('<li></li>');
@@ -1025,11 +1085,11 @@
 				listItem.bind({
 					click: function(){
 						me.stopMusic(me._data.curr_song);
-						var track = parseInt($(this).data('song').id),
+						var track = parseInt($(this).data('song').id,10),
 							afterEffect = function() {
 								me.showSongInfo();
 								me.play(track);
-							}			
+							};			
 						me._data.curr_song = track;
 						if (me._html.useArt === true) {
 							me.switchArt(track, afterEffect);
@@ -1077,9 +1137,8 @@
 					}
 				}
 				else { // invalid state
-					me._logger.error('Invalid button state! : ' + state);	
-					return false;
-				};
+					me._logger.error('Invalid button state! : ' + state);		
+				}
 				if (imagesLoaded === true) {
 					play.attr('src', out);
 					if (hover === true) {
@@ -1107,10 +1166,11 @@
 				
 				if (direction === 1) { // skip forward
 					if (t < inst.songs.length){
-						if (t == inst.songs.length - 1)
+						if (t == inst.songs.length - 1) {
 							t = 0;
-						else
+						} else {
 							t = t+1;
+						}
 					}
 				}
 				else if (direction === 0) { // skip back
@@ -1123,7 +1183,6 @@
 				}
 				else { // invalid flag
 					me._logger.error('Invalid skip direction flag: ' + direction);
-					return false;	
 				}
 				me.stopMusic(t);
 				inst.curr_song = t;
@@ -1205,7 +1264,7 @@
 			},
 			
 			setAlbumArtStyling : function(track){
-				var me = this;
+				var me = this,
 					art = me._html.art,
 					_data_ = me._data,
 					song = _data_.songs[track],
@@ -1275,35 +1334,17 @@
 					});	
 				}
 			},
-			
-			// fills in song metadata based on ID3 tags
-			// not being used for now, flash ID3 is too buggy
-			id3Fill : function(soundobj) {
-				var song = _data_.songs[parseInt(soundobj.id.split('-')[1])];
-				if (typeof soundobj.id3.TIT2 !== undefined) {
-					song.title = soundobj.id3.TIT2;	
-				}
-				else if(typeof soundobj.id3.songname !== undefined) {
-					song.title = soundobj.id3.songname;	
-				}
-				else{}
-				
-				if(typeof soundobj.id3.TPE2 !== undefined) {
-					song.artist = soundobj.id3.TPE2;	
-				}
-				else if (typeof soundobj.id3.artist !== undefined) {
-					song.artist = soundobj.id3.artist;	
-				}
-				else{}
-			},
 				
 			fillLoaded : function() {
 				this._html.loaded.css('width', this._html.metadata.progressWrapperWidth);
 			},
 				
 			loaded : function(soundobj) {
-				if (soundobj.loaded === true && soundobj.readyState === 3 && soundobj.bytesLoaded === soundobj.bytesTotal) return true;
-				else return false;
+				if (soundobj.loaded === true && soundobj.readyState === 3 && soundobj.bytesLoaded === soundobj.bytesTotal) {
+					return true;
+				} else { 
+					return false;
+				}
 			},
 				
 			whileLoading : function(soundobj) {
@@ -1325,7 +1366,7 @@
 			progress : function(soundobj) {
 				// get current position of currently playing song
 				var me = this,
-					pos = soundobj.position; 
+					pos = soundobj.position,
 					duration = 0,
 					loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
 				
@@ -1379,12 +1420,9 @@
 			},
 	
 
-		// ----------------------------------------------------------------------------------------------------------------------------------------------------
-		// ----------------------------------------------------------------------------------------------------------------------------------------------------
-		// --------------------------------------------------- api stuff
-		// ----------------------------------------------------------------------------------------------------------------------------------------------------
-		// ----------------------------------------------------------------------------------------------------------------------------------------------------
-		
+			/*
+				============================================================ API Stuff
+			*/		
 			internal : {
 				player : null,
 				repeatMode:false					
@@ -1435,87 +1473,20 @@
 				addTrack : function(trackData) {
 					var player = controller.PLAYER,
 						factory = new SoundFactory(controller),
-						t, songObj, s;
+						t, songObj, s, i;
 					
 					if ($.isArray(trackData)) {
 						for (i = 0; i < trackData.length; i++) {
-							t = controller._data.last_song,
-							songObj = new Song(trackData[i], t+1),
+							t = controller._data.last_song;
+							songObj = new Song(trackData[i], t+1);
 							s = factory.createSound(songObj);
 						}
 					} else {
-						t = controller._data.last_song,
-						songObj = new Song(trackData, t+1),
+						t = controller._data.last_song;
+						songObj = new Song(trackData, t+1);
 						s = factory.createSound(songObj);
 					}
 				}				
 			}; // end playback funcs
 		}; // end api
-		
-		//	BEGIN BROWSER DETECT
-		var Browser = {
-			isIe : function(){
-				return (navigator.userAgent.indexOf('MSIE') > -1) ? true : false;
-			},
-			isSafari : function(){
-				return (navigator.userAgent.indexOf('AppleWebKit') > -1 && navigator.userAgent.indexOf('Chrome') === -1);
-			}
-		}; // END BROWSER DETECT
-		
-		// initialize and configure SM2
-		var Init = {
-			initializeSoundManager : function() {
-				//_logger.info('Initializing SoundManager2');
-				if (!soundManager) {
-					window.soundManager = new SoundManager();
-					soundManager.url = 'swf';
-					soundManager.wmode = 'transparent'
-					soundManager.useFastPolling = true;
-					soundManager.useHTML5Audio = true;
-					if (Browser.isSafari()) {
-						soundManager.useHighPerformance = false;
-					}
-					else {
-						soundManager.useHighPerformance = true;	
-					}
-					soundManager.flashLoadTimeout = 1000;
-		    		soundManager.beginDelayedInit();
-	    		}
-			},
-
-			ieStuff : function() {
-				if (!Array.prototype.indexOf) {  
-				    Array.prototype.indexOf = function (searchElement, fromIndex ) {  
-				        "use strict";  
-				        if (this == null) {  
-				            throw new TypeError();  
-				        }  
-				        var t = Object(this);  
-				        var len = t.length >>> 0;  
-				        if (len === 0) {  
-				            return -1;  
-				        }  
-				        var n = 0;  
-				        if (arguments.length > 0) {  
-				            n = Number(arguments[1]);  
-				            if (n != n) { // shortcut for verifying if it's NaN  
-				                n = 0;  
-				            } else if (n != 0 && n != Infinity && n != -Infinity) {  
-				                n = (n > 0 || -1) * Math.floor(Math.abs(n));  
-				            }  
-				        }  
-				        if (n >= len) {  
-				            return -1;  
-				        }  
-				        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);  
-				        for (; k < len; k++) {  
-				            if (k in t && t[k] === searchElement) {  
-				                return k;  
-				            }  
-				        }  
-				        return -1;  
-					}
-				}
-			}
-		}
 })(jQuery);
