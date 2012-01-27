@@ -1,4 +1,3 @@
-"use strict";
 /*
 	Swagg Player: Music Player for the web
 	--------------------------------------------
@@ -8,15 +7,13 @@
 	Code provided under the MIT License:
 	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.7.4
+	v0.8.7.5
    
 	Change Log
-	- added onSeekHide callback
-	- added the ability to seek while a song is loaded (there is latency)
-	- 'use strict' mode enabled
-	- code passes javascript lint (http://www.JavaScriptLint.com)
+	- fixed 00:60 bug
 */
 (function ($) {
+	"use strict";
 	/*global soundManager: false, setInterval: false, console: false, $: false */
 
 		//	BEGIN BROWSER DETECT
@@ -662,7 +659,7 @@
 							newPosPercent = x / _html_.metadata.progressWrapperWidth,
 							// find the position within the song to which the location clicked corresponds
 							seekTo = Math.round(newPosPercent * duration),
-							time = p.millsToTime(seekTo, null);
+							time = p.millsToTime(seekTo, 1);
 						
 						// fire off onSeekPreview event
 						p.executeIfExists('onSeekPreview', this, [e, time]);				
@@ -1395,6 +1392,12 @@
 					if (seconds > 60) {
 						minutes = Math.floor(seconds / 60);
 						seconds = Math.round(seconds % 60);		
+					}
+
+
+					if (seconds === 60) {
+						minutes += 1;
+						seconds = 0;
 					}
 					return {mins: utils.timeString(minutes), secs : utils.timeString(seconds)};
 			},
