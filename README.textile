@@ -8,4 +8,4 @@
 
 <p>API features will probably change until I reach version 1.0 so, when updating please read the change log and review the documentation to check to see if your code will be compatible with the new version.</p>
 
-johnny.ray02@gmail.com
+johnny.@johnnyray.me

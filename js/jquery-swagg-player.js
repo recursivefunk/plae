@@ -7,10 +7,10 @@
 	Code provided under the MIT License:
 	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.7.5
+	v0.8.7.6
    
 	Change Log
-	- fixed 00:60 bug
+	- refactoring
 */
 (function ($) {
 	"use strict";
@@ -28,7 +28,6 @@
 
 		var Init = {
 			initializeSoundManager : function() {
-				//_logger.info('Initializing SoundManager2');
 				if (!soundManager) {
 					window.soundManager = new SoundManager();
 					soundManager.url = 'swf';
@@ -162,7 +161,7 @@
 				}
 			},
 			apierror : function(errMsg) {
-				if (this.levelapierror && this.log) {
+				if (this.levelapierror && thims.log) {
 					console.error('Swagg Player::' + this.id + '::API Error::' + errMsg);	
 				}
 			}
@@ -498,82 +497,71 @@
 			bindControllerEvents : function() {		
 				var p = this.PLAYER,
 					controls = p._controls,
-					//inst = Data,
-					_images = p._imageLoader.imagesLoaded,
-					_config_ = p._config,
-					//i = inst.img,
 					imageLoader = p._imageLoader,
-					usehover = _config_.props.buttonHover || false;
+					images = imageLoader.imagesLoaded,
+					usehover = p._config.props.buttonHover || false,
+					ops = ['play', 'back', 'stop', 'skip'],
+					i, func, _do;
 
 				p._logger.debug('Binding controller button events');
-				
-				controls.play.bind({
-					click: function() {
-						 p.play(p._data.curr_song);
-						 return false;
-					},
-					mouseover: function() {
-						if (_images === true && usehover) {
-							$(this).attr('src', imageLoader.playOver.src);	
-						}
-					},
-					mouseout: function() {
-						if (_images === true && usehover) {
-							$(this).attr('src', imageLoader.play.src);	
-						}
-					}
-				});
-				
-				controls.skip.bind({
-					click: function() {
-						p.skip(1);
-						return false;
-					},
-					mouseover: function() {
-						if (_images === true && usehover) {
-							$(this).attr('src', imageLoader.skipOver.src);
-						}
-					},
-					mouseout: function() {
-						if (_images === true && usehover) {
-							$(this).attr('src', imageLoader.skip.src);	
-						}
-					}
-				});
 
-				controls.stop.bind({
-					click: function() {
-						p.stopMusic(p._data.curr_song);
-						return false;
-					},
-					mouseover: function() {
-						if (_images === true && usehover) {
-							$(this).attr('src', imageLoader.stopOver.src);
+				for (i = 0; i < ops.length; i++) {
+					func = ops[i];
+					if (func === 'play') {
+						_do = function() {
+							p.play(p._data.curr_song);
+							return false;
+						}
+					} else if (func === 'skip') {
+						_do = function() {
+							p.skip(1);
+							return false;
+						}
+					} else if (func === 'stop') {
+						_do = function() {
+							p.stopMusic(p._data.curr_song);
+							return false;	
+						}
+					} else if (func === 'back') {
+						_do = function() {
+							p.skip(0);
+							return false;
+						}
+					}
+
+					this.bindEvents({
+						func : func,
+						controls : controls,
+						images : images,
+						usehover : usehover,
+						imageLoader : imageLoader
+						}, _do
+					);	
+				}				
+			},
+
+			bindEvents : function(data, task) {
+				var func = data.func,
+					controls = data.controls,
+					images = data.images,
+					imageLoader = data.imageLoader,
+					usehover = data.usehover;
+
+				controls[func].bind({
+					click : task,
+					mouseover : function() {
+						if (images === true && usehover) {
+							var but = func + 'Over';
+							console.log(but)
+							$(this).attr('src', imageLoader[but].src);
 						}
 					},
-					mouseout: function() {
-						if (_images === true && usehover) {
-							$(this).attr('src', imageLoader.stop.src);
+					mouseout : function() {
+						if (images === true && usehover) {
+							$(this).attr('src', imageLoader[func].src);
 						}
 					}
 				});
-
-				controls.back.bind({
-					click: function() {
-						p.skip(0);
-						return false;
-					},
-					mouseover: function() {
-						if (_images === true && usehover) {
-							$(this).attr('src', imageLoader.backOver.src);
-						}
-					},
-					mouseout: function() {
-						if (_images === true && usehover) {
-							$(this).attr('src', imageLoader.back.src);
-						}
-					}
-				});				
 			},
 
 			bindMediaKeyEvents : function() {
@@ -1394,11 +1382,11 @@
 						seconds = Math.round(seconds % 60);		
 					}
 
-
 					if (seconds === 60) {
 						minutes += 1;
 						seconds = 0;
 					}
+					
 					return {mins: utils.timeString(minutes), secs : utils.timeString(seconds)};
 			},
 			
