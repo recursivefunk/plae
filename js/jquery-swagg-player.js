@@ -512,33 +512,34 @@
 						_do = function() {
 							p.play(p._data.curr_song);
 							return false;
-						}
+						};
 					} else if (func === 'skip') {
 						_do = function() {
 							p.skip(1);
 							return false;
-						}
+						};
 					} else if (func === 'stop') {
 						_do = function() {
 							p.stopMusic(p._data.curr_song);
 							return false;	
-						}
+						};
 					} else if (func === 'back') {
 						_do = function() {
 							p.skip(0);
 							return false;
-						}
+						};
 					}
 
-					this.bindEvents({
-						func : func,
-						controls : controls,
-						images : images,
-						usehover : usehover,
-						imageLoader : imageLoader
-						}, _do
-					);	
-				}				
+					this.bindEvents(
+						{
+							func : func,
+							controls : controls,
+							images : images,
+							usehover : usehover,
+							imageLoader : imageLoader
+						}, 
+						_do);	
+				} // end for				
 			},
 
 			bindEvents : function(data, task) {
@@ -553,7 +554,6 @@
 					mouseover : function() {
 						if (images === true && usehover) {
 							var but = func + 'Over';
-							console.log(but)
 							$(this).attr('src', imageLoader[but].src);
 						}
 					},
