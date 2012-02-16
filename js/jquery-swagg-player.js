@@ -8,14 +8,32 @@
 	Code provided under the MIT License:
 	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.7.6
+	v0.8.7.7
    
 	Change Log
 	- refactoring
+	- added eagerLoad property
+	- seeking while paused now updates the progress bar
 */
 (function ($) {
 	"use strict";
 	/*global soundManager: false, setInterval: false, console: false, $: false */
+
+		Function.prototype.method = function(name, func) {
+			if (!this[name]) {
+				this.prototype[name] = func;
+			}
+			return this;
+		};
+
+		Function.prototype.methods = function(obj) {
+			var name, func;
+			for (var prop in obj) {
+				name = prop;
+				func = obj[prop];
+				this.method(name,func);
+			}	
+		};	
 
 		//	BEGIN BROWSER DETECT
 		var Browser = {
@@ -43,6 +61,8 @@
 					}
 					soundManager.flashLoadTimeout = 1000;
 		    		soundManager.beginDelayedInit();
+
+		    		// callback.apply(this,[]);
 	    		}
 			},
 
@@ -102,10 +122,10 @@
 				} else {
 					$.error('An error occured while initializing soundManager!');
 				}
+			
 			} else {
 				$.error('Swagg Player element missing id attribute!');
 			}
-			
 		};
 
 		/*
@@ -140,7 +160,7 @@
 			this.id = _id;
 		};
 		
-		$.extend(Logger.prototype, {
+		Logger.methods({
 			error : function(errMsg){
 				if (this.levelerror && this.log) {
 					console.error('Swagg Player::' + this.id + '::Error::' + errMsg);	
@@ -170,11 +190,11 @@
 
 		var Utils = function(){};
 
-		Utils.prototype.timeString = function(str) {
+		Utils.method('timeString', function(str) {
 			var tmp = parseInt(str,10),
 				t = tmp > 9 ? str : '0' + str;
 			return t !== '60' ? t : '00';
-		};
+		});
 
 		/*
 			Creates soundManager sound objects
@@ -184,13 +204,13 @@
 			p._logger.debug('SoundFactory Initiated');
 		};
 
-		$.extend(SoundFactory.prototype,{
+		SoundFactory.methods({
 			createSound : function(songObj) {
-			var	self = this,
-				html = self.player._html,
-				config = self.player._config,
-				songs = self.player._data.songs,
-				id = songObj.id;
+				var	self = this,
+					html = self.player._html,
+					config = self.player._config,
+					songs = self.player._data.songs,
+					id = songObj.id;
 
 				if (html.useArt === true && songObj.thumb !== undefined) {
 					songObj.configureArt();
@@ -203,74 +223,92 @@
 				}
 
 				var myid = self.player._html.player + '-song-' + id.toString();
-				var newSound = window.soundManager.createSound({
+				var sm = window.soundManager;
+
+				sm.callback = function(params) {
+					$.when(params.scope.player[params.first](params.sound)).done(
+						function(args) {
+							params.scope.player.executeIfExists(params.next, params.sound, args);
+						}
+					);
+				}; 
+
+				var newSound = sm.createSound({
 					id: myid,
 					url: songObj.url,
-					autoLoad: false,
+					autoLoad: config.props.eagerLoad || false,
 					usePolicyFile: false,
 					onplay: function(){
 						var sound = this;
-						$.when(self.player._onplay(sound)).done(
-							function(args) {
-								self.player.executeIfExists('onPlay', sound, args);
-							}
-						);
+						sm.callback({
+							scope : self,
+							first : '_onplay',
+							sound : this,
+							next : 'onPlay'
+						});
 					},
 					onpause: function(){
 						var sound = this;
-						$.when(self.player._onpause(sound)).done(
-							function(args) {
-								self.player.executeIfExists('onPause', sound, args);
-							}
-						);
+						sm.callback({
+							scope : self,
+							first : '_onpause',
+							sound : this,
+							next : 'onPause'
+						});
 					},
 					onstop: function(){
 						var sound = this;
-						$.when(self.player._onstop(sound)).done(
-							function(args) {
-								self.player.executeIfExists('onStop', sound, args);
-							}
-						);
+						sm.callback({
+							scope : self,
+							first : '_onstop',
+							sound : this,
+							next : 'onStop'
+						});
 					},
 					onfinish: function(){
 						var sound = this;
-						$.when(self.player._onfinish(sound)).done(
-							function(args) {
-								self.player.executeIfExists('onFinish', sound, args);
-							}
-						);
+						sm.callback({
+							scope : self,
+							first : '_onfinish',
+							sound : this,
+							next : 'onFinish'
+						});
 					},
 					onresume: function(){
 						var sound = this;
-						$.when(self.player._onresume(sound)).done(
-							function(args) {
-								self.player.executeIfExists('onResume', sound, args);
-							}
-						);
+						sm.callback({
+							scope : self,
+							first : '_onresume',
+							sound : this,
+							next : 'onResume'
+						});
 					},
 					whileplaying: function() {
 						var sound = this;
-						$.when(self.player._whileplaying(sound)).done(
-							function(args) {
-								self.player.executeIfExists('whilePlaying', sound, args);
-							}
-						);
+						sm.callback({
+							scope : self,
+							first : '_whileplaying',
+							sound : this,
+							next : 'whilePlaying'
+						});
 					},
 					whileloading: function(){
 						var sound = this;
-						$.when(self.player._whileloading(sound)).done(
-							function(args) {
-								self.player.executeIfExists('whileLoading', sound, args);
-							}
-						);
+						sm.callback({
+							scope : self,
+							first : '_whileloading',
+							sound : this,
+							next : 'whileLoading'
+						});
 					},
 					onerror: function(){
 						var sound = this;
-						$.when(self.player._onerror(sound)).done(
-							function(args) {
-								self.player.executeIfExists('onError', sound, args);
-							}
-						);
+						sm.callback({
+							scope : self,
+							first : '_onerror',
+							sound : this,
+							next : 'onError'
+						});
 					}
 				});		
 				newSound.id = myid;
@@ -280,7 +318,6 @@
 				if (html.playList !== undefined && html.playList === true) {
 					self.player.appendToPlaylist(newSound);
 				}
-
 				return newSound;
 			}
 		});
@@ -294,13 +331,10 @@
 			this.id = id;							
 		};
 
-		$.extend(Song.prototype, {
-			configureArt : function(thumb) {
-				this.image = new Image();
-				this.image.src = thumb || this.thumb;
-			}
+		Song.method('configureArt', function(thumb) {
+			this.image = new Image();
+			this.image.src = thumb || this.thumb;
 		});
-
 	
 		/*
 			=============================================== swagg player data
@@ -318,7 +352,7 @@
 			this.interval_id = -1;
 		};
 
-		$.extend(Data.prototype, {
+		Data.methods({
 			processSongs : function(theData){
 				var player = this.PLAYER,
 					_songs = new Array(),
@@ -406,7 +440,7 @@
 			};
 		};
 
-		$.extend(Html.prototype, {
+		Html.methods({
 			initHtml : function(config) {
 				this.PLAYER._logger.debug('Html initializing');
 				this.player = config.id;
@@ -433,13 +467,11 @@
 						progress = $('<div></div>'),
 						loaded = $('<div></div>');
 
-					loaded.addClass("swagg-player-loaded");
-					loaded.css('height', height).css('width',0).css('float','left').css('margin-left','0');
+					loaded.addClass("swagg-player-loaded").css('height', height).css('width',0).css('float','left').css('margin-left','0');
 					wrapper.append(loaded);
 					this.loaded = $('#' + this.player + ' div.swagg-player-loaded');
 					
-					progress.addClass('swagg-player-bar');
-					progress.css('height', height).css('width',0).css('float','left').css('margin-left','auto');
+					progress.addClass('swagg-player-bar').css('height', height).css('width',0).css('float','left').css('margin-left','auto');
 					loaded.append(progress);
 					this.bar = $('#' + this.player + ' div.swagg-player-bar');
 					this.metadata.progressWrapperWidth = parseFloat(this.progress_wrapper.css('width'));
@@ -459,7 +491,7 @@
 			this.stop = null;
 		};
 
-		$.extend(Controls.prototype, {
+		Controls.methods({
 			setup : function(img) {
 				var p = this.PLAYER,
 					imageLoader = p._imageLoader;
@@ -494,7 +526,7 @@
 			this.PLAYER = p;
 		};
 
-		$.extend(Events.prototype, {
+		Events.methods({
 			bindControllerEvents : function() {		
 				var p = this.PLAYER,
 					controls = p._controls,
@@ -626,11 +658,10 @@
 							loaded = progressWrapperWidth * loaded_ratio,
 							// find the position within the song to which the location clicked corresponds
 							seekTo = Math.round(newPosPercent * duration);
-						// if (loaded >= progressWrapperWidth) {
-						// 	soundobj.setPosition(seekTo);
-						// }
+
 						if (seekTo < soundobj.bytesLoaded) {
 							soundobj.setPosition(seekTo);
+							p.progress(soundobj);
 						}
 					}
 				});
@@ -683,7 +714,7 @@
 			this.imagesLoaded = false;
 		};
 
-		$.extend(ImageLoader.prototype, {
+		ImageLoader.methods({
 			setup : function() {
 				this.PLAYER._logger.debug('setting up image loader');
 				var config = this.PLAYER._config.props;
@@ -701,7 +732,6 @@
 			},
 
 			loadButtonImages : function(imagesDir) {
-				
 				var player = this.PLAYER,
 					hover = player._config.props.buttonHover || false,
 					controls = player._controls;
@@ -767,8 +797,7 @@
 			this._swaggPlayerApi = null;
 		};
 
-		Controller.prototype = {
-		 
+		Controller.methods({
 			init : function(config) {
 				var me = this;
 
@@ -869,7 +898,6 @@
 				me._html = new Html(me);
 				me._html.initHtml(config);
 
-
 				$.when(me._data.getSongs()).done(function(err){
 					
 					if (err) {
@@ -923,7 +951,7 @@
 						currTime : curr,
 						totalTime : total
 					};
-					return [args];
+				return [args];
 			},
 
 			_onplay : function(sound) {
@@ -1411,7 +1439,6 @@
 				}
 			},
 	
-
 			/*
 				============================================================ API Stuff
 			*/		
@@ -1419,7 +1446,7 @@
 				player : null,
 				repeatMode:false					
 			}
-		};
+		});
 
 		// external API devs can use to extend Swagg Player. Exposes song data, events etc
 		var API = function(controller) {
