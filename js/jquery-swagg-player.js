@@ -8,12 +8,11 @@
 	Code provided under the MIT License:
 	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.7.7
+	v0.8.7.8
    
 	Change Log
-	- refactoring
-	- added eagerLoad property
-	- seeking while paused now updates the progress bar
+	- swagg player no longer displays song info - leaves that to the api
+	- pass playlist listeners in parameters
 */
 (function ($) {
 	"use strict";
@@ -830,6 +829,7 @@
 					soundManager.createSongs(function(controller) {
 						var html = controller._html,
 							data = controller._data,
+							song = data.songs[0],
 							config = controller._config;
 
 						html.loading_indication.remove();
@@ -842,7 +842,6 @@
 						}
 						
 						controller._events.setupSeek();
-						controller.showSongInfo();
 
 						if(config.props.autoPlay !== undefined && config.props.autoPlay === true) {
 							setTimeout(function(){
@@ -850,7 +849,7 @@
 								},1000);
 						}
 
-						me.executeIfExists('onSetupComplete', this, [me._swaggPlayerApi]);
+						me.executeIfExists('onSetupComplete', this, [me._swaggPlayerApi, song]);
 
 						if (!Browser.isIe()) {
 							if (console.timeEnd) {
@@ -945,8 +944,8 @@
 			_whileplaying : function(sound) {
 				this.progress(sound);
 				var duration = sound.loaded === true ? sound.duration : sound.durationEstimate,
-					curr = this.millsToTime(sound.position, null),
-					total = this.millsToTime(duration, null);
+					curr = this.millsToTime(sound.position),
+					total = this.millsToTime(duration),
 					args = {
 						currTime : curr,
 						totalTime : total
@@ -1050,6 +1049,7 @@
 			// Plays a song based on the ID
 			play : function(track){
 				var	sound_id = this._html.player + '-song-' + track,
+					fromBeginning,
 					target = soundManager.getSoundById(sound_id);
 				
 				this._logger.debug('Playing track: ' + sound_id);
@@ -1063,13 +1063,13 @@
 						this._logger.info('Pausing current track');
 						target.pause();
 					}
-					else { // track is is not playing (it's in a stopped or uninitialized stated, play it
-						//me.internal.update();
+					else { // track is not playing (it's in a stopped or uninitialized stated, play it
+						fromBeginning = true;
 						this._logger.info('Playing current track from beginning');
 						target.play();
 					}
 				}
-				this.showSongInfo();
+				return fromBeginning;
 			},
 				
 			// creates the API element
@@ -1096,25 +1096,25 @@
 				listItem.css('cursor','pointer');
 							
 				listItem.data('song', song);
-				listItem.bind({
-					click: function(){
-						me.stopMusic(me._data.curr_song);
-						var track = parseInt($(this).data('song').id,10),
-							afterEffect = function() {
-								me.showSongInfo();
-								me.play(track);
-							};			
-						me._data.curr_song = track;
-						if (me._html.useArt === true) {
-							me.switchArt(track, afterEffect);
-						}
-						else {
-							me.showSongInfo();
-							me.play(track);	
-						}
-						return false;
-					}
-				});
+				var l = me._config.props.playListListeners || {};
+				var listeners = $.extend({}, l, {
+									click: function(){
+										me.stopMusic(me._data.curr_song);
+										var track = parseInt($(this).data('song').id,10),
+											afterEffect = function() {
+												me.play(track);
+											};			
+										me._data.curr_song = track;
+										if (me._html.useArt === true) {
+											me.switchArt(track, afterEffect);
+										}
+										else {
+											me.play(track);	
+										}
+										return false;
+									}
+								});
+				listItem.bind(listeners);
 				me._html.playlist.append(listItem);
 			},
 
@@ -1207,7 +1207,6 @@
 				} // end if
 				// if not using album , just go to the next song
 				else {
-						me.showSongInfo();
 						me.play(t);
 				} // end else	
 			},
@@ -1227,7 +1226,6 @@
 				} // end if
 				// if not using album , just go to the next song
 				else {
-						me.showSongInfo();
 						me.play(t);
 				} // end else	
 			},
@@ -1293,24 +1291,29 @@
 				}
 				else {				
 					art.css('background', ' transparent url(' + songs[track].image.src + ')');
-					if (config.props.morphArt === true) {
-						if (song.thumbHeight !== undefined) {
-							me._html.user_art_css.height = song.thumbHeight.toString() + 'px';
-						}
-						else {
-							var height = config.props.defaultAlbumArtHeight || '100';
-							me._html.user_art_css.height = height.toString() + 'px';	
-						}
+
+					/*
+						I don't even remember how in the hell this is supposed to work!!!!!
+					*/
+
+					// if (config.props.morphArt === true) {
+					// 	if (song.thumbHeight !== undefined) {
+					// 		me._html.user_art_css.height = song.thumbHeight.toString() + 'px';
+					// 	}
+					// 	else {
+					// 		var height = config.props.defaultAlbumArtHeight || '100';
+					// 		me._html.user_art_css.height = height.toString() + 'px';	
+					// 	}
 						
-						if (song.thumbWidth !== undefined) {
-							me._html.user_art_css.width = song.thumbWidth.toString() + 'px';
-						}
-						else {
-							var width = config.props.defaultAlbumArtWidth || '100';						
-							me._html.user_art_css.width = width.toString() + 'px';	
-						}
-						art.css(me._html.user_art_css);
-					}
+					// 	if (song.thumbWidth !== undefined) {
+					// 		me._html.user_art_css.width = song.thumbWidth.toString() + 'px';
+					// 	}
+					// 	else {
+					// 		var width = config.props.defaultAlbumArtWidth || '100';						
+					// 		me._html.user_art_css.width = width.toString() + 'px';	
+					// 	}
+					// 	art.css(me._html.user_art_css);
+					// }
 				}				
 			},
 			
@@ -1331,7 +1334,6 @@
 						me.wipeArtCss();
 						me.setAlbumArtStyling(track);
 						$(this).show('slide', function(){
-							me.showSongInfo();
 							me.play(track);
 							me.executeIfExists('onAfterSkip', me, []);
 						});
@@ -1341,7 +1343,6 @@
 						me.wipeArtCss();
 						me.setAlbumArtStyling(track);
 						$(this).fadeIn('fast', function(){
-							me.showSongInfo();
 							me.play(track);
 							me.executeIfExists('onAfterSkip', me, []);
 						});
@@ -1418,26 +1419,6 @@
 					
 					return {mins: utils.timeString(minutes), secs : utils.timeString(seconds)};
 			},
-			
-			// displays 1st and song title
-			showSongInfo : function() {
-				var me = this,
-					loc_inst = me._data,
-					curr_song = loc_inst.curr_song > -1 ? loc_inst.curr_song : 0,
-					song_ = loc_inst.songs[curr_song];
-
-
-				if ($.tmpl) {
-					var info = [
-						{ artist : song_.artist, title : song_.title }
-					];
-					$("#swagg-player-song-info").empty();
-					$("#swagg-player-song-info-template").tmpl(info).appendTo("#swagg-player-song-info");
-				} else {
-					me._html.artist.html(song_.artist);
-					me._html.title.html(song_.title);
-				}
-			},
 	
 			/*
 				============================================================ API Stuff
@@ -1489,7 +1470,7 @@
 					controller.stopMusic(null);
 				},
 				
-				addTrack : function(trackData) {
+				addTracks : function(trackData) {
 					var player = controller.PLAYER,
 						factory = new SoundFactory(controller),
 						t, songObj, s, i;
