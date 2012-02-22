@@ -13,6 +13,7 @@
 	Change Log
 	- swagg player no longer displays song info - leaves that to the api
 	- pass playlist listeners in parameters
+	- fixed stopping bug (button rever to play on finish of last song)
 */
 (function ($) {
 	"use strict";
@@ -26,11 +27,8 @@
 		};
 
 		Function.prototype.methods = function(obj) {
-			var name, func;
 			for (var prop in obj) {
-				name = prop;
-				func = obj[prop];
-				this.method(name,func);
+				this.method(prop,obj[prop]);
 			}	
 		};	
 
@@ -980,6 +978,7 @@
 			},
 
 			_onstop : function(sound) {
+				this.playPauseButtonState(1); 
 				return [];
 			},
 
@@ -1250,9 +1249,9 @@
 			// Stops the specified song
 			stopMusic : function(track) {
 				this._logger.debug('stopping music');
-				soundManager.stopAll();
 				this.playPauseButtonState(1);
 				this.resetProgressBar();
+				soundManager.stopAll();
 			},
 				
 			// Increases the volume of the specified song
