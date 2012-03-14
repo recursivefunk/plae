@@ -1,0 +1,69 @@
+@charset "utf-8";
+/* CSS Document */
+	#swagg-player{
+		text-align:center;
+		width:300px;
+		height:150px;
+		padding-left:5px;
+		padding-right:5px;
+		border:#F90 thick solid;
+		color:#000;
+		font: 100% Verdana, Arial, Helvetica, sans-serif;
+		font-size:15px;
+	}
+	
+	#controls{
+		width:200px;
+		margin-left:auto;
+		margin-right:auto;
+	}
+	#controls a{
+		padding:5px;
+	}
+	
+	#info{
+		margin-left:auto;
+		margin-right:auto;
+	}
+	#wrapper {
+		width:180px; 
+		height:5px; 
+		margin-left:auto;
+		margin-right:auto;
+		background-color:#CCC;	
+	}
+	#loaded {
+		width:0px; 
+		height:5px; 
+		background-color:#FC6;
+	}
+	#bar {
+		width:0px; 
+		height:5px; 
+		background-color:#F93;
+		float:left;
+		margin-left:0;
+	}
+	/* playlist */
+	.playlist-item {
+		font-family: "Trebuchet MS", "Bitstream Vera Serif", Utopia, "Times New Roman", times, serif;
+		border-top:#000 2px solid;
+		width:100%;
+		background-color:#FFF;
+		color:#F60;
+		display:block;
+	}
+	.border {
+		border:#000 3px solid;	
+	}
+	.playlist-item a {
+		text-decoration:none;
+		color:#000;
+	}
+	#list {
+		width:290px; 
+		margin-left:auto; 
+		margin-right:auto; 
+		border-bottom:#000 
+		2px solid; text-align:center;	
+	}

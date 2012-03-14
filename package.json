@@ -1,0 +1,35 @@
+{
+    "name": "swaggplayer",
+    "version": "0.8.7.8",
+    "title": "Swagg Player",
+    "author": {
+        "name": "Johnny Ray Austin",
+        "email": "johnny@johnnyray.me",
+        "url": "https://github.com/johnny-ray"
+    },
+    "demo" : "http://johnnyray.me",
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "http://www.opensource.org/licenses/mit-license.php"
+        }
+    ],
+    "dependencies": {
+        "jquery": ">1.5"
+    },
+    "description": "Swagg Player is a completely customizable JavaScript based music player for the web.",
+    "keywords": [
+        "music",
+        "player",
+        "swagg",
+        "swag",
+        "media",
+        "javascript"
+    ],
+    "homepage": "http://swaggplayer.no.de",
+    "files": [
+        "js/jquery.swaggplayer.js",
+        "js/soundmanager2-nodebug-jsmin.js",
+        "swf/soundmanager2.swf"
+    ]
+}
