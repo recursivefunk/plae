@@ -56,7 +56,7 @@
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 	<script src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
 	<script src="js/soundmanager2-nodebug-jsmin.js"></script>
-	<script src="js/jquery-swagg-player.min.js"></script>
+	<script src="js/jquery-swagg-player.js"></script>
 	<script type="text/javascript">
 	$(document).ready(function(){
 			var api;
@@ -69,14 +69,14 @@
 				"thumb":"images/1.jpg",
 				"custom": "myCustomData1"	
 			}
-			// ,
-			// {
-			// 	"url": "sound/2.mp3",
-			// 	"artist": "Artist2",
-			// 	"title": "Song2",
-			// 	"thumb": "images/2.jpg",
-			// 	"custom": "myCostomData2"
-			// }
+			,
+			{
+				"url": "sound/2.mp3",
+				"artist": "Artist2",
+				"title": "Song2",
+				"thumb": "images/2.jpg",
+				"custom": "myCostomData2"
+			}
 		];
 		
 		/*
@@ -88,8 +88,8 @@
 			data: mysongs, // <----- this is the ONLY required parameter!			
 			buttonsDir: 'images/',								
 			buttonHover: true,
-			eagerLoad : true,
-			// autoPlay : true,
+			eagerLoad : false,
+			autoPlay : false,
 			logging: ['all'],
 			lazyLoad: true,
 			playListListeners : {
@@ -102,7 +102,6 @@
 					$(this).removeClass('list-over');
 				}
 			},
-			html5Audio: true,
 			whilePlaying: function(time){
 
 				var info = {
