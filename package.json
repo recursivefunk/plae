@@ -28,7 +28,7 @@
     ],
     "homepage": "http://swaggplayer.no.de",
     "files": [
-        "js/jquery-swagg-player.js",
+        "js/jquery.swaggplayer.js",
         "js/soundmanager2-nodebug-jsmin.js",
         "swf/soundmanager2.swf"
     ]
