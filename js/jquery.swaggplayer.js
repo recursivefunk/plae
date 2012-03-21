@@ -1248,7 +1248,7 @@
 				
 			// Increases the volume of the specified song
 			volume : function(track, flag) {
-				var sound_id = me._html.player + '-song-' + track,
+				var sound_id = this._html.player + '-song-' + track,
 					sound = soundManager.getSoundById(sound_id),
 				 	curr_vol = sound.volume;
 
@@ -1257,7 +1257,7 @@
 					soundManager.setVolume(sound_id, curr_vol + this._data.vol_interval);
 				}
 				else if (flag === 0) {
-					self._logger.debug('decreasing volume');
+					this._logger.debug('decreasing volume');
 					soundManager.setVolume(sound_id, curr_vol - this._data.vol_interval);
 				}
 				else {
