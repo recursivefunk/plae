@@ -8,7 +8,7 @@
 	Code provided under the MIT License:
 	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.7.0
+	v0.8.8.0
    
 	Change Log
 	- refactoring
