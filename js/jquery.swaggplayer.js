@@ -8,12 +8,10 @@
 	Code provided under the MIT License:
 	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.7.8
+	v0.8.7.0
    
 	Change Log
-	- swagg player no longer displays song info - leaves that to the api
-	- pass playlist listeners in parameters
-	- fixed stopping bug (button rever to play on finish of last song)
+	- refactoring
 */
 (function ($) {
 	"use strict";
@@ -45,8 +43,8 @@
 		var Init = {
 			initializeSoundManager : function() {
 				if (!soundManager) {
-					window.soundManager = new SoundManager();
-					var sm = window.soundManager;
+					soundManager = new SoundManager();
+					var sm = soundManager;
 					sm.url = 'swf';
 					sm.wmode = 'transparent';
 					sm.useFastPolling = true;
@@ -58,7 +56,6 @@
 						sm.useHighPerformance = true;	
 					}
 					sm.flashLoadTimeout = 1000;
-		    		sm.beginDelayedInit();
 	    		}
 			},
 
@@ -219,7 +216,7 @@
 				}
 
 				var myid = self.player._html.player + '-song-' + id.toString();
-				var sm = window.soundManager;
+				var sm = soundManager;
 
 				sm.callback = function(params) {
 					$.when(params.scope.player[params.first](params.sound)).done(
