@@ -12,21 +12,24 @@
    
 	Change Log
 	- refactoring
+	- adding new tracks is async now
 */
 (function ($) {
 	"use strict";
 	/*global soundManager: false, setInterval: false, console: false, $: false */
 
-		Function.prototype.method = function(name, func) {
+		// Yes I know, don't modify natve class prototypes...it's my code - kick rocks!
+		// Seriously though, I like this syntax for adding new functions to my custom classes
+		Function.prototype.func = function(name, func) {
 			if (!this[name]) {
 				this.prototype[name] = func;
 			}
 			return this;
 		};
 
-		Function.prototype.methods = function(obj) {
+		Function.prototype.funcs = function(obj) {
 			for (var prop in obj) {
-				this.method(prop,obj[prop]);
+				this.func(prop,obj[prop]);
 			}	
 		};	
 
@@ -153,7 +156,7 @@
 			this.id = _id;
 		};
 		
-		Logger.methods({
+		Logger.funcs({
 			error : function(errMsg){
 				if (this.levelerror && this.log) {
 					console.error('Swagg Player::' + this.id + '::Error::' + errMsg);	
@@ -183,7 +186,7 @@
 
 		var Utils = function(){};
 
-		Utils.method('timeString', function(str) {
+		Utils.func('timeString', function(str) {
 			var tmp = parseInt(str,10),
 				t = tmp > 9 ? str : '0' + str;
 			return t !== '60' ? t : '00';
@@ -197,7 +200,7 @@
 			p._logger.debug('SoundFactory Initiated');
 		};
 
-		SoundFactory.methods({
+		SoundFactory.funcs({
 			createSound : function(songObj) {
 				var	self = this,
 					html = self.player._html,
@@ -324,7 +327,7 @@
 			this.id = id;							
 		};
 
-		Song.method('configureArt', function(thumb) {
+		Song.func('configureArt', function(thumb) {
 			this.image = new Image();
 			this.image.src = thumb || this.thumb;
 		});
@@ -345,7 +348,7 @@
 			this.interval_id = -1;
 		};
 
-		Data.methods({
+		Data.funcs({
 			processSongs : function(theData){
 				var player = this.PLAYER,
 					_songs = new Array(),
@@ -384,7 +387,7 @@
 						dataType: 'json',
 						success: function(data){
 							self.processSongs(data);
-							return null;
+							return;
 						},
 						error: function(xhr, ajaxOptions, thrownError){
 							var msg = 'There was a problem fetching your songs from the server: ' + thrownError;
@@ -392,11 +395,11 @@
 							return msg;
 						}
 					});
-					return null;	
+					return;	
 				} // end if
 				else {
 					this.processSongs(theData);
-					return null;
+					return;
 				}
 			}
 		});	
@@ -429,7 +432,7 @@
 			};
 		};
 
-		Html.methods({
+		Html.funcs({
 			initHtml : function(config) {
 				this.PLAYER._logger.debug('Html initializing');
 				this.player = config.id;
@@ -480,7 +483,7 @@
 			this.stop = null;
 		};
 
-		Controls.methods({
+		Controls.funcs({
 			setup : function(img) {
 				var p = this.PLAYER,
 					imageLoader = p._imageLoader;
@@ -517,7 +520,7 @@
 			this.PLAYER = p;
 		};
 
-		Events.methods({
+		Events.funcs({
 			bindControllerEvents : function() {		
 				var p = this.PLAYER,
 					controls = p._controls,
@@ -593,7 +596,8 @@
 				var p = this.PLAYER,
 					curr_song = p._data.curr_song;
 
-				p._logger.debug('Binding media key events');		
+				p._logger.debug('Binding media key events');	
+
 				$(document).keydown(function(e) {
 	
 					if (!e) { e = window.event; }
@@ -705,7 +709,7 @@
 			this.imagesLoaded = false;
 		};
 
-		ImageLoader.methods({
+		ImageLoader.funcs({
 			setup : function() {
 				this.PLAYER._logger.debug('setting up image loader');
 				var config = this.PLAYER._config.props;
@@ -788,7 +792,7 @@
 			this._swaggPlayerApi = null;
 		};
 
-		Controller.methods({
+		Controller.funcs({
 			init : function(config) {
 				var me = this;
 
@@ -1432,7 +1436,7 @@
 					controller.stopMusic(null);
 				},
 				
-				addTracks : function(trackData) {
+				addTracks : function(trackData, callback) {
 					var player = controller.PLAYER,
 						factory = new SoundFactory(controller),
 						t, songObj, s, i;
@@ -1447,6 +1451,9 @@
 						t = controller._data.last_song;
 						songObj = new Song(trackData, t+1);
 						s = factory.createSound(songObj);
+					}
+					if (callback) {
+						callback.apply(null, []);
 					}
 				}				
 			}; // end playback funcs
