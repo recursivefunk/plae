@@ -2,12 +2,7 @@ var Lazy = require('lazy');
 var fs = require('fs');
 var child = require('child_process');
 var clc = require('cli-color');
-
 var version;
-
-String.prototype.trim = function () {
-    return this.replace(/^\s*/, "").replace(/\s*$/, "");
-}
 
 console.log(clc.green('\n   Optimizing jquery.swaggplayer.js'));
 var yui = child.spawn('./yui.sh');
