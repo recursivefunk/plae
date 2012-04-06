@@ -546,7 +546,7 @@
 						};
 					} else if (func === 'stop') {
 						_do = function() {
-							p.stopMusic(p._data.curr_song);
+							p.stopMusic();
 							return false;	
 						};
 					} else if (func === 'back') {
@@ -608,7 +608,7 @@
 							return false;
 					
 						  case 178:
-							p.stopMusic(curr_song);
+							p.stopMusic();
 							return false;
 					
 						  case 176:
@@ -988,7 +988,7 @@
 					if (id < last) {
 						this.skip(1);
 					} else {
-						this.stopMusic(id);
+						this.stopMusic();
 						ret = [];
 					}
 				}
@@ -1096,7 +1096,7 @@
 				var l = this._config.props.playListListeners || {};
 				var listeners = $.extend({}, l, {
 									click: function(){
-										self.stopMusic(self._data.curr_song);
+										self.stopMusic();
 										var track = parseInt($(this).data('song').id,10),
 											afterEffect = function() {
 												self.play(track);
@@ -1193,7 +1193,7 @@
 				else { // invalid flag
 					this._logger.error('Invalid skip direction flag: ' + direction);
 				}
-				this.stopMusic(t);
+				this.stopMusic();
 				data.curr_song = t;
 				// if using album , use  transition
 				if (this._html.useArt === true) {
@@ -1209,7 +1209,7 @@
 			jumpTo : function(t) {
 				this._logger.debug('jumping to track ' + t);
 
-				this.stopMusic(t);
+				this.stopMusic();
 				this._data.curr_song = t;
 
 				// if using album , use  transition
@@ -1240,7 +1240,7 @@
 		
 				
 			// Stops the specified song
-			stopMusic : function(track) {
+			stopMusic : function() {
 				this._logger.debug('stopping music');
 				this.playPauseButtonState(1);
 				this.resetProgressBar();
@@ -1433,7 +1433,7 @@
 				},
 				
 				stop : function() {
-					controller.stopMusic(null);
+					controller.stopMusic();
 				},
 				
 				addTracks : function(trackData, callback) {
