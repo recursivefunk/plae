@@ -792,6 +792,7 @@
 			this._imageLoader = null;
 			this._swaggPlayerApi = null;
 		};
+		
 
 		Controller.funcs({
 			init : function(config) {
