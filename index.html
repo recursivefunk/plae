@@ -159,8 +159,12 @@
 					thumb: "images/3.jpg",
 					custom: "custom3"
 				}
-			], function(){
-				console.log('Added new track(s)!');
+			], function(elements){
+				for (el in elements) {
+					console.log(elements[el])
+					$(elements[el]).insertBefore($('#item-1'));
+				}
+				// console.log(elements);
 			});
 		});
 

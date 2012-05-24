@@ -4,6 +4,7 @@ var child = require('child_process');
 var clc = require('cli-color');
 var version;
 
+console.time('SwaggPlayerBuild');
 console.log(clc.green('\n   Optimizing jquery.swaggplayer.js'));
 var yui = child.spawn('./yui.sh');
 
@@ -46,7 +47,7 @@ yui.on('exit', function(code){
 	    	console.error(clc.red(   'An error occured while persisting package.json: %s', err));
 	    }
 	    console.log(clc.green('   Done!!\n'));
+	    console.timeEnd('SwaggPlayerBuild');
 	  });
 	});
-
 });

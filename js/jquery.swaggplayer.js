@@ -8,11 +8,12 @@
 	Code provided under the MIT License:
 	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.8.0
+	v0.8.8.1
    
 	Change Log
 	- refactoring
 	- adding new tracks is async now
+	- toggle play/pause api call
 */
 (function ($) {
 	"use strict";
@@ -1244,7 +1245,7 @@
 				this._logger.debug('stopping music');
 				this.playPauseButtonState(1);
 				this.resetProgressBar();
-				soundManager.stopAll();
+				soundManager.stop('swagg-player-song-' + this._data.curr_song.toString());
 			},
 				
 			// Increases the volume of the specified song
@@ -1398,6 +1399,17 @@
 		// external API devs can use to extend Swagg Player. Exposes song data, events etc
 		var API = function(controller) {
 			var self = this;		
+
+			this.player = {
+				adjustProgress : function () {
+					var html = controller._html;
+					var id = html.player + '-song-' + controller._data.curr_song.toString();
+					html.metadata.progressWrapperWidth = parseFloat(html.progress_wrapper.css('width'));
+				  var sound = soundManager.getSoundById(id);	
+				  controller.whileLoading(sound);
+				}
+			};
+
 			/*
 				Deals with play back functionality of the player in general
 			*/
@@ -1430,6 +1442,10 @@
 						_logger.apierror("Invalid track number '" + track + "'");
 					}
 					return self;
+				},
+
+				togglePlay : function () {
+					controller.play(controller._data.curr_song);
 				},
 				
 				stop : function() {
