@@ -8,19 +8,15 @@
 	Code provided under the MIT License:
 	http://www.opensource.org/licenses/mit-license.php
 
-	v0.8.8.1
+	v0.8.8.2
    
 	Change Log
-	- refactoring
-	- adding new tracks is async now
-	- toggle play/pause api call
+	- jshint refactoring
 */
 (function ($) {
 	"use strict";
-	/*global soundManager: false, setInterval: false, console: false, $: false */
+	/*global soundManager: false, setInterval: false, console: false, $: false, SoundManager: false */
 
-		// Yes I know, don't modify natve class prototypes...it's my code - kick rocks!
-		// Seriously though, I like this syntax for adding new functions to my custom classes
 		Function.prototype.func = function(name, func) {
 			if (!this[name]) {
 				this.prototype[name] = func;
@@ -31,8 +27,8 @@
 		Function.prototype.funcs = function(obj) {
 			for (var prop in obj) {
 				this.func(prop,obj[prop]);
-			}	
-		};	
+			}
+		};
 
 		//	BEGIN BROWSER DETECT
 		var Browser = {
@@ -57,43 +53,42 @@
 						soundManager.useHighPerformance = false;
 					}
 					else {
-						sm.useHighPerformance = true;	
+						sm.useHighPerformance = true;
 					}
 					sm.flashLoadTimeout = 1000;
-	    		}
+					}
 			},
 
 			ieStuff : function() {
-				if (!Array.prototype.indexOf) {  
-				    Array.prototype.indexOf = function (searchElement, fromIndex ) {  
-				        "use strict";  
-				        if (this === null) {  
-				            throw new TypeError();  
-				        }  
-				        var t = Object(this);  
-				        var len = t.length >>> 0;  
-				        if (len === 0) {  
-				            return -1;  
-				        }  
-				        var n = 0;  
-				        if (arguments.length > 0) {  
-				            n = Number(arguments[1]);  
-				            if (n === NaN) {
-				                n = 0;  
-				            } else if (n !== 0 && n !== Infinity && n !== -Infinity) {  
-				                n = (n > 0 || -1) * Math.floor(Math.abs(n));  
-				            }  
-				        }  
-				        if (n >= len) {  
-				            return -1;  
-				        }  
-				        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);  
-				        for (; k < len; k++) {  
-				            if (k in t && t[k] === searchElement) {  
-				                return k;  
-				            }  
-				        }  
-				        return -1;  
+				if (!Array.prototype.indexOf) {
+					Array.prototype.indexOf = function (searchElement, fromIndex ) {
+						if (this === null) {
+							throw new TypeError();
+						}
+						var t = new Object(this);
+						var len = t.length >>> 0;
+						if (len === 0) {
+							return -1;
+						}
+						var n = 0;
+						if (arguments.length > 0) {
+							n = Number(arguments[1]);
+							if (isNaN(n)) {
+								n = 0;
+							} else if (n !== 0 && n !== Infinity && n !== -Infinity) {
+								n = (n > 0 || -1) * Math.floor(Math.abs(n));
+							}
+						}
+						if (n >= len) {
+							return -1;
+						}
+						var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+						for (; k < len; k++) {
+							if (k in t && t[k] === searchElement) {
+								return k;
+							}
+						}
+						return -1;
 					};
 				}
 			}
@@ -126,9 +121,9 @@
 		};
 
 		/*
-			============================================================ configuration	
+			============================================================ configuration
 			Encapsulation for passed in configuration
-		*/	
+		*/
 		var Config = function(p) {
 			this.PLAYER = p;
 			this.props = {};
@@ -141,7 +136,7 @@
 		
 		/*
 			============================================================ logging utility
-			For logging, of course. Using this centralized location for logging to check for 
+			For logging, of course. Using this centralized location for logging to check for
 			support because IE is funny acting with the console object
 		*/
 		var Logger = function(p, _id) {
@@ -160,7 +155,7 @@
 		Logger.funcs({
 			error : function(errMsg){
 				if (this.levelerror && this.log) {
-					console.error('Swagg Player::' + this.id + '::Error::' + errMsg);	
+					console.error('Swagg Player::' + this.id + '::Error::' + errMsg);
 				}
 			},
 			info : function(info){
@@ -180,7 +175,7 @@
 			},
 			apierror : function(errMsg) {
 				if (this.levelapierror && thims.log) {
-					console.error('Swagg Player::' + this.id + '::API Error::' + errMsg);	
+					console.error('Swagg Player::' + this.id + '::API Error::' + errMsg);
 				}
 			}
 		});
@@ -228,7 +223,7 @@
 							params.scope.player.executeIfExists(params.next, params.sound, args);
 						}
 					);
-				}; 
+				};
 
 				var newSound = sm.createSound({
 					id: myid,
@@ -307,7 +302,7 @@
 							next : 'onError'
 						});
 					}
-				});		
+				});
 				newSound.id = myid;
 				newSound.repeat = self.player.internal.repeat;
 				self.player._data.last_song = songObj.id;
@@ -325,7 +320,7 @@
 			for (prop in obj) {
 				this[prop] = obj[prop];
 			}
-			this.id = id;							
+			this.id = id;
 		};
 
 		Song.func('configureArt', function(thumb) {
@@ -352,7 +347,7 @@
 		Data.funcs({
 			processSongs : function(theData){
 				var player = this.PLAYER,
-					_songs = new Array(),
+					_songs =[],
 					size = theData.length,
 					_html = player._html,
 					_config_ = player._config;
@@ -370,10 +365,10 @@
 					_songs.push(tmp);
 				}
 				this.songs = _songs;
-				this.last_song = this.songs.length - 1;		
+				this.last_song = this.songs.length - 1;
 			},
 
-			getSongs : function() {				
+			getSongs : function() {
 				var self = this,
 					config = this.PLAYER._config,
 					theData = config.props.data;
@@ -396,14 +391,14 @@
 							return msg;
 						}
 					});
-					return;	
+					return;
 				} // end if
 				else {
 					this.processSongs(theData);
 					return;
 				}
 			}
-		});	
+		});
 		
 		/*
 			============================================================ UI elements (divs)
@@ -427,7 +422,7 @@
 			this.title = null;
 			this.useArt = false;
 			this.playList = false;
-			this.metadata = 
+			this.metadata =
 			{
 				progressWrapperWidth : 0
 			};
@@ -491,22 +486,22 @@
 
 				p._logger.debug('setting up controls');
 
-				this.play =	$('#' + p._html.player + ' .swagg-player-play-button');	
+				this.play =	$('#' + p._html.player + ' .swagg-player-play-button');
 				this.skip =	$('#' + p._html.player + ' .swagg-player-skip-button');
 				this.back =	$('#' + p._html.player + ' .swagg-player-back-button');
 				this.stop =	$('#' + p._html.player + ' .swagg-player-stop-button');
 					
 				if (imageLoader.play !== null) {
-					this.play.css('cursor','pointer');	
+					this.play.css('cursor','pointer');
 				}
 				if (imageLoader.skip !== null) {
-					this.skip.css('cursor','pointer');		
+					this.skip.css('cursor','pointer');
 				}
 				if (imageLoader.back !== null) {
-					this.back.css('cursor','pointer');		
+					this.back.css('cursor','pointer');
 				}
 				if (imageLoader.stop !== null) {
-					this.stop.css('cursor','pointer');		
+					this.stop.css('cursor','pointer');
 				}
 
 				img.css('cursor', 'pointer');
@@ -522,7 +517,7 @@
 		};
 
 		Events.funcs({
-			bindControllerEvents : function() {		
+			bindControllerEvents : function() {
 				var p = this.PLAYER,
 					controls = p._controls,
 					imageLoader = p._imageLoader,
@@ -533,30 +528,35 @@
 
 				p._logger.debug('Binding controller button events');
 
-				for (i = 0; i < ops.length; i++) {
-					func = ops[i];
+				function createOpFunc(op) {
+					var tmp;
 					if (func === 'play') {
-						_do = function() {
+						tmp = function() {
 							p.play(p._data.curr_song);
 							return false;
 						};
 					} else if (func === 'skip') {
-						_do = function() {
+						tmp = function() {
 							p.skip(1);
 							return false;
 						};
 					} else if (func === 'stop') {
-						_do = function() {
+						tmp = function() {
 							p.stopMusic();
-							return false;	
+							return false;
 						};
 					} else if (func === 'back') {
-						_do = function() {
+						tmp = function() {
 							p.skip(0);
 							return false;
 						};
 					}
+					return tmp;
+				}
 
+				for (i = 0; i < ops.length; i++) {
+					func = ops[i];
+					_do = createOpFunc(ops[i]);
 					this.bindEvents(
 						{
 							func : func,
@@ -564,9 +564,9 @@
 							images : images,
 							usehover : usehover,
 							imageLoader : imageLoader
-						}, 
-						_do);	
-				} // end for				
+						},
+						_do);
+				} // end for
 			},
 
 			bindEvents : function(data, task) {
@@ -597,41 +597,41 @@
 				var p = this.PLAYER,
 					curr_song = p._data.curr_song;
 
-				p._logger.debug('Binding media key events');	
+				p._logger.debug('Binding media key events');
 
 				$(document).keydown(function(e) {
 	
 					if (!e) { e = window.event; }
 				
 						switch(e.which) {
-						  case 179:
-							p.play(curr_song);
-							return false;
+							case 179:
+								p.play(curr_song);
+								return false;
 					
-						  case 178:
-							p.stopMusic();
-							return false;
+							case 178:
+								p.stopMusic();
+								return false;
 					
-						  case 176:
-							p.skip(1);
-							return false;
+							case 176:
+								p.skip(1);
+								return false;
 					
-						  case 177:
-							p.skip(0);
-							return false;
+							case 177:
+								p.skip(0);
+								return false;
 							
-						case 175:
-							p.volume(curr_song, 1);
-							return false;
+							case 175:
+								p.volume(curr_song, 1);
+								return false;
 					
-						case 174:
-							p.volume(curr_song, 0);
-							return false;
+							case 174:
+								p.volume(curr_song, 0);
+								return false;
 
-						default:
-							return false;
+							default:
+								return false;
 					}
-				});				
+				});
 			},
 
 			setupSeek : function() {
@@ -648,7 +648,7 @@
 							soundobj = soundManager.getSoundById(id),
 							x = e.pageX - html.loaded.offset().left,
 							loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal,
-							duration = 	p.getDuration(soundobj),
+							duration = p.getDuration(soundobj),
 							// obtain the position clicked by the user
 							newPosPercent = x / progressWrapperWidth,
 							loaded = progressWrapperWidth * loaded_ratio,
@@ -663,7 +663,7 @@
 				});
 				
 				// seek preview data
-				html.loaded.bind( 'mouseover hover mousemove', 
+				html.loaded.bind( 'mouseover hover mousemove',
 					function(e){
 						var id = html.player + '-song-' + p._data.curr_song,
 							config_= p._config,
@@ -678,9 +678,9 @@
 							time = p.millsToTime(seekTo, 1);
 						
 						// fire off onSeekPreview event
-						p.executeIfExists('onSeekPreview', this, [e, time]);				
+						p.executeIfExists('onSeekPreview', this, [e, time]);
 					}
-				);	
+				);
 
 				html.loaded.bind('mouseout',
 					function(e) {
@@ -719,7 +719,7 @@
 					this.loadButtonImages(config.buttonsDir);
 				}
 				else {
-					config.buttonHover = false;	
+					config.buttonHover = false;
 				}
 				if (config.spriteImg !== undefined) {
 					this.art = new Image();
@@ -815,7 +815,7 @@
 								s = songs[i];
 								tmp = factory.createSound(s);
 							}
-							callback.apply(this, [me]); 
+							callback.apply(this, [me]);
 						} else {
 							me._logger.error('No Songs!!');
 						}
@@ -835,7 +835,7 @@
 
 						if (html.useArt === true) {
 							controller._logger.info('Intializing album art...');
-							// initialize first song album 
+							// initialize first song album
 							controller.setAlbumArtStyling(0);
 						}
 						
@@ -857,22 +857,22 @@
 
 						controller._logger.info("Swagg Player ready!");
 					});
-				}; // end soundManager onload function	
+				}; // end soundManager onload function
 					
 				// if there's an error loading sound manager, try a reboot
 				soundManager.onerror = function() {
-				  me._logger.error('An error has occured with loading Sound Manager! Rebooting.');
-				  soundManager.flashLoadTimeout = 0;
-				  soundManager.url = 'swf';
-				  setTimeout(soundManager.reboot,20);
-				  setTimeout(function() {
-					if (!soundManager.supported()) {
-						var msg = 'Something went wrong with loading Sound Manager. No tunes for you!';
-						_logger.error('Something went wrong with loading Sound Manager. No tunes for you!');
-						// call user defined onError function
-						this.executeIfExists('onErrorComplete', onError, [msg]);
-					}
-				  },1500);
+					me._logger.error('An error has occured with loading Sound Manager! Rebooting.');
+					soundManager.flashLoadTimeout = 0;
+					soundManager.url = 'swf';
+					setTimeout(soundManager.reboot,20);
+					setTimeout(function() {
+						if (!soundManager.supported()) {
+							var msg = 'Something went wrong with loading Sound Manager. No tunes for you!';
+							me._logger.error('Something went wrong with loading Sound Manager. No tunes for you!');
+							// call user defined onError function
+							this.executeIfExists('onErrorComplete', me, [msg]);
+						}
+					},1500);
 				};
 			}, // end Controller.init
 
@@ -916,7 +916,7 @@
 							self._controls.setup(self._html.controls_div);
 						}
 						else {
-							config.buttonHover = false;	
+							config.buttonHover = false;
 						}
 						if (config.spriteImg !== undefined) {
 							self._imageLoader.art = new Image();
@@ -969,23 +969,23 @@
 				if (this.loaded(sound) === true) {
 					this.fillLoaded();
 				}
-				return [arg];	
+				return [arg];
 			},
 
 			_onpause : function(sound) {
-				this.playPauseButtonState(1); 
+				this.playPauseButtonState(1);
 				return [];
 			},
 
 			_onstop : function(sound) {
-				this.playPauseButtonState(1); 
+				this.playPauseButtonState(1);
 				return [];
 			},
 
 			_onfinish : function(sound) {
+				var ret;
 				if (this.internal.repeatMode === false){
 					var id = parseInt(sound.id.split('-')[3],10),
-						ret = null,
 						last = this._data.songs.length - 1;
 					if (id < last) {
 						this.skip(1);
@@ -995,13 +995,13 @@
 					}
 				}
 				else {
-					this.repeat();	
-				}	
+					this.repeat();
+				}
 				return ret;
 			},
 
 			_onresume : function(sound) {
-				this.playPauseButtonState(0); 
+				this.playPauseButtonState(0);
 				return [];
 			},
 
@@ -1026,7 +1026,7 @@
 			// get the duration of a song in milliseconds
 			getDuration : function(soundobj) {
 				var duration;
-				if (!soundobj.loaded === true) {
+				if (soundobj.loaded !== true) {
 					duration = soundobj.durationEstimate;
 				} else {
 					duration = soundobj.duration;
@@ -1036,8 +1036,8 @@
 			
 			// repeats the currently playing track
 			repeat : function(track) {
-				var sound_id = _html.player + '-song-' + _data.curr_song,
-					target = soundManager.getSoundById(sound_id);
+				var sound_id = this._html.player + '-song-' + this._data.curr_song,
+						target = soundManager.getSoundById(sound_id);
 
 				this._logger.info('repeat()');
 				this.resetProgressBar();
@@ -1075,7 +1075,7 @@
 			setupApi : function() {
 				this._logger.debug('setting up api');
 				this._swaggPlayerApi = new API(this);
-				this.internal.player = this;				
+				this.internal.player = this;
 			},
 			
 			// Dynamically creates playlist items as songs are loaded
@@ -1102,13 +1102,13 @@
 										var track = parseInt($(this).data('song').id,10),
 											afterEffect = function() {
 												self.play(track);
-											};			
+											};
 										self._data.curr_song = track;
 										if (html.useArt === true) {
 											self.switchArt(track, afterEffect);
 										}
 										else {
-											self.play(track);	
+											self.play(track);
 										}
 										return false;
 									}
@@ -1121,7 +1121,7 @@
 			// toggles the play/pause button to the play state
 			playPauseButtonState : function(state){
 				var imagesLoaded = this._imageLoader.imagesLoaded,
-					out, 
+					out,
 					over,
 					play = this._controls.play,
 					hover = this._config.props.buttonHover || false;
@@ -1149,7 +1149,7 @@
 					}
 				}
 				else { // invalid state
-					this._logger.error('Invalid button state! : ' + state);		
+					this._logger.error('Invalid button state! : ' + state);
 				}
 				if (imagesLoaded === true) {
 					play.attr('src', out);
@@ -1160,7 +1160,7 @@
 							},
 							mouseover: function(){
 								play.attr('src', over);
-							}	
+							}
 						});
 					} // end if
 				}
@@ -1173,7 +1173,7 @@
 					html = this._html,
 					t = data.curr_song;
 
-				this._logger.info('skip()');	
+				this._logger.info('skip()');
 				
 				if (direction === 1) { // skip forward
 					if (t < data.songs.length){
@@ -1186,10 +1186,10 @@
 				}
 				else if (direction === 0) { // skip back
 					if (t === 0){
-						t = data.songs.length - 1;	
+						t = data.songs.length - 1;
 					}
 					else{
-						t = t - 1;	
+						t = t - 1;
 					}
 				}
 				else { // invalid flag
@@ -1205,7 +1205,7 @@
 				// if not using album , just go to the next song
 				else {
 					this.play(t);
-				} // end else	
+				} // end else
 			},
 			
 			jumpTo : function(t) {
@@ -1222,7 +1222,7 @@
 				// if not using album , just go to the next song
 				else {
 					this.play(t);
-				} // end else	
+				} // end else
 			},
 				
 			wipeArtCss : function() {
@@ -1231,7 +1231,7 @@
 				art.css('height','');
 				art.css('width','');
 				art.css('background-image','');
-				art.css('background','');	
+				art.css('background','');
 			},
 			
 			// Resets the progress bar back to the beginning
@@ -1253,7 +1253,7 @@
 			volume : function(track, flag) {
 				var sound_id = this._html.player + '-song-' + track,
 					sound = soundManager.getSoundById(sound_id),
-				 	curr_vol = sound.volume;
+					curr_vol = sound.volume;
 
 				if (flag === 1) {
 					this._logger.debug('increasing volume');
@@ -1264,7 +1264,7 @@
 					soundManager.setVolume(sound_id, curr_vol - this._data.vol_interval);
 				}
 				else {
-					this._logger.error('Invalid volume flag!');	
+					this._logger.error('Invalid volume flag!');
 				}
 			},
 			
@@ -1282,9 +1282,9 @@
 					art.addClass(song.spriteClass);
 					data.curr_sprite_class =  song.spriteClass;
 				}
-				else {				
+				else {
 					art.css('background', ' transparent url(' + songs[track].image.src + ')');
-				}				
+				}
 			},
 			
 			// switches to the currently playing song's album  using fancy jquery slide effect
@@ -1307,7 +1307,7 @@
 							self.play(track);
 							self.executeIfExists('onAfterSkip', self, []);
 						});
-					});	
+					});
 				} else {
 					art.fadeOut('fast', function() {
 						self.wipeArtCss();
@@ -1316,7 +1316,7 @@
 							self.play(track);
 							self.executeIfExists('onAfterSkip', self, []);
 						});
-					});	
+					});
 				}
 			},
 				
@@ -1327,7 +1327,7 @@
 			loaded : function(soundobj) {
 				if (soundobj.loaded === true && soundobj.readyState === 3 && soundobj.bytesLoaded === soundobj.bytesTotal) {
 					return true;
-				} else { 
+				} else {
 					return false;
 				}
 			},
@@ -1343,7 +1343,7 @@
 					loaded = wrapper_width * loaded_ratio;
 
 				this._html.loaded.css('width', loaded);
-				return loaded_ratio;				
+				return loaded_ratio;
 			},
 			
 			// updates the UI progress bar
@@ -1377,7 +1377,7 @@
 
 					if (seconds > 60) {
 						minutes = Math.floor(seconds / 60);
-						seconds = Math.round(seconds % 60);		
+						seconds = Math.round(seconds % 60);
 					}
 
 					if (seconds === 60) {
@@ -1390,24 +1390,24 @@
 	
 			/*
 				============================================================ API Stuff
-			*/		
+			*/
 			internal : {
 				player : null,
-				repeatMode:false					
+				repeatMode:false
 			}
 		});
 
 		// external API devs can use to extend Swagg Player. Exposes song data, events etc
 		var API = function(controller) {
-			var self = this;		
+			var self = this;
 
 			this.player = {
 				adjustProgress : function () {
 					var html = controller._html;
 					var id = html.player + '-song-' + controller._data.curr_song.toString();
 					html.metadata.progressWrapperWidth = parseFloat(html.progress_wrapper.css('width'));
-				  var sound = soundManager.getSoundById(id);	
-				  controller.whileLoading(sound);
+					var sound = soundManager.getSoundById(id);
+					controller.whileLoading(sound);
 				}
 			};
 
@@ -1421,7 +1421,7 @@
 				},
 				
 				inRepeat : function() {
-					var r = internal.repeat;
+					var r = controller.internal.repeat;
 					return (r === true || r === false) ? r : false;
 				},
 				
@@ -1437,10 +1437,10 @@
 
 				playTrack : function(track) {
 					var actualTrack = track - 1;
-					if (actualTrack <= (_data_.last_song) && actualTrack >= 0) {
+					if (actualTrack <= (controller._data_.last_song) && actualTrack >= 0) {
 						controller.jumpTo(track - 1);
 					} else {
-						_logger.apierror("Invalid track number '" + track + "'");
+						controller._logger.apierror("Invalid track number '" + track + "'");
 					}
 					return self;
 				},
@@ -1472,7 +1472,7 @@
 					if (callback) {
 						callback.apply(null, []);
 					}
-				}				
+				}
 			}; // end playback funcs
 		}; // end api
 })(jQuery);
