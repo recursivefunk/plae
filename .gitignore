@@ -5,3 +5,4 @@ deploy.sh
 swf/soundmanager2_*
 node_modules/*
 wp/*
+server.js

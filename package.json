@@ -15,7 +15,9 @@
     }
   ],
   "dependencies": {
-    "jquery": ">1.5"
+    "jquery": ">1.5",
+    "request": "~2.10.0",
+    "tako": "~0.3.0"
   },
   "description": "Swagg Player is a completely customizable JavaScript based music player for the web.",
   "keywords": [
