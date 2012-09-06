@@ -4,7 +4,7 @@
 <p>Note: The main JavaScript file - jquery-swagg-player.js passes JavaScript Lint (http://www.JavaScriptLint.com)</p>
 
 <h2>Demos</h2>
-<p>Examples are included in index.html. Production examples can be found at <a href="http://johnnyray.me">here</a> and <a href="http://swaggplayer.no.de/demos">here</a>.</p>
+<p>Examples are included in index.html. There is also an example on my <a href="http://johnnyray.me">website</a>.</p>
 
 <p>API features will probably change until I reach version 1.0 so, when updating please read the change log and review the documentation to check to see if your code will be compatible with the new version.</p>
 
