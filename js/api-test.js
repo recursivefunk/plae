@@ -22,9 +22,13 @@ function execJasmine() {
   jasmineEnv.execute();
 }
 
-describe('the test', function (){
-
-  it('is true', function (){
-    expect(true).toBe(true);
-  });
+document.addEventListener('message', function (e) {
+  console.log(e.domain + ' said ' + e.data);
 });
+
+// describe('the test', function (){
+//   console.log(window.parent)
+//   it('is true', function (){
+//     expect(true).toBe(true);
+//   });
+// });
