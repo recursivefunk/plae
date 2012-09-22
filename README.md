@@ -1,5 +1,4 @@
 
-```
 ### Basic Usage
 ```
 $(document).ready(function(){
