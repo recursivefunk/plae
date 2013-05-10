@@ -1,17 +1,16 @@
 /*
   Swagg Player: Music Player for the web
   --------------------------------------------
-  http://swaggplayer.no.de
   http://johnnyray.me
 
   Copyright (c) 2010, Johnny Austin. All rights reserved.
   Code provided under the MIT License:
   http://www.opensource.org/licenses/mit-license.php
 
-  v0.8.8.5
+  v0.8.9
    
   Change Log
-  - RequireJS support
+  - Complete overhal
 */
 
 (function (factory) {
@@ -50,24 +49,6 @@
     }; // END BROWSER DETECT
 
     var Init = {
-      initializeSoundManager : function() {
-        if (!soundManager) {
-          soundManager = new SoundManager();
-          var sm = soundManager;
-          sm.url = '/swf/';
-          sm.wmode = 'transparent';
-          sm.useFastPolling = true;
-          sm.useHTML5Audio = true;
-          if (Browser.isSafari()) {
-            soundManager.useHighPerformance = false;
-          }
-          else {
-            sm.useHighPerformance = true;
-          }
-          sm.flashLoadTimeout = 1000;
-          }
-      },
-
       ieStuff : function() {
         if (!Array.prototype.indexOf) {
           Array.prototype.indexOf = function (searchElement, fromIndex ) {
@@ -114,15 +95,13 @@
           }
         }
 
-        Init.initializeSoundManager();
         Init.ieStuff();
-        if (soundManager) {
-          var opts = $.extend(options_, id),
-            player = new Controller();
-          player.init(opts);
-        } else {
-          $.error('An error occured while initializing soundManager!');
-        }
+        
+        var opts = $.extend( options_, id );
+        
+        var player = new Controller();
+
+        player.init( opts );
       
       } else {
         $.error('Swagg Player element missing id attribute!');
@@ -207,31 +186,27 @@
 
     SoundFactory.funcs({
       createSound : function(songObj) {
-        var  self = this,
-          html = self.player._html,
-          config = self.player._config,
-          songs = self.player._data.songs,
-          id = songObj.id;
+        var  self = this;
+        var html = this.player._html;
+        var config = this.player._config;
+        var songs = this.player._data.songs;
+        var id = songObj.id;
 
-        if (html.useArt === true && songObj.thumb !== undefined) {
-          songObj.configureArt();
-          songObj.image = new Image();
-          songObj.image.src = songObj.thumb;
+        if ( !songs[songObj.id] ) {
+          this.player._data.songs.push( songObj );
         }
 
-        if (!songs[songObj.id]) {
-          self.player._data.songs.push(songObj);
-        }
-
-        var myid = self.player._html.player + '-song-' + id.toString();
+        var myid = this.player._html.player + '-song-' + id.toString();
         var sm = soundManager;
 
         sm.callback = function(params) {
-          $.when(params.scope.player[params.first](params.sound)).done(
-            function(args) {
-              params.scope.player.executeIfExists(params.next, params.sound, args);
-            }
-          );
+          $
+           .when(params.scope.player[ params.first ]( params.sound ))
+           .done(
+              function(args) {
+                params.scope.player.executeIfExists( params.next, params.sound, args );
+              }
+            );
         };
 
         var newSound = sm.createSound({
@@ -315,27 +290,22 @@
         newSound.id = myid;
         newSound.repeat = self.player.internal.repeat;
         self.player._data.last_song = songObj.id;
-  
-        if (html.playList !== undefined && html.playList === true) {
-          self.player.appendToPlaylist(newSound);
-        }
         return newSound;
       }
     });
 
     /* Model for songs */
     var Song = function(obj, id) {
-      var prop;
-      for (prop in obj) {
-        this[prop] = obj[prop];
+      for (var prop in obj) {
+        this[ prop ] = obj[ prop ];
+        if ( prop === "thumb" ) {
+          this.image = new Image();
+          this.image.onload = function(){ }
+          this.image.src = obj[ prop ];
+        }
       }
       this.id = id;
     };
-
-    Song.func('configureArt', function(thumb) {
-      this.image = new Image();
-      this.image.src = thumb || this.thumb;
-    });
   
     /*
       =============================================== swagg player data
@@ -355,22 +325,17 @@
 
     Data.funcs({
       processSongs : function(theData){
-        var player = this.PLAYER,
-          _songs =[],
-          size = theData.length,
-          _html = player._html,
-          _config_ = player._config;
+        var player = this.PLAYER;
+        var _songs =[];
+        var size = theData.length;
+        var _html = player._html;
+        var _config_ = player._config;
             
 
         // preload SONG album  and append an IDs to the songs - make configurable in the future
         // to avoid having to loop through JSON array
         for (var i = 0; i < size; i++) {
           var tmp = new Song(theData[i], i);
-          if (_html.useArt === true && theData[i].thumb !== undefined) {
-            tmp.configureArt(theData[i].thumb);
-            theData[i].image = new Image();
-            theData[i].image.src = theData[i].thumb;
-          }
           _songs.push(tmp);
         }
         this.songs = _songs;
@@ -378,9 +343,9 @@
       },
 
       getSongs : function() {
-        var self = this,
-          config = this.PLAYER._config,
-          theData = config.props.data;
+        var self = this;
+        var config = this.PLAYER._config;
+        var theData = config.props.data;
           
         
         // Check if dataString points to a json file if so, fetch it.
@@ -441,19 +406,14 @@
       initHtml : function(config) {
         this.PLAYER._logger.debug('Html initializing');
         this.player = config.id;
-        this.playlist = $('#' + this.player + ' .swagg-player-list');
-        this.art = $('#' + this.player + ' .swagg-player-album-art');
-        this.loading_indication = $('#' + this.player + ' img.swagg-player-loading');
+//        this.playlist = $('#' + this.player + ' .swagg-player-list');
+//        this.art = $('#' + this.player + ' .swagg-player-album-art');
+//        this.loading_indication = $('#' + this.player + ' img.swagg-player-loading');
         this.progress_wrapper = $('#' + this.player + ' .swagg-player-progress-wrapper');
         this.bar = $('#' + this.player + ' .swagg-player-bar');
         this.loaded = $('#' + this.player + ' .swagg-player-loaded');
-        this.song_info = $('#' + this.player + ' .swagg-player-song-info');
+//        this.song_info = $('#' + this.player + ' .swagg-player-song-info');
         this.controls_div = $('#' + this.player + ' .swagg-player-controls');
-        this.artist = $('#' + this.player + ' .swagg-player-artist');
-        this.title = $('#' + this.player + ' .swagg-player-title');
-        this.user_art_css = {height:0, width:0};
-        this.useArt = (this.art.length > 0);
-        this.playList = (this.playlist.length > 0);
       },
 
       setupProgressBar : function() {
@@ -499,21 +459,6 @@
         this.skip =  $('#' + p._html.player + ' .swagg-player-skip-button');
         this.back =  $('#' + p._html.player + ' .swagg-player-back-button');
         this.stop =  $('#' + p._html.player + ' .swagg-player-stop-button');
-          
-        if (imageLoader.play !== null) {
-          this.play.css('cursor','pointer');
-        }
-        if (imageLoader.skip !== null) {
-          this.skip.css('cursor','pointer');
-        }
-        if (imageLoader.back !== null) {
-          this.back.css('cursor','pointer');
-        }
-        if (imageLoader.stop !== null) {
-          this.stop.css('cursor','pointer');
-        }
-
-        img.css('cursor', 'pointer');
       }
     });
 
@@ -527,36 +472,35 @@
 
     Events.funcs({
       bindControllerEvents : function() {
-        var p = this.PLAYER,
-          controls = p._controls,
-          imageLoader = p._imageLoader,
-          images = imageLoader.imagesLoaded,
-          usehover = p._config.props.buttonHover || false,
-          ops = ['play', 'back', 'stop', 'skip'],
-          i, func, _do;
+        var p = this.PLAYER;
+        var controls = p._controls;
+        var imageLoader = p._imageLoader;
+        var images = imageLoader.imagesLoaded;
+        var ops = ['play', 'back', 'stop', 'skip'];
+        var i, _do;
 
         p._logger.debug('Binding controller button events');
 
         function createOpFunc(op) {
-          var tmp;
-          if (func === 'play') {
+          var tmp = null;
+          if (func === 'play') {           
             tmp = function() {
-              p.play(p._data.curr_song);
+              p.play( p._data.curr_song );
               return false;
             };
           } else if (func === 'skip') {
             tmp = function() {
-              p.skip(1);
+              p.skip( 1 );
               return false;
             };
-          } else if (func === 'stop') {
+          } else if (func === 'stop') {           
             tmp = function() {
               p.stopMusic();
               return false;
             };
-          } else if (func === 'back') {
+          } else if (func === 'back') {          
             tmp = function() {
-              p.skip(0);
+              p.skip( 0 );
               return false;
             };
           }
@@ -564,40 +508,21 @@
         }
 
         for (i = 0; i < ops.length; i++) {
-          func = ops[i];
-          _do = createOpFunc(ops[i]);
-          this.bindEvents(
-            {
-              func : func,
-              controls : controls,
-              images : images,
-              usehover : usehover,
-              imageLoader : imageLoader
-            },
-            _do);
+          var func = ops[i];
+          var task = createOpFunc( ops[i] );
+          
+          controls[ func ].bind({
+            click: task
+          });
+          
         } // end for
       },
 
       bindEvents : function(data, task) {
-        var func = data.func,
-          controls = data.controls,
-          images = data.images,
-          imageLoader = data.imageLoader,
-          usehover = data.usehover;
+        var func = data.func
 
-        controls[func].bind({
-          click : task,
-          mouseover : function() {
-            if (images === true && usehover) {
-              var but = func + 'Over';
-              $(this).attr('src', imageLoader[but].src);
-            }
-          },
-          mouseout : function() {
-            if (images === true && usehover) {
-              $(this).attr('src', imageLoader[func].src);
-            }
-          }
+        controls[ func ].bind({
+          click : task          
         });
       },
 
@@ -723,23 +648,16 @@
       setup : function() {
         this.PLAYER._logger.debug('setting up image loader');
         var config = this.PLAYER._config.props;
-        if (config.buttonsDir !== undefined) {
+        if ( config.buttonsDir !== undefined ) {
           this.PLAYER._controls.setup(this.PLAYER._html.controls_div);
-          this.loadButtonImages(config.buttonsDir);
-        }
-        else {
-          config.buttonHover = false;
-        }
-        if (config.spriteImg !== undefined) {
-          this.art = new Image();
-          this.art.src = config.spriteImg;
+          this.loadButtonImages( config.buttonsDir );
         }
       },
 
       loadButtonImages : function(imagesDir) {
-        var player = this.PLAYER,
-          hover = player._config.props.buttonHover || false,
-          controls = player._controls;
+        var player = this.PLAYER;
+        var hover = player._config.props.buttonHover || false;
+        var controls = player._controls;
 
         player._logger.debug('Loading images for controls');
 
@@ -802,90 +720,97 @@
       this._swaggPlayerApi = null;
     };
     
-
     Controller.funcs({
       init : function(config) {
-        var me = this;
-
-        me.initComponents(config);
-
-        if (!soundManager.createSongs) {
-          soundManager.createSongs = function(callback) {
-            me._logger.info('createSongs()');
-            var data = me._data,
-              songs = data.songs;
-            if(data.songs[0] !== undefined) {
-              var  config = me._config,
-                html = me._html,
-                factory = new SoundFactory(me),
-                s, tmp;
-  
-              for (var i = 0, end = songs.length; i < end; i++) {
-                s = songs[i];
-                tmp = factory.createSound(s);
-              }
-              callback.apply(this, [me]);
-            } else {
-              me._logger.error('No Songs!!');
-            }
-          };
-        }
         
-        // init soundManager
-        soundManager.onload =  function() {
-          soundManager.createSongs(function(controller) {
-            var html = controller._html,
-              data = controller._data,
-              song = data.songs[0],
-              config = controller._config;
+        config = config;
+        
+        var self = this;
 
-            html.loading_indication.remove();
-            data.curr_song = 0;
-
-            if (html.useArt === true) {
-              controller._logger.info('Intializing album art...');
-              // initialize first song album
-              controller.setAlbumArtStyling(0);
-            }
-            
-            controller._events.setupSeek();
-
-            if(config.props.autoPlay !== undefined && config.props.autoPlay === true) {
-              setTimeout(function(){
-                  controller.play(data.curr_song);
-                },1000);
-            }
-
-            me.executeIfExists('onSetupComplete', this, [me._swaggPlayerApi, song]);
-
-            if (!Browser.isIe()) {
-              if (console.timeEnd) {
-                console.timeEnd('SwaggPlayerStart');
-              }
-            }
-
-            controller._logger.info("Swagg Player ready!");
-          });
-        }; // end soundManager onload function
-          
-        // if there's an error loading sound manager, try a reboot
-        soundManager.onerror = function() {
-          me._logger.error('An error has occured with loading Sound Manager! Rebooting.');
-          soundManager.flashLoadTimeout = 0;
-          soundManager.url = 'swf';
-          setTimeout(soundManager.reboot,20);
-          setTimeout(function() {
-            if (!soundManager.supported()) {
-              var msg = 'Something went wrong with loading Sound Manager. No tunes for you!';
-              me._logger.error('Something went wrong with loading Sound Manager. No tunes for you!');
-              // call user defined onError function
-              this.executeIfExists('onErrorComplete', me, [msg]);
-            }
-          },1500);
+        var sm = soundManager;
+        
+        var opts = {
+          url: "/swf",
+          consoleOnly: true,
+          flashVersion: 9,
+          wmode: "transparent",
+          useHTML5Audio: true,
+          useHighPerformance: false,
+          flashLoadTimeout: 1000,
+          debugMode: true
         };
+               
+
+        this.initComponents( config );
+        
+        function onSMReady() {      
+          var html = self._html;
+          var data = self._data;
+          var song = data.songs[0];
+          var config = self._config;
+          
+          self.createSongs();
+          
+          data.curr_song = 0;
+          
+          self._events.setupSeek();
+          
+          if( config.props.autoPlay !== undefined && config.props.autoPlay === true ) {
+            setTimeout(function(){
+              self.play( data.curr_song );
+            },1000);
+          }
+          
+          self.executeIfExists( "onSetupComplete", this, [ self._swaggPlayerApi, song ] );
+          
+          if ( !Browser.isIe() ) {
+            if ( console.timeEnd ) {
+              console.timeEnd( "SwaggPlayerStart" );
+            }
+          }
+          
+          self._logger.info( "Swagg Player ready!" );          
+                     
+        }; // end soundManager onready function
+          
+        function onSMError() {
+          self._logger.error( "An error has occured with loading Sound Manager! Rebooting." );
+          self.executeIfExists( "onErrorComplete", self, [] );
+        };
+        
+        soundManager.onerror = onSMError;
+        
+        soundManager.onload = onSMReady;
+        
+        soundManager.ontimeout = onSMError;
+        
+        soundManager.setup( opts );         
       }, // end Controller.init
+      
+      
+      createSongs: function() {
+        var self = this;
+        this._logger.info('createSongs()');
+        var data = self._data;
+        var songs = data.songs;
+        
+        if( data.songs[0] !== undefined ) {
+          var  config = self._config;
+          var html = self._html;
+          var factory = new SoundFactory( self );
+          var s = null, tmp = null
+          
+          for (var i = 0, end = songs.length; i < end; i++) {
+            s = songs[i];
+            tmp = factory.createSound( s );
+          }
+        } else {
+          this._logger.error('No Songs!!');
+        }       
+      },
 
       initComponents : function(config) {
+
         var self = this;
         // initialize configuration
         this._config = new Config(this);
@@ -909,6 +834,15 @@
           if (err) {
             this.executeIfExists('onError', this, []);
           } else {
+            
+            // check for soundManager support and warn or inform accordingly
+            if (!soundManager.supported()) {
+              self._logger.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
+            }
+            else {
+              self._logger.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
+            }
+            
             // init onSeek events
             self._html.setupProgressBar();
             
@@ -924,40 +858,28 @@
             if (config.buttonsDir !== undefined) {
               self._controls.setup(self._html.controls_div);
             }
-            else {
-              config.buttonHover = false;
-            }
-            if (config.spriteImg !== undefined) {
-              self._imageLoader.art = new Image();
-              self._ImageLoader.art.src = config.spriteImg;
-            }
 
             // setup controller events
             self._events = new Events(self);
             self._events.bindControllerEvents();
             self._events.bindMediaKeyEvents();
 
-            // check for soundManager support and warn or inform accordingly
-            if (!soundManager.supported()) {
-              self._logger.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
-            }
-            else {
-              self._logger.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
-            }
           } // end else
         });
       },
 
       _whileplaying : function(sound) {
-        this.progress(sound);
-        var duration = sound.loaded === true ? sound.duration : sound.durationEstimate,
-          curr = this.millsToTime(sound.position),
-          total = this.millsToTime(duration),
-          args = {
-            currTime : curr,
-            totalTime : total
-          };
-        return [args];
+        this.progress( sound );
+        var duration = sound.loaded === true ? sound.duration : sound.durationEstimate;
+        var curr = this.millsToTime( sound.position );
+        var total = this.millsToTime( duration );
+        var time = {
+          currentMins: curr.mins,
+          currentSecs: curr.secs,
+          totalMins: total.mins,
+          totalSecs: total.secs
+        };
+        return [time];
       },
 
       _onplay : function(sound) {
@@ -1087,160 +1009,67 @@
         this.internal.player = this;
       },
       
-      // Dynamically creates playlist items as songs are loaded
-      appendToPlaylist : function(soundobj){
-        var self = this,
-          tmp = soundobj.id.split('-')[3],
-          song = this._data.songs[parseInt(tmp,10)],
-          html = this._html,
-          id = 'item-' + song.id,
-          listItem = $('<li></li>');
-
-        this._logger.debug('appending to playlist: ' + song.title);
-
-        listItem.attr('id',id);
-        listItem.addClass('swagg-player-playlist-item');
-        listItem.html(song.title + ' - ' + song.artist);
-        listItem.css('cursor','pointer');
-              
-        listItem.data('song', song);
-        var l = this._config.props.playListListeners || {};
-        var listeners = $.extend({}, l, {
-                  click: function(){
-                    self.stopMusic();
-                    var track = parseInt($(this).data('song').id,10),
-                      afterEffect = function() {
-                        self.play(track);
-                      };
-                    self._data.curr_song = track;
-                    if (html.useArt === true) {
-                      self.switchArt(track, afterEffect);
-                    }
-                    else {
-                      self.play(track);
-                    }
-                    return false;
-                  }
-                });
-        listItem.bind(listeners);
-        html.playlist.append(listItem);
-      },
-
-      
       // toggles the play/pause button to the play state
       playPauseButtonState : function(state){
-        var imagesLoaded = this._imageLoader.imagesLoaded,
-          out,
-          over,
-          play = this._controls.play,
-          hover = this._config.props.buttonHover || false;
+        var imagesLoaded = this._imageLoader.imagesLoaded;
+        var src = this._imageLoader.play.src;
+        var image = this._controls.play;
         
-        if (state === 1 ) { // play state
-          if (imagesLoaded === false) {
-            play.html('play ');
-          }
-          else {
-            out = this._imageLoader.play.src;
-            if (hover === true) {
-              over = this._imageLoader.playOver.src;
-            }
-          }
-        }
-        else if (state === 0) { // pause state
-          if (imagesLoaded === false) {
-            play.html('pause ');
-          }
-          else {
-            out = this._imageLoader.pause.src;
-            if (hover === true) {
-              over = this._imageLoader.pauseOver.src;
-            }
-          }
-        }
-        else { // invalid state
+        if (state === 1 ) { 
+          // play state
+          src = this._imageLoader.play.src;
+        } else if (state === 0) { 
+          // pause state
+          src = this._imageLoader.pause.src;
+        } else { 
+          // invalid state
           this._logger.error('Invalid button state! : ' + state);
         }
         if (imagesLoaded === true) {
-          play.attr('src', out);
-          if (hover === true) {
-            play.bind({
-              mouseout: function(){
-                play.attr('src', out);
-              },
-              mouseover: function(){
-                play.attr('src', over);
-              }
-            });
-          } // end if
+          image.attr('src', src);
         }
       },
     
       // Skips to the next song. If the currently playing song is the last song in the list
       // it goes back to the first song
       skip : function(direction){
-        var data = this._data,
-          html = this._html,
-          t = data.curr_song;
+        var data = this._data;
+        var html = this._html;
+        var t = parseInt( data.curr_song );
 
         this._logger.info('skip()');
         
-        if (direction === 1) { // skip forward
-          if (t < data.songs.length){
-            if (t == data.songs.length - 1) {
+        if (direction === 1) { 
+          // skip forward
+          if ( t < data.songs.length ){
+            if ( t === ( data.songs.length - 1 ) ) {
               t = 0;
             } else {
-              t = t+1;
+              t += 1;
             }
           }
-        }
-        else if (direction === 0) { // skip back
+        } else if (direction === 0) { // skip back
           if (t === 0){
-            t = data.songs.length - 1;
+            t = parseInt( data.songs.length - 1 );
           }
           else{
-            t = t - 1;
+            t -= 1;
           }
-        }
-        else { // invalid flag
+        } else { // invalid flag
           this._logger.error('Invalid skip direction flag: ' + direction);
         }
+        
         this.stopMusic();
         data.curr_song = t;
-        // if using album , use  transition
-        if (this._html.useArt === true) {
-          this.executeIfExists('onBeforeSkip', this, []);
-          this.switchArt(t);
-        } // end if
-        // if not using album , just go to the next song
-        else {
-          this.play(t);
-        } // end else
+        this.play( t );
+        
       },
       
       jumpTo : function(t) {
         this._logger.debug('jumping to track ' + t);
-
         this.stopMusic();
         this._data.curr_song = t;
-
-        // if using album , use  transition
-        if (this._html.useArt === true) {
-          this.executeIfExists('onBeforeSkip', this, []);
-          this.switchArt(t);
-        } // end if
-        // if not using album , just go to the next song
-        else {
-          this.play(t);
-        } // end else
-      },
-        
-      wipeArtCss : function() {
-        var art = this._html.art;
-        art.removeClass(this._data.curr_sprite_class);
-        art.css('height','');
-        art.css('width','');
-        art.css('background-image','');
-        art.css('background','');
+        this.play(t);
       },
       
       // Resets the progress bar back to the beginning
@@ -1249,13 +1078,13 @@
         this._html.loaded.css('width', 0);
       },
     
-        
       // Stops the specified song
       stopMusic : function() {
         this._logger.debug('stopping music');
         this.playPauseButtonState(1);
         this.resetProgressBar();
-        soundManager.stop('swagg-player-song-' + this._data.curr_song.toString());
+        soundManager.stopAll();
+        //soundManager.stop('swagg-player-song-' + this._data.curr_song.toString());
       },
         
       // Increases the volume of the specified song
@@ -1274,58 +1103,6 @@
         }
         else {
           this._logger.error('Invalid volume flag!');
-        }
-      },
-      
-      setAlbumArtStyling : function(track){
-        var art = this._html.art,
-          data = this._data,
-          song = data.songs[track],
-          songs = data.songs,
-          config = this._config,
-          html = this._html;
-          
-        this.wipeArtCss();
-
-        if (song.spriteClass !== undefined) {
-          art.addClass(song.spriteClass);
-          data.curr_sprite_class =  song.spriteClass;
-        }
-        else {
-          art.css('background', ' transparent url(' + songs[track].image.src + ')');
-        }
-      },
-      
-      // switches to the currently playing song's album  using fancy jquery slide effect
-      switchArt : function(track) {
-        var self = this,
-          sound_id = this._html.player + '-song-' + track,
-          art = this._html.art,
-          config = this._config,
-          data = this._data,
-          songs = data.songs,
-          song = songs[track];
-
-        self._logger.info('Will show  for song at index: ' + track);
-        
-        if ($.ui) {
-          art.hide('slide', 200, function() {
-            self.wipeArtCss();
-            self.setAlbumArtStyling(track);
-            $(this).show('slide', function(){
-              self.play(track);
-              self.executeIfExists('onAfterSkip', self, []);
-            });
-          });
-        } else {
-          art.fadeOut('fast', function() {
-            self.wipeArtCss();
-            self.setAlbumArtStyling(track);
-            $(this).fadeIn('fast', function(){
-              self.play(track);
-              self.executeIfExists('onAfterSkip', self, []);
-            });
-          });
         }
       },
         

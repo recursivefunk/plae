@@ -1,185 +1,77 @@
-<!doctype html public "✰">
-<!--[if lt IE 7]> <html lang="en-us" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>    <html lang="en-us" class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>    <html lang="en-us" class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html lang="en-us" class="no-js"> <!--<![endif]-->
+<!doctype html>
+<html lang="en" ng-app="demo">
 <head>
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+  <link href="http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300,400,500,700" rel="stylesheet" type="text/css">
+  <link href="http://fonts.googleapis.com/css?family=Poly" rel="stylesheet" type="text/css">
   <link rel="stylesheet" type="text/css" href="css/swaggplayer.css" />
-  <link rel="stylesheet" type="text/css" href="css/jasmine.css" />
 </head>
-<body>
-  <div id="swagg-player">
-
-	  <div class="swagg-player-controls">
-		  <img class="swagg-player-button swagg-player-play-button" src="images/play.png" border="0"/>
-		  <img class="swagg-player-button swagg-player-back-button" src="images/back.png" border="0"/>
-		  <img class="swagg-player-button swagg-player-skip-button" src="images/skip.png" border="0"/>
-		  <img class="swagg-player-button swagg-player-stop-button" src="images/stop.png" border="0"/>
-	  </div>
-    <div id="time">00:00 / 00:00</div>
-    <div style="border:#000 medium solid;" class="swagg-player-album-art">
-      <img src="images/loading.gif" class="swagg-player-loading" border="0"/>
+<body ng-controller="DemoCtrl">
+  <div id="content-row" class="row-fluid">
+    <div swagg-player="go" id="swagg-player" class="span4 offset4">
+      <!-- SONG INFO -->
+      <div class="row-fluid" id="song-info-row">
+        <div class="span6 offset3">
+          <h2 class="center-text" ng-bind="title"></h2>
+          <p class="center-text" ng-bind="artist"></p>
+        </div>
       </div>
-
-      <div class="swagg-player-progress-wrapper"></div>
-
-      <div id="swagg-player-song-info"></div>
-
-      <div id="api-box">
-        <center>API Stuff</center>
-        <br/>
-        <center>
-          <label>Volume:</label>
-          <input type="button" value="-" id="vol-down" />
-          <input type="button" value="+" id="vol-up"/>
-        </center>
-        <br/>
-        <center>
-          <input id="add" type="button" value="Add Track" />
-        </center>
-        <br/>
-        <center>
-          <span id="loadstatus"></span><label>% Loaded</label>
-        </center>
-        <br/>
-        <div class="swagg-player-list"></div> 
+      <!-- CONTROLS -->
+      <div class="row-fluid swagg-player-controls" id="controls-row">
+        <div class="span6 offset3">
+          <div class="row-fluid">
+            <div class="span4">
+              <img class="swagg-player-button swagg-player-back-button" src="images/back.png" border="0"/>
+            </div>
+            <div class="span4">
+              <img class="swagg-player-button swagg-player-play-button" src="images/play.png" border="0"/>
+            </div>
+            <div class="span4">
+              <img class="swagg-player-button swagg-player-skip-button" src="images/skip.png" border="0"/>
+            </div>
+          </div>
+        </div>
       </div>
+      <!-- PROGRESS BAR -->
+      <div id="progress-bar" class="row-fluid swagg-player-progress-wrapper"></div>
+    </div>
   </div>
-  <!-- <input type="button" id="test" value="TEST" /> -->
-  <!-- Templates -->
-  <script id="swagg-player-song-info-template" type="text/x-jQuery-tmpl">
-    <span class="swagg-player-artist">${artist}</span><br/><span class="swagg-player-title">${title}</span>
-  </script>
-  <script id="time-template" type="text/x-jQuery-tmpl">
-    ${currMins}:${currSecs} / ${totalMins}:${totalSecs}
-  </script>
-  <iframe id="testframe" src='http://127.0.0.1:3000/test' width="100%" height:"300px"></iframe>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-  <script src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
-  <script src="js/soundmanager2-nodebug-jsmin.js"></script>
-  <script>
-    soundManager.url='swf'; 
-    // swaggplayer starts up quicker if you configure this parameter before swagplayer inits
-    // but it's not necessary at all
-  </script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.min.js"></script>
+  <script src="js/soundmanager2.js"></script>
   <script src="js/jquery.swaggplayer.js"></script>
+  <script src="js/demo.js"></script>
   <script type="text/javascript">
-  $(document).ready(function(){
-      var api;
-      var mysongs = 
-    [
-      {
-        "url": "sound/1.mp3",
-        "artist": "Artist1",
-        "title": "Song1",
-        "thumb":"images/1.jpg",
-        "custom": "myCustomData1"  
-      }
-      ,
-      {
-        "url": "sound/2.mp3",
-        "artist": "Artist2",
-        "title": "Song2",
-        "thumb": "images/2.jpg",
-        "custom": "myCostomData2"
-      }
-    ];
-    
-    $('#swagg-player').SwaggPlayer({
-      data: mysongs, // <----- this is the ONLY required parameter!      
-      buttonsDir: 'images/',                
-      buttonHover: true,
-      eagerLoad : false,
-      autoPlay : false,
-      logging: ['all'],
-      playListListeners : {
-        // 'this' will be scoped to the 'li' element in the actual
-        // playlist
-        mouseover : function(){
-          $(this).addClass('list-over');
-        },
-        mouseout : function(){
-          $(this).removeClass('list-over');
-        }
-      },
-      whilePlaying: function(time){
 
-        var info = {
-          currMins : time.currTime.mins,
-          currSecs : time.currTime.secs,
-          totalMins : time.totalTime.mins,
-          totalSecs : time.totalTime.secs
-        };
-        $("#time").empty();
-        $("#time-template").tmpl(info).appendTo("#time");
-      },
-      onStop: function(){
-        resetTime();  
-      },
-      onSeekPreview: function(event, time) {
-        console.log(time.mins + ':' + time.secs)
-      },
-      onSetupComplete: function(swaggPlayerApiRef, firstSong) {
-        api = swaggPlayerApiRef;
-        showSongInfo(firstSong);
-        var win = document.getElementById("testframe").contentWindow;
-        console.log(win)
-        win.postMessage('swagg player ready');
-      },
-      whileLoading: function(percentLoaded) {
-        // this may be hard to see with the short songs i've included
-        // in the example as it will jump to 100% fairly quickly
-        // use a longer song if you'd like to see this work
-        $('#loadstatus').html(percentLoaded);
-      },
-      onPlay: function(data) {
-        showSongInfo(data);
-      }
-    });
+  //   /*
+  //     Demo for API functionality. Not required to get Swagg Player working
+  //   */
 
-    /*
-      Demo for API functionality. Not required to get Swagg Player working
-    */
-    
-    $('#vol-up').click(function(){
-      api.playback.volUp();
-    });
-    $('#vol-down').click(function(){
-      api.playback.volDown();
-    });
-        
-    $('#add').click(function(){
-      api.playback.addTracks([
-        {    
-          url: "sound/3.mp3",
-          artist: "Artist 3",
-          title: "Song 3",
-          thumb: "images/3.jpg",
-          custom: "custom3"
-        }
-      ], function(elements){
-        for (el in elements) {
-          console.log(elements[el])
-          $(elements[el]).insertBefore($('#item-1'));
-        }
-      });
-    });
+  //   $('#vol-up').click(function(){
+  //     api.playback.volUp();
+  //   });
+  //   $('#vol-down').click(function(){
+  //     api.playback.volDown();
+  //   });
 
-    /* 
-      Helper functions
-    */
-    
-    function showSongInfo(song) {
-      var info = [
-          { artist : song.artist, title : song.title }
-        ];
-      $("#swagg-player-song-info").empty();
-      $("#swagg-player-song-info-template").tmpl(info).appendTo("#swagg-player-song-info");
-    }
+  //   $('#add').click(function(){
+  //     api.playback.addTracks([
+  //       {
+  //         url: "sound/3.mp3",
+  //         artist: "Artist 3",
+  //         title: "Song 3",
+  //         thumb: "images/3.jpg",
+  //         custom: "custom3"
+  //       }
+  //     ], function(elements){
+  //       for (el in elements) {
+  //         console.log(elements[el])
+  //         $(elements[el]).insertBefore($('#item-1'));
+  //       }
+  //     });
+  //   });
 
-    function resetTime() {
-      $('#time').html('00:00 / 00:00');  
-    }
-  });
   </script>
 </body>
+</html>

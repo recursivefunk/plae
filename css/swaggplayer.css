@@ -1,99 +1,64 @@
-		body {
-			/*background:#090909;*/
-			font: 100% Verdana, Arial, Helvetica, sans-serif;
-			background:#DCDCDC;
-		}
-		div#swagg-player {
-			width:700px;
-			height:300px;
-			position:absolute;
-			top:50%;
-			left:50%;
-			margin-top:-150px;
-			margin-left:-350px;
-			border:#090909 medium solid;
-		}
-		div.swagg-player-controls {
-			width:220px;
-			height:75px;
-			position:relative;
-			top:50%;
-			margin-top:-32px;
-			left:0;
-			margin-left:30px;
-			/*border:solid black thin;*/
-		}
-		img.swagg-player-button {
-			padding:10px;
-			margin-top:10px;
-		}
-		div.swagg-player-album-art {
-			width:250px;
-			height:250px;
-			border:#090909 medium solid;
-			position:relative;
-			left:100%;
-			margin-left:-260px;
-			top:0;
-			margin-top:-23px;
-		}
-		div#time {
-			width:250px;
-			height:40px;
-			position:relative;
-			top:10%;
-			margin-top:-50px;
-			left:0;
-			margin-left:30px;
-			/*border:red solid thin;*/
-			font-size:30px;
-		}
-		div.swagg-player-progress-wrapper {
-			width:90%px; 
-			height:5px; 
-			position:relative;
-			bottom: 0;
-			margin-top:10px;
-			left:0;
-			background-color:#CCC;
-		}
-		div.swagg-player-loaded {
-			background-color:#FC6;
-		}
-		div.swagg-player-bar {
-			background-color:#F93;
-		}
-		div#swagg-player-song-info {
-			position:relative;
-			left:0;
-			margin-left:30px;
-			top:-60px;
-			width:100px;
-			height:30px;
-		}
-		div#api-box {
-			width:150px;
-			height:300px;
-			border:black solid medium;
-			float:right;
-			margin-right:-170px;
-			margin-top:-314px;
-		}
-		.swagg-player-playlist-item {
-			font-family: "Trebuchet MS", "Bitstream Vera Serif", Utopia, "Times New Roman", times, serif;
-			/*border-bottom:#000 2px solid;*/
-			width:100%;
-			color:#000;
-			text-align: center;
-			display:block;
-		}
-		.list-over {
-			font-weight:bold;	
-			background-color:#F93;
-		}
-		.swagg-player-loading {
-			width:126px;
-			margin-left:auto;
-			margin-right:auto;
-			margin-top:100px;
-		}
+
+
+body{
+  color:#fff;
+  font-family:'Open Sans Condensed',sans-serif;
+}
+h2,h3,h4,h5,h6{font-family:'Open Sans Condensed',sans-serif;}
+
+h2 {
+  font-weight:100;
+}
+
+#content-row {
+  margin-top:100px;
+}
+
+#swagg-player {
+  background-color:#1c231e;
+  height:500px;
+  margin-top:10px;
+  border-radius:10px;
+}
+
+#album-art-row {
+  height:250px;
+  margin-top:10px;
+}
+
+#album-art {
+  background:red;
+  width:250px;
+  height:250px;
+  margin-left:auto;
+  margin-right:auto;
+
+  border-radius:250px;
+}
+
+#progress-bar {
+  margin-top:30px;
+  background:white;
+  height:5px;
+}
+
+
+
+
+.swagg-player-loaded {
+  background:#ccc;
+}
+
+.swagg-player-bar {
+  background:red;
+}
+
+.center-text {
+  text-align:center;
+}
+
+.swagg-player-button {
+  position:relative;
+  left:50%;
+  margin-left:-16px;
+}
