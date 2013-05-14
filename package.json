@@ -1,6 +1,6 @@
 {
   "name": "swaggplayer",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "title": "Swagg Player",
   "author": {
     "name": "Johnny Ray Austin",
@@ -16,9 +16,8 @@
   ],
   "dependencies": {
     "jquery": ">1.5",
-    "request": "~2.10.0",
-    "tako": "~0.3.0",
-    "jade": "~0.28.2"
+    "jade": "~0.28.2",
+    "uglify-js": "~2.3.2"
   },
   "description": "Swagg Player is a completely customizable JavaScript based music player for the web.",
   "keywords": [

@@ -1,1 +1,0 @@
-java -jar ~/yui/yuicompressor-2.4.7.jar --type js -o js/jquery.swaggplayer.min.js js/jquery.swaggplayer.js
