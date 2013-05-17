@@ -7,10 +7,10 @@
   Code provided under the MIT License:
   http://www.opensource.org/licenses/mit-license.php
 
-  v0.8.9
-   
+  v0.8.9.1
+
   Change Log
-  - Complete overhal
+  - Trying to use as little of jQuery as possible
 */
 
 (function (factory) {
@@ -22,8 +22,6 @@
     factory(jQuery);
   }
 }(function ($) {
-  "use strict";
-  /*global soundManager:true, setInterval: false, console: false, $: false, SoundManager: false */
 
     Function.prototype.func = function(name, func) {
       if (!this[name]) {
@@ -86,25 +84,25 @@
 
     $.fn.SwaggPlayer = function (options_) {
       var id = {};
-      id['id'] = this.attr('id');
+      id[ "id" ] = this.attr( "id" );
 
-      if (id['id']) {
-        if (!Browser.isIe()) {
-          if (console.time) {
-            console.time('SwaggPlayerStart');
+      if ( id[ "id" ] ) {
+        if ( !Browser.isIe( )) {
+          if ( console.time ) {
+            console.time( "SwaggPlayerStart" );
           }
         }
 
         Init.ieStuff();
-        
+
         var opts = $.extend( options_, id );
-        
+
         var player = new Controller();
 
         player.init( opts );
-      
+
       } else {
-        $.error('Swagg Player element missing id attribute!');
+        $.error( "Swagg Player element missing id attribute!" );
       }
     };
 
@@ -117,11 +115,11 @@
       this.props = {};
       this.callbacks = {};
       this.consoleSupport = false;
-      if (console) {
+      if ( console ) {
         this.consoleSupport = true;
       }
     };
-    
+
     /*
       ============================================================ logging utility
       For logging, of course. Using this centralized location for logging to check for
@@ -139,10 +137,10 @@
       this.leveldebug = this.levelall === true ? true : this.logging.indexOf('debug') > -1;
       this.id = _id;
     };
-    
+
     Logger.funcs({
       error : function(errMsg){
-        if (this.levelerror && this.log) {
+        if ( this.levelerror && this.log) {
           console.error('Swagg Player::' + this.id + '::Error::' + errMsg);
         }
       },
@@ -306,7 +304,7 @@
       }
       this.id = id;
     };
-  
+
     /*
       =============================================== swagg player data
       handles the fetching and processing of songs
@@ -330,7 +328,7 @@
         var size = theData.length;
         var _html = player._html;
         var _config_ = player._config;
-            
+
 
         // preload SONG album  and append an IDs to the songs - make configurable in the future
         // to avoid having to loop through JSON array
@@ -346,8 +344,8 @@
         var self = this;
         var config = this.PLAYER._config;
         var theData = config.props.data;
-          
-        
+
+
         // Check if dataString points to a json file if so, fetch it.
         // if not, assume string is a literal JSON object
         if (typeof theData === 'string') {
@@ -373,7 +371,7 @@
         }
       }
     });
-    
+
     /*
       ============================================================ UI elements (divs)
       Manages HTML elements associated with Swagg Player
@@ -381,61 +379,57 @@
 
     var Html = function(p) {
       this.PLAYER = p;
-      this.div = null;
-      this.player = null;
-      this.playlist = null;
-      this.art = null;
-      this.loading_indication = null;
-      this.progress_wrapper = null;
-      this.bar = null;
-      this.loaded = null;
-      this.song_info = null;
-      this.controls_div = null;
-      this.bridge_data = null;
-      this.artist = null;
-      this.title = null;
-      this.useArt = false;
-      this.playList = false;
-      this.metadata =
-      {
-        progressWrapperWidth : 0
-      };
     };
 
     Html.funcs({
       initHtml : function(config) {
+        var div = document.querySelector( "#" + config.id );
         this.PLAYER._logger.debug('Html initializing');
         this.player = config.id;
-//        this.playlist = $('#' + this.player + ' .swagg-player-list');
-//        this.art = $('#' + this.player + ' .swagg-player-album-art');
-//        this.loading_indication = $('#' + this.player + ' img.swagg-player-loading');
-        this.progress_wrapper = $('#' + this.player + ' .swagg-player-progress-wrapper');
-        this.bar = $('#' + this.player + ' .swagg-player-bar');
-        this.loaded = $('#' + this.player + ' .swagg-player-loaded');
-//        this.song_info = $('#' + this.player + ' .swagg-player-song-info');
+        this.progress_wrapper =
+          div
+          .querySelectorAll('.swagg-player-progress-wrapper')[ 0 ];
+
         this.controls_div = $('#' + this.player + ' .swagg-player-controls');
       },
 
       setupProgressBar : function() {
-        this.PLAYER._logger.debug('setting up progress bar');
-        if (this.progress_wrapper.length > 0) {
-          var wrapper = $('#' + this.player + ' div.swagg-player-progress-wrapper'),
-            height = wrapper.css('height'),
-            progress = $('<div></div>'),
-            loaded = $('<div></div>');
 
-          loaded.addClass("swagg-player-loaded").css('height', height).css('width',0).css('float','left').css('margin-left','0');
-          wrapper.append(loaded);
-          this.loaded = $('#' + this.player + ' div.swagg-player-loaded');
-          
-          progress.addClass('swagg-player-bar').css('height', height).css('width',0).css('float','left').css('margin-left','auto');
-          loaded.append(progress);
-          this.bar = $('#' + this.player + ' div.swagg-player-bar');
-          this.metadata.progressWrapperWidth = parseFloat(this.progress_wrapper.css('width'));
+        this.PLAYER._logger.debug('setting up progress bar');
+        if ( this.progress_wrapper ) {
+          var wrapper = this.progress_wrapper;
+          var height = wrapper.offsetHeight;
+          var bar = document.createElement( "div" );
+          var loaded = document.createElement( "div" );
+
+          // indicates how much of the sound has loaded
+          loaded.className += "swagg-player-loaded";
+          loaded.style.height = height + "px";
+          loaded.style.width = 0 + "px";
+          loaded.style.float = "left";
+          loaded.style[ "margin-left" ] = 0;
+          this.loaded = loaded;
+          this.loaded.offset = function() {
+            return this.getBoundingClientRect();
+          }
+          wrapper.appendChild( this.loaded );
+
+
+          // indicates the progress of the currently playing sound
+          bar.className += "swagg-player-bar";
+          bar.style.height = height + "px";
+          bar.style.width = 0 + "px";
+          bar.style.float = "left";
+          bar.style[ "margin-left" ] = "auto";
+          this.bar = bar;
+          this.bar.offset = function() {
+            return this.getBoundingClientRect();
+          }
+          this.loaded.appendChild( this.bar );
         }
       }
     });
-    
+
     /*
       ============================================================= player controlls
       Handles control specific stuff
@@ -483,7 +477,7 @@
 
         function createOpFunc(op) {
           var tmp = null;
-          if (func === 'play') {           
+          if (func === 'play') {
             tmp = function() {
               p.play( p._data.curr_song );
               return false;
@@ -493,12 +487,12 @@
               p.skip( 1 );
               return false;
             };
-          } else if (func === 'stop') {           
+          } else if (func === 'stop') {
             tmp = function() {
               p.stopMusic();
               return false;
             };
-          } else if (func === 'back') {          
+          } else if (func === 'back') {
             tmp = function() {
               p.skip( 0 );
               return false;
@@ -510,11 +504,11 @@
         for (i = 0; i < ops.length; i++) {
           var func = ops[i];
           var task = createOpFunc( ops[i] );
-          
+
           controls[ func ].bind({
             click: task
           });
-          
+
         } // end for
       },
 
@@ -522,42 +516,42 @@
         var func = data.func
 
         controls[ func ].bind({
-          click : task          
+          click : task
         });
       },
 
       bindMediaKeyEvents : function() {
-        
+
         var p = this.PLAYER,
           curr_song = p._data.curr_song;
 
         p._logger.debug('Binding media key events');
 
         $(document).keydown(function(e) {
-  
+
           if (!e) { e = window.event; }
-        
+
             switch(e.which) {
               case 179:
                 p.play(curr_song);
                 return false;
-          
+
               case 178:
                 p.stopMusic();
                 return false;
-          
+
               case 176:
                 p.skip(1);
                 return false;
-          
+
               case 177:
                 p.skip(0);
                 return false;
-              
+
               case 175:
                 p.volume(curr_song, 1);
                 return false;
-          
+
               case 174:
                 p.volume(curr_song, 0);
                 return false;
@@ -570,57 +564,66 @@
 
       setupSeek : function() {
         // seek to a position in the song
-        var p = this.PLAYER,
-          html = p._html;
+        var p = this.PLAYER;
+        var html = p._html;
 
         p._logger.debug('setting up seek events');
 
-        html.loaded.css('cursor', 'pointer').bind({
-          click : function(e) {
-            var id = html.player + '-song-' + p._data.curr_song,
-              progressWrapperWidth = html.metadata.progressWrapperWidth,
-              soundobj = soundManager.getSoundById(id),
-              x = e.pageX - html.loaded.offset().left,
-              loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal,
-              duration = p.getDuration(soundobj),
-              // obtain the position clicked by the user
-              newPosPercent = x / progressWrapperWidth,
-              loaded = progressWrapperWidth * loaded_ratio,
-              // find the position within the song to which the location clicked corresponds
-              seekTo = Math.round(newPosPercent * duration);
+        function onLoadedClick(e) {
+          e.preventDefault();
+          var id = html.player + '-song-' + p._data.curr_song;
+          var progressWrapperWidth = html.progress_wrapper.offsetWidth;
+          var soundobj = soundManager.getSoundById( id );
+          var x = e.pageX - html.loaded.offset().left;
+          var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
+          var duration = p.getDuration( soundobj );
 
-            if (seekTo < soundobj.bytesLoaded) {
-              soundobj.setPosition(seekTo);
-              p.progress(soundobj);
-            }
-          }
-        });
-        
-        // seek preview data
-        html.loaded.bind( 'mouseover hover mousemove',
-          function(e){
-            var id = html.player + '-song-' + p._data.curr_song,
-              config_= p._config,
-              soundobj = soundManager.getSoundById(id),
-              x = e.pageX - html.loaded.offset().left,
-              me = this,
-              duration = p.getDuration(soundobj),
-              // obtain the position clicked by the user
-              newPosPercent = x / html.metadata.progressWrapperWidth,
-              // find the position within the song to which the location clicked corresponds
-              seekTo = Math.round(newPosPercent * duration),
-              time = p.millsToTime(seekTo, 1);
-            
-            // fire off onSeekPreview event
-            p.executeIfExists('onSeekPreview', this, [e, time]);
-          }
-        );
+          // obtain the position clicked by the user
+          var newPosPercent = x / progressWrapperWidth;
+          var loaded = progressWrapperWidth * loaded_ratio;
 
-        html.loaded.bind('mouseout',
-          function(e) {
-            p.executeIfExists('onSeekHide', this, [e]);
+          // find the position within the song to which the location clicked corresponds
+          var seekTo = Math.round(newPosPercent * duration);
+
+          if ( seekTo < soundobj.bytesLoaded ) {
+            soundobj.setPosition( seekTo );
+            p.progress( soundobj );
           }
-        );
+        }
+
+        function onMouseIn(e) {
+          e.preventDefault();
+          var id = html.player + '-song-' + p._data.curr_song;
+          var config_= p._config;
+          var soundobj = soundManager.getSoundById( id );
+          var x = e.pageX - html.loaded.offset().left;
+          var duration = p.getDuration( soundobj );
+
+          // obtain the position clicked by the user
+          var newPosPercent = x / html.progress_wrapper.offsetWidth;
+
+          // find the position within the song to which the location clicked corresponds
+          var seekTo = Math.round( newPosPercent * duration );
+          var time = p.millsToTime( seekTo, 1 );
+
+          // fire off onSeekPreview event
+          p.executeIfExists( "onSeekPreview", this, [ e, time ] );
+        }
+
+        function onMouseOut(e) {
+          p.executeIfExists( "onSeekHide", this, [ e ] );
+        }
+
+        // seek
+        html.loaded.addEventListener( "click", onLoadedClick );
+
+        // seek preview
+        html.loaded.addEventListener( "mouseover", onMouseIn );
+        html.loaded.addEventListener( "mouseover", onMouseIn );
+        html.loaded.addEventListener( "mousemove", onMouseIn );
+
+        // stop seek
+        html.loaded.addEventListener( "mouseout", onMouseOut );
       }
     });
 
@@ -666,7 +669,7 @@
           this.play.src = imagesDir + 'play.png';
           this.pause = new Image();
           this.pause.src = imagesDir + 'pause.png';
-          
+
           if (hover === true) {
             this.playOver = new Image();
             this.playOver.src = imagesDir + 'play-over.png';
@@ -674,31 +677,31 @@
             this.pauseOver.src = imagesDir + 'pause-over.png';
           }
         }
-        
+
         if (controls.skip.length > 0) {
           this.skip = new Image();
           this.skip.src = imagesDir + 'skip.png';
-          
+
           if (hover === true) {
             this.skipOver = new Image();
             this.skipOver.src = imagesDir + 'skip-over.png';
           }
         }
-        
+
         if (controls.back.length > 0) {
           this.back = new Image();
           this.back.src = imagesDir + 'back.png';
-          
+
           if (hover === true) {
             this.backOver = new Image();
             this.backOver.src = imagesDir + 'back-over.png';
           }
         }
-        
+
         if (controls.stop.length > 0) {
           this.stop = new Image();
           this.stop.src = imagesDir + 'stop.png';
-          
+
           if (hover === true) {
             this.stopOver = new Image();
             this.stopOver.src = imagesDir + 'stop-over.png';
@@ -719,16 +722,16 @@
       this._imageLoader = null;
       this._swaggPlayerApi = null;
     };
-    
+
     Controller.funcs({
       init : function(config) {
-        
+
         config = config;
-        
+
         var self = this;
 
         var sm = soundManager;
-        
+
         var opts = {
           url: "/swf",
           consoleOnly: true,
@@ -739,79 +742,78 @@
           flashLoadTimeout: 1000,
           debugMode: true
         };
-               
+
 
         this.initComponents( config );
-        
-        function onSMReady() {      
+
+        function onSMReady() {
           var html = self._html;
           var data = self._data;
           var song = data.songs[0];
           var config = self._config;
-          
+
           self.createSongs();
-          
+
           data.curr_song = 0;
-          
-          self._events.setupSeek();
-          
+
           if( config.props.autoPlay !== undefined && config.props.autoPlay === true ) {
             setTimeout(function(){
               self.play( data.curr_song );
             },1000);
           }
-          
+
           self.executeIfExists( "onSetupComplete", this, [ self._swaggPlayerApi, song ] );
-          
+
           if ( !Browser.isIe() ) {
             if ( console.timeEnd ) {
               console.timeEnd( "SwaggPlayerStart" );
             }
           }
-          
-          self._logger.info( "Swagg Player ready!" );          
-                     
+
+          self._logger.info( "Swagg Player ready!" );
+
         }; // end soundManager onready function
-          
+
         function onSMError() {
           self._logger.error( "An error has occured with loading Sound Manager! Rebooting." );
           self.executeIfExists( "onErrorComplete", self, [] );
         };
-        
+
         soundManager.onerror = onSMError;
-        
+
         soundManager.onload = onSMReady;
-        
+
         soundManager.ontimeout = onSMError;
-        
-        soundManager.setup( opts );         
+
+        soundManager.setup( opts );
       }, // end Controller.init
-      
-      
+
+
       createSongs: function() {
         var self = this;
         this._logger.info('createSongs()');
         var data = self._data;
         var songs = data.songs;
-        
+
         if( data.songs[0] !== undefined ) {
           var  config = self._config;
           var html = self._html;
           var factory = new SoundFactory( self );
           var s = null, tmp = null
-          
+
           for (var i = 0, end = songs.length; i < end; i++) {
             s = songs[i];
             tmp = factory.createSound( s );
           }
         } else {
           this._logger.error('No Songs!!');
-        }       
+        }
       },
 
       initComponents : function(config) {
 
         var self = this;
+
         // initialize configuration
         this._config = new Config(this);
 
@@ -826,43 +828,51 @@
         this._data = new Data(this);
 
         // setup html elements
-        this._html = new Html(this);
-        this._html.initHtml(config);
+        this._html = new Html( this );
+
+        this._html.initHtml( config );
+
+        this._html.setupProgressBar();
+
+
+        // controls, images
+        this._controls = new Controls(self);
+        this._imageLoader = new ImageLoader(self);
+        this._imageLoader.setup();
+
+
+        if (config.buttonsDir !== undefined) {
+          this._controls.setup(this._html.controls_div);
+        }
+
+        // setup controller events
+        this._events = new Events(this);
+
+        // seek events
+        this._events.setupSeek();
+
+        // events for player controls
+        this._events.bindControllerEvents();
+
+        // keyboard media events
+        this._events.bindMediaKeyEvents();
+
+        // api
+        this.setupApi();
 
         $.when(this._data.getSongs()).done(function(err){
-          
+
           if (err) {
-            this.executeIfExists('onError', this, []);
+            this.executeIfExists( "onError", this, [] );
           } else {
-            
+
             // check for soundManager support and warn or inform accordingly
-            if (!soundManager.supported()) {
+            if ( !soundManager.supported() ) {
               self._logger.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
             }
             else {
               self._logger.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
             }
-            
-            // init onSeek events
-            self._html.setupProgressBar();
-            
-            // create invisible element which will hold user accessible data
-            self.setupApi();
-
-            // controls, images
-            self._controls = new Controls(self);
-            self._imageLoader = new ImageLoader(self);
-            self._imageLoader.setup();
-          
-
-            if (config.buttonsDir !== undefined) {
-              self._controls.setup(self._html.controls_div);
-            }
-
-            // setup controller events
-            self._events = new Events(self);
-            self._events.bindControllerEvents();
-            self._events.bindMediaKeyEvents();
 
           } // end else
         });
@@ -953,7 +963,7 @@
           config.props[func].apply(scope, args);
         }
       },
-    
+
       // get the duration of a song in milliseconds
       getDuration : function(soundobj) {
         var duration;
@@ -964,7 +974,7 @@
         }
         return duration;
       },
-      
+
       // repeats the currently playing track
       repeat : function(track) {
         var sound_id = this._html.player + '-song-' + this._data.curr_song,
@@ -975,13 +985,13 @@
         target.setPosition(0);
         target.play();
       },
-        
+
       // Plays a song based on the ID
       play : function(track){
         var  sound_id = this._html.player + '-song-' + track,
           fromBeginning,
           target = soundManager.getSoundById(sound_id);
-        
+
         this._logger.debug('Playing track: ' + sound_id);
 
         if (target.paused === true) { // if current track is paused, unpause
@@ -1001,27 +1011,27 @@
         }
         return fromBeginning;
       },
-        
+
       // creates the API element
       setupApi : function() {
         this._logger.debug('setting up api');
         this._swaggPlayerApi = new API(this);
         this.internal.player = this;
       },
-      
+
       // toggles the play/pause button to the play state
       playPauseButtonState : function(state){
         var imagesLoaded = this._imageLoader.imagesLoaded;
         var src = this._imageLoader.play.src;
         var image = this._controls.play;
-        
-        if (state === 1 ) { 
+
+        if (state === 1 ) {
           // play state
           src = this._imageLoader.play.src;
-        } else if (state === 0) { 
+        } else if (state === 0) {
           // pause state
           src = this._imageLoader.pause.src;
-        } else { 
+        } else {
           // invalid state
           this._logger.error('Invalid button state! : ' + state);
         }
@@ -1029,7 +1039,7 @@
           image.attr('src', src);
         }
       },
-    
+
       // Skips to the next song. If the currently playing song is the last song in the list
       // it goes back to the first song
       skip : function(direction){
@@ -1038,8 +1048,8 @@
         var t = parseInt( data.curr_song );
 
         this._logger.info('skip()');
-        
-        if (direction === 1) { 
+
+        if (direction === 1) {
           // skip forward
           if ( t < data.songs.length ){
             if ( t === ( data.songs.length - 1 ) ) {
@@ -1058,35 +1068,35 @@
         } else { // invalid flag
           this._logger.error('Invalid skip direction flag: ' + direction);
         }
-        
+
         this.stopMusic();
         data.curr_song = t;
         this.play( t );
-        
+
       },
-      
+
       jumpTo : function(t) {
         this._logger.debug('jumping to track ' + t);
         this.stopMusic();
         this._data.curr_song = t;
         this.play(t);
       },
-      
+
       // Resets the progress bar back to the beginning
       resetProgressBar : function(){
-        this._html.bar.css('width', 0);
-        this._html.loaded.css('width', 0);
+        this._html.bar.style.width = 0;
+        this._html.loaded.style.width = 0;
       },
-    
+
       // Stops the specified song
       stopMusic : function() {
-        this._logger.debug('stopping music');
-        this.playPauseButtonState(1);
+        this._logger.debug( "stopping music" );
+        this.playPauseButtonState( 1 );
         this.resetProgressBar();
         soundManager.stopAll();
         //soundManager.stop('swagg-player-song-' + this._data.curr_song.toString());
       },
-        
+
       // Increases the volume of the specified song
       volume : function(track, flag) {
         var sound_id = this._html.player + '-song-' + track,
@@ -1105,11 +1115,11 @@
           this._logger.error('Invalid volume flag!');
         }
       },
-        
+
       fillLoaded : function() {
-        this._html.loaded.css('width', this._html.metadata.progressWrapperWidth);
+        this._html.loaded.style.width = this._html.progress_wrapper.offsetWidth + "px";
       },
-        
+
       loaded : function(soundobj) {
         if (soundobj.loaded === true && soundobj.readyState === 3 && soundobj.bytesLoaded === soundobj.bytesTotal) {
           return true;
@@ -1117,63 +1127,66 @@
           return false;
         }
       },
-        
+
       whileLoading : function(soundobj) {
         // get current position of currently playing song
-        var pos = soundobj.position,
-          loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal,
-          duration = soundobj.duration;
-        
-          // width of progress bar
-        var  wrapper_width = this._html.metadata.progressWrapperWidth,
-          loaded = wrapper_width * loaded_ratio;
+        var pos = soundobj.position;
+        var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
+        var duration = soundobj.duration;
 
-        this._html.loaded.css('width', loaded);
+        // width of progress bar
+        var wrapper_width = this._html.progress_wrapper.offsetWidth;
+        var loaded = wrapper_width * loaded_ratio;
+
+        this._html.loaded.style.width = loaded + "px";
         return loaded_ratio;
       },
-      
+
       // updates the UI progress bar
       progress : function(soundobj) {
+
         // get current position of currently playing song
-        var pos = soundobj.position,
-          duration = 0,
-          loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
-        
+        var pos = soundobj.position;
+        var duration = 0;
+        var loaded_ratio = soundobj.bytesLoaded / soundobj.bytesTotal;
+
         if (soundobj.loaded === false) {
           duration = soundobj.durationEstimate;
         }
         else {
           duration = soundobj.duration;
         }
-        
+
         // ratio of (current position / total duration of song)
-        var pos_ratio = pos/duration,
-          // width of progress bar
-          wrapper_width = this._html.metadata.progressWrapperWidth,
-          // set width of inner progress bar equal to the width equivelant of the
-          // current position
-          t = wrapper_width*pos_ratio;
-        this._html.bar.css('width', t);
+        var pos_ratio = pos/duration;
+
+        // width of progress bar
+        var wrapper_width = this._html.progress_wrapper.offsetWidth;
+        // set width of inner progress bar equal to the width equivelant of the
+        // current position
+        var t = wrapper_width * pos_ratio;
+
+        this._html.bar.style.width = t + "px";
       },
-      
+
       millsToTime : function(duration, flag) {
-          var utils = new Utils(),
+        var utils = new Utils(),
             seconds = Math.floor(duration / 1000),
             minutes = 0;
 
-          if (seconds > 60) {
-            minutes = Math.floor(seconds / 60);
-            seconds = Math.round(seconds % 60);
-          }
+        if (seconds > 60) {
+          minutes = Math.floor(seconds / 60);
+          seconds = Math.round(seconds % 60);
+        }
 
-          if (seconds === 60) {
-            minutes += 1;
-            seconds = 0;
-          }
-          
-          return {mins: utils.timeString(minutes), secs : utils.timeString(seconds)};
+        if (seconds === 60) {
+          minutes += 1;
+          seconds = 0;
+        }
+
+        return { mins: utils.timeString( minutes ), secs : utils.timeString( seconds ) };
       },
-  
+
       /*
         ============================================================ API Stuff
       */
@@ -1191,9 +1204,8 @@
         adjustProgress : function () {
           var html = controller._html;
           var id = html.player + '-song-' + controller._data.curr_song.toString();
-          html.metadata.progressWrapperWidth = parseFloat(html.progress_wrapper.css('width'));
-          var sound = soundManager.getSoundById(id);
-          controller.whileLoading(sound);
+          var sound = soundManager.getSoundById( id );
+          controller.whileLoading( sound );
         }
       };
 
@@ -1205,45 +1217,45 @@
           controller.internal.repeatMode = (flag === true || flag === false) ? flag : false;
           return self;
         },
-        
+
         inRepeat : function() {
           var r = controller.internal.repeat;
           return (r === true || r === false) ? r : false;
         },
-        
+
         volUp : function() {
-          controller.volume(controller._data.curr_song, 1);
+          controller.volume( controller._data.curr_song, 1 );
           return self;
         },
-        
+
         volDown : function(){
-          controller.volume(controller._data.curr_song, 0);
+          controller.volume( controller._data.curr_song, 0 );
           return self;
         },
 
         playTrack : function(track) {
           var actualTrack = track - 1;
-          if (actualTrack <= (controller._data_.last_song) && actualTrack >= 0) {
+          if ( actualTrack <= ( controller._data_.last_song) && actualTrack >= 0 ) {
             controller.jumpTo(track - 1);
           } else {
-            controller._logger.apierror("Invalid track number '" + track + "'");
+            controller._logger.apierror( "Invalid track number '" + track + "'" );
           }
           return self;
         },
 
         togglePlay : function () {
-          controller.play(controller._data.curr_song);
+          controller.play( controller._data.curr_song );
         },
-        
+
         stop : function() {
           controller.stopMusic();
         },
-        
+
         addTracks : function(trackData, callback) {
           var player = controller.PLAYER,
             factory = new SoundFactory(controller),
             t, songObj, s, i;
-          
+
           if ($.isArray(trackData)) {
             for (i = 0; i < trackData.length; i++) {
               t = controller._data.last_song;
