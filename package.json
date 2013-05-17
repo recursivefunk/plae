@@ -5,7 +5,7 @@
   "author": {
     "name": "Johnny Ray Austin",
     "email": "johnny@johnnyray.me",
-    "url": "https://github.com/johnny-ray"
+    "url": "http://johnnyray.me"
   },
   "demo": "http://johnnyray.me",
   "licenses": [
@@ -24,14 +24,9 @@
     "music",
     "player",
     "swagg",
+    "jquery",
     "swag",
     "media",
     "javascript"
-  ],
-  "homepage": "http://swaggplayer.no.de",
-  "files": [
-    "js/jquery.swaggplayer.js",
-    "js/soundmanager2-nodebug-jsmin.js",
-    "swf/soundmanager2.swf"
   ]
 }
