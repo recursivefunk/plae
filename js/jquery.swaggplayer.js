@@ -7,10 +7,10 @@
   Code provided under the MIT License:
   http://www.opensource.org/licenses/mit-license.php
 
-  v0.8.9.1
+  v0.8.9.2
 
   Change Log
-  - Trying to use as little of jQuery as possible
+  - More steps away from jQuery
 */
 
 (function (factory) {
@@ -32,7 +32,7 @@
 
     Function.prototype.funcs = function(obj) {
       for (var prop in obj) {
-        this.func(prop,obj[prop]);
+        this.func( prop, obj[ prop ] );
       }
     };
 
@@ -48,31 +48,32 @@
 
     var Init = {
       ieStuff : function() {
-        if (!Array.prototype.indexOf) {
+        // snagged this function someplace I forgot where
+        if ( !Array.prototype.indexOf ) {
           Array.prototype.indexOf = function (searchElement, fromIndex ) {
-            if (this === null) {
+            if ( this === null ) {
               throw new TypeError();
             }
-            var t = new Object(this);
+            var t = new Object( this );
             var len = t.length >>> 0;
-            if (len === 0) {
+            if ( len === 0 ) {
               return -1;
             }
             var n = 0;
-            if (arguments.length > 0) {
-              n = Number(arguments[1]);
-              if (isNaN(n)) {
+            if ( arguments.length > 0 ) {
+              n = Number( arguments[ 1 ] );
+              if ( isNaN( n ) ) {
                 n = 0;
-              } else if (n !== 0 && n !== Infinity && n !== -Infinity) {
-                n = (n > 0 || -1) * Math.floor(Math.abs(n));
+              } else if ( n !== 0 && n !== Infinity && n !== -Infinity ) {
+                n = ( n > 0 || -1 ) * Math.floor( Math.abs( n ) );
               }
             }
-            if (n >= len) {
+            if ( n >= len ) {
               return -1;
             }
-            var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
+            var k = n >= 0 ? n : Math.max( len - Math.abs( n ), 0 );
             for (; k < len; k++) {
-              if (k in t && t[k] === searchElement) {
+              if ( k in t && t[ k ] === searchElement ) {
                 return k;
               }
             }
@@ -82,11 +83,11 @@
       }
     };
 
-    $.fn.SwaggPlayer = function (options_) {
-      var id = {};
-      id[ "id" ] = this.attr( "id" );
+    $.fn.SwaggPlayer = function (opts) {
+      opts.id = {};
+      opts.id = this.attr( "id" );
 
-      if ( id[ "id" ] ) {
+      if ( opts.id ) {
         if ( !Browser.isIe( )) {
           if ( console.time ) {
             console.time( "SwaggPlayerStart" );
@@ -94,8 +95,6 @@
         }
 
         Init.ieStuff();
-
-        var opts = $.extend( options_, id );
 
         var player = new Controller();
 
@@ -129,7 +128,7 @@
       this.PLAYER = p;
       this.log = p._config.consoleSupport;
       this.logging = p._config.props.logging || [];
-      this.levelall = this.logging.indexOf('all') > -1;
+      this.levelall = this.logging.indexOf( 'all' ) > -1;
       this.levelinfo = this.levelall === true ? true : this.logging.indexOf('info') > -1;
       this.levelerror = this.levelall === true ? true : this.logging.indexOf('error') > -1;
       this.levelapierror = this.levelall === true ? true : this.logging.indexOf('apierror') > -1;
@@ -140,38 +139,38 @@
 
     Logger.funcs({
       error : function(errMsg){
-        if ( this.levelerror && this.log) {
-          console.error('Swagg Player::' + this.id + '::Error::' + errMsg);
+        if ( this.levelerror && this.log ) {
+          console.error( 'Swagg Player::' + this.id + '::Error::' + errMsg );
         }
       },
       info : function(info){
-        if (this.levelinfo && this.log) {
-          console.log('Swagg Player::' + this.id + '::Info::' + info);
+        if ( this.levelinfo && this.log ) {
+          console.log( 'Swagg Player::' + this.id + '::Info::' + info );
         }
       },
       warn : function(warning) {
-        if (this.levelwarn && this.log) {
-          console.warn('Swagg Player::' + this.id + '::Warning::' + warning);
+        if ( this.levelwarn && this.log ) {
+          console.warn( 'Swagg Player::' + this.id + '::Warning::' + warning );
         }
       },
       debug : function(warning) {
-        if (this.leveldebug && this.log) {
-          console.warn('Swagg Player::' + this.id + '::Debug::' + warning);
+        if ( this.leveldebug && this.log ) {
+          console.warn( 'Swagg Player::' + this.id + '::Debug::' + warning );
         }
       },
       apierror : function(errMsg) {
-        if (this.levelapierror && thims.log) {
-          console.error('Swagg Player::' + this.id + '::API Error::' + errMsg);
+        if ( this.levelapierror && thims.log ) {
+          console.error( 'Swagg Player::' + this.id + '::API Error::' + errMsg );
         }
       }
     });
 
     var Utils = function(){};
 
-    Utils.func('timeString', function(str) {
-      var tmp = parseInt(str,10),
-        t = tmp > 9 ? str : '0' + str;
-      return t !== '60' ? t : '00';
+    Utils.func("timeString", function(str) {
+      var tmp = parseInt( str, 10 ),
+        t = tmp > 9 ? str : "0" + str;
+      return t !== "60" ? t : "00";
     });
 
     /*
@@ -179,7 +178,7 @@
     */
     var SoundFactory = function(p) {
       this.player = p;
-      p._logger.debug('SoundFactory Initiated');
+      p._logger.debug( 'SoundFactory Initiated' );
     };
 
     SoundFactory.funcs({
@@ -190,101 +189,71 @@
         var songs = this.player._data.songs;
         var id = songObj.id;
 
-        if ( !songs[songObj.id] ) {
+        if ( !songs[ songObj.id ] ) {
           this.player._data.songs.push( songObj );
         }
 
         var myid = this.player._html.player + '-song-' + id.toString();
         var sm = soundManager;
 
-        sm.callback = function(params) {
-          $
-           .when(params.scope.player[ params.first ]( params.sound ))
-           .done(
-              function(args) {
-                params.scope.player.executeIfExists( params.next, params.sound, args );
-              }
-            );
-        };
+        sm.callback = function(scope, sound, first, next ) {
+
+          var onComplete = function(args) {
+            scope.player.executeIfExists( next, sound, [ args ] );
+          }
+
+          scope.player[ first ]( sound, onComplete );
+        }
+
+        var callbacks =
+            [ "onPlay", "onPause", "onStop", "onFinish", "onResume", "whilePlaying", "whileLoading", "onError" ];
+
 
         var newSound = sm.createSound({
+
           id: myid,
+
           url: songObj.url,
+
           autoLoad: config.props.eagerLoad || false,
+
           usePolicyFile: false,
+
+          // TODO: there's a better way to do this!
           onplay: function(){
-            var sound = this;
-            sm.callback({
-              scope : self,
-              first : '_onplay',
-              sound : this,
-              next : 'onPlay'
-            });
+            sm.callback( self, this, "_onplay", "onPlay" );
           },
+
           onpause: function(){
-            var sound = this;
-            sm.callback({
-              scope : self,
-              first : '_onpause',
-              sound : this,
-              next : 'onPause'
-            });
+            sm.callback( self, this, "_onpause", "onPause" );
           },
+
           onstop: function(){
-            var sound = this;
-            sm.callback({
-              scope : self,
-              first : '_onstop',
-              sound : this,
-              next : 'onStop'
-            });
+            sm.callback( self, this, "_onstop", "onStop" );
           },
+
           onfinish: function(){
-            var sound = this;
-            sm.callback({
-              scope : self,
-              first : '_onfinish',
-              sound : this,
-              next : 'onFinish'
-            });
+            sm.callback( self, this, "_onfinish", "onFinish" );
           },
+
           onresume: function(){
-            var sound = this;
-            sm.callback({
-              scope : self,
-              first : '_onresume',
-              sound : this,
-              next : 'onResume'
-            });
+            sm.callback( self, this, "_onresume", "onResume" );
           },
+
           whileplaying: function() {
-            var sound = this;
-            sm.callback({
-              scope : self,
-              first : '_whileplaying',
-              sound : this,
-              next : 'whilePlaying'
-            });
+            sm.callback( self, this, "_whileplaying", "whilePlaying" );
           },
+
           whileloading: function(){
-            var sound = this;
-            sm.callback({
-              scope : self,
-              first : '_whileloading',
-              sound : this,
-              next : 'whileLoading'
-            });
+            sm.callback( self, this, "_whileloading", "whileLoading" );
           },
+
           onerror: function(){
-            var sound = this;
-            sm.callback({
-              scope : self,
-              first : '_onerror',
-              sound : this,
-              next : 'onError'
-            });
+            sm.callback( self, this, "_onerror", "onError" );
           }
+
         });
+
         newSound.id = myid;
         newSound.repeat = self.player.internal.repeat;
         self.player._data.last_song = songObj.id;
@@ -294,7 +263,7 @@
 
     /* Model for songs */
     var Song = function(obj, id) {
-      for (var prop in obj) {
+      for ( var prop in obj ) {
         this[ prop ] = obj[ prop ];
         if ( prop === "thumb" ) {
           this.image = new Image();
@@ -310,7 +279,7 @@
       handles the fetching and processing of songs
     */
     var Data = function(p) {
-      p._logger.debug('Data intializing');
+      p._logger.debug( 'Data intializing' );
       this.PLAYER = p;
       this.last_song = -1;
       this.songs = [];
@@ -333,7 +302,7 @@
         // preload SONG album  and append an IDs to the songs - make configurable in the future
         // to avoid having to loop through JSON array
         for (var i = 0; i < size; i++) {
-          var tmp = new Song(theData[i], i);
+          var tmp = new Song( theData[i], i);
           _songs.push(tmp);
         }
         this.songs = _songs;
@@ -345,30 +314,33 @@
         var config = this.PLAYER._config;
         var theData = config.props.data;
 
+        this.processSongs( theData );
+        return;
 
+        // THIS IS ON IT'S WAY OUT!!
         // Check if dataString points to a json file if so, fetch it.
         // if not, assume string is a literal JSON object
-        if (typeof theData === 'string') {
-          $.ajax({
-            type: "GET",
-            url: theData,
-            dataType: 'json',
-            success: function(data){
-              self.processSongs(data);
-              return;
-            },
-            error: function(xhr, ajaxOptions, thrownError){
-              var msg = 'There was a problem fetching your songs from the server: ' + thrownError;
-              self.PLAYER._logger.error(msg);
-              return msg;
-            }
-          });
-          return;
-        } // end if
-        else {
-          this.processSongs(theData);
-          return;
-        }
+//         if (typeof theData === 'string') {
+//           $.ajax({
+//             type: "GET",
+//             url: theData,
+//             dataType: 'json',
+//             success: function(data){
+//               self.processSongs( data );
+//               return;
+//             },
+//             error: function(xhr, ajaxOptions, thrownError){
+//               var msg = 'There was a problem fetching your songs from the server: ' + thrownError;
+//               self.PLAYER._logger.error(msg);
+//               return msg;
+//             }
+//           });
+//           return;
+//         } // end if
+//         else {
+//           this.processSongs( theData );
+//           return;
+//         }
       }
     });
 
@@ -436,23 +408,25 @@
     */
     var Controls = function(p) {
       this.PLAYER = p;
-      this.play = null;
-      this.skip = null;
-      this.back = null;
-      this.stop = null;
+//       this.play = null;
+//       this.skip = null;
+//       this.back = null;
+//       this.stop = null;
     };
 
     Controls.funcs({
       setup : function(img) {
-        var p = this.PLAYER,
-          imageLoader = p._imageLoader;
+        var p = this.PLAYER;
+        var mageLoader = p._imageLoader;
 
         p._logger.debug('setting up controls');
 
-        this.play =  $('#' + p._html.player + ' .swagg-player-play-button');
-        this.skip =  $('#' + p._html.player + ' .swagg-player-skip-button');
-        this.back =  $('#' + p._html.player + ' .swagg-player-back-button');
-        this.stop =  $('#' + p._html.player + ' .swagg-player-stop-button');
+        var div = document.querySelector( "#" + p._html.player );
+
+        this.play =  div.querySelectorAll( ".swagg-player-play-button" )[ 0 ];
+        this.skip =  div.querySelectorAll( ".swagg-player-skip-button" )[ 0 ];
+        this.back =  div.querySelectorAll( ".swagg-player-back-button" )[ 0 ];
+        this.stop =  div.querySelectorAll( ".swagg-player-stop-button" )[ 0 ];
       }
     });
 
@@ -505,61 +479,13 @@
           var func = ops[i];
           var task = createOpFunc( ops[i] );
 
-          controls[ func ].bind({
-            click: task
-          });
+          if ( controls[ func ] ) {
+            controls[ func ].addEventListener( "click", task );
+          } else {
+            p._logger.debug( "Didn't find a " + func + " button" );
+          }
 
         } // end for
-      },
-
-      bindEvents : function(data, task) {
-        var func = data.func
-
-        controls[ func ].bind({
-          click : task
-        });
-      },
-
-      bindMediaKeyEvents : function() {
-
-        var p = this.PLAYER,
-          curr_song = p._data.curr_song;
-
-        p._logger.debug('Binding media key events');
-
-        $(document).keydown(function(e) {
-
-          if (!e) { e = window.event; }
-
-            switch(e.which) {
-              case 179:
-                p.play(curr_song);
-                return false;
-
-              case 178:
-                p.stopMusic();
-                return false;
-
-              case 176:
-                p.skip(1);
-                return false;
-
-              case 177:
-                p.skip(0);
-                return false;
-
-              case 175:
-                p.volume(curr_song, 1);
-                return false;
-
-              case 174:
-                p.volume(curr_song, 0);
-                return false;
-
-              default:
-                return false;
-          }
-        });
       },
 
       setupSeek : function() {
@@ -633,17 +559,6 @@
     */
     var ImageLoader = function(p) {
       this.PLAYER = p;
-      this.play = null;
-      this.playOver = null;
-      this.pause = null;
-      this.pauseOver = null;
-      this.stop = null;
-      this.stopOver = null;
-      this.back = null;
-      this.backOver = null;
-      this.skip = null;
-      this.skipOver = null;
-      this.art = null;
       this.imagesLoaded = false;
     };
 
@@ -664,7 +579,7 @@
 
         player._logger.debug('Loading images for controls');
 
-        if (controls.play.length > 0) {
+        if ( controls.play ) {
           this.play = new Image();
           this.play.src = imagesDir + 'play.png';
           this.pause = new Image();
@@ -678,7 +593,7 @@
           }
         }
 
-        if (controls.skip.length > 0) {
+        if ( controls.skip ) {
           this.skip = new Image();
           this.skip.src = imagesDir + 'skip.png';
 
@@ -688,7 +603,7 @@
           }
         }
 
-        if (controls.back.length > 0) {
+        if ( controls.back ) {
           this.back = new Image();
           this.back.src = imagesDir + 'back.png';
 
@@ -698,7 +613,7 @@
           }
         }
 
-        if (controls.stop.length > 0) {
+        if ( controls.stop ) {
           this.stop = new Image();
           this.stop.src = imagesDir + 'stop.png';
 
@@ -712,16 +627,7 @@
       }
     });
 
-    var Controller = function(){
-      this._logger = null;
-      this._data = null;
-      this._html = null;
-      this._config = null;
-      this._events = null;
-      this._controls = null;
-      this._imageLoader = null;
-      this._swaggPlayerApi = null;
-    };
+    var Controller = function(){};
 
     Controller.funcs({
       init : function(config) {
@@ -815,9 +721,11 @@
         var self = this;
 
         // initialize configuration
-        this._config = new Config(this);
+        this._config = new Config( this );
 
-        this._config.props = $.extend(this._config.props,config);
+        for (var i in config) {
+          this._config.props[ i ] = config[ i ];
+        }
 
         // setup logging
         this._logger = new Logger(this, config.id);
@@ -854,9 +762,6 @@
         // events for player controls
         this._events.bindControllerEvents();
 
-        // keyboard media events
-        this._events.bindMediaKeyEvents();
-
         // api
         this.setupApi();
 
@@ -892,17 +797,17 @@
         return [time];
       },
 
-      _onplay : function(sound) {
-        var data = this._data,
-          song = data.songs[data.curr_song],
-          arg = {},
-          prop;
+      _onplay : function(sound, callback) {
+        var data = this._data;
+        var song = data.songs[ data.curr_song ];
+        var arg = {};
 
-        for (prop in song) {
-          if (prop != 'id' && $.isFunction(song[prop]) === false) {
-            arg[prop] = song[prop];
+        for (var prop in song) {
+          if ( prop != "id" && typeof( song[ prop ] ) !== "function" ) {
+            arg[ prop ] = song[ prop ];
           }
         }
+
         this.playPauseButtonState(0);
 
         // if the song has already fully loaded the whileloading callback won't fire
@@ -910,7 +815,11 @@
         if (this.loaded(sound) === true) {
           this.fillLoaded();
         }
-        return [arg];
+        if ( callback ) {
+          return callback( arg );
+        } else {
+          return [ arg ];
+        }
       },
 
       _onpause : function(sound) {
@@ -959,8 +868,8 @@
 
       executeIfExists : function(func, scope, args) {
         var config = this._config;
-        if (config.props[func] && $.isFunction(config.props[func])) {
-          config.props[func].apply(scope, args);
+        if ( config.props[ func ] && typeof( config.props[ func ] ) === 'function' ) {
+          config.props[ func ].apply( scope, args );
         }
       },
 
@@ -977,8 +886,8 @@
 
       // repeats the currently playing track
       repeat : function(track) {
-        var sound_id = this._html.player + '-song-' + this._data.curr_song,
-            target = soundManager.getSoundById(sound_id);
+        var sound_id = this._html.player + '-song-' + this._data.curr_song;
+        var target = soundManager.getSoundById(sound_id);
 
         this._logger.info('repeat()');
         this.resetProgressBar();
@@ -988,18 +897,18 @@
 
       // Plays a song based on the ID
       play : function(track){
-        var  sound_id = this._html.player + '-song-' + track,
-          fromBeginning,
-          target = soundManager.getSoundById(sound_id);
+        var  sound_id = this._html.player + '-song-' + track;
+        var fromBeginning;
+        var target = soundManager.getSoundById(sound_id);
 
         this._logger.debug('Playing track: ' + sound_id);
 
-        if (target.paused === true) { // if current track is paused, unpause
+        if ( target.paused === true ) { // if current track is paused, unpause
           this._logger.debug('Unpausing song');
           target.resume();
         }
         else { // track is not paused
-          if (target.playState === 1) {// if track is already playing, pause it
+          if ( target.playState === 1 ) {// if track is already playing, pause it
             this._logger.info('Pausing current track');
             target.pause();
           }
@@ -1035,8 +944,8 @@
           // invalid state
           this._logger.error('Invalid button state! : ' + state);
         }
-        if (imagesLoaded === true) {
-          image.attr('src', src);
+        if ( imagesLoaded === true ) {
+          image.setAttribute( "src", src );
         }
       },
 
@@ -1090,6 +999,7 @@
 
       // Stops the specified song
       stopMusic : function() {
+
         this._logger.debug( "stopping music" );
         this.playPauseButtonState( 1 );
         this.resetProgressBar();
@@ -1099,9 +1009,9 @@
 
       // Increases the volume of the specified song
       volume : function(track, flag) {
-        var sound_id = this._html.player + '-song-' + track,
-          sound = soundManager.getSoundById(sound_id),
-          curr_vol = sound.volume;
+        var sound_id = this._html.player + '-song-' + track;
+        var sound = soundManager.getSoundById(sound_id);
+        var curr_vol = sound.volume;
 
         if (flag === 1) {
           this._logger.debug('increasing volume');
@@ -1251,24 +1161,24 @@
           controller.stopMusic();
         },
 
-        addTracks : function(trackData, callback) {
-          var player = controller.PLAYER,
-            factory = new SoundFactory(controller),
-            t, songObj, s, i;
+        addTracks : function(trackData) {
+          var player = controller.PLAYER;
+          var factory = new SoundFactory( controller );
+          var t, songObj, s, i;
 
-          if ($.isArray(trackData)) {
+          if ( Object.prototype.toString.call( trackDate ).indexOf( "Array" ) > -1 ) {
             for (i = 0; i < trackData.length; i++) {
               t = controller._data.last_song;
-              songObj = new Song(trackData[i], t+1);
-              s = factory.createSound(songObj);
+              songObj = new Song( trackData[ i ], t + 1 );
+              s = factory.createSound( songObj );
             }
           } else {
             t = controller._data.last_song;
-            songObj = new Song(trackData, t+1);
-            s = factory.createSound(songObj);
+            songObj = new Song( trackData, t + 1 );
+            s = factory.createSound( songObj );
           }
-          if (callback) {
-            callback.apply(null, []);
+          if ( callback ) {
+            return callback();
           }
         }
       }; // end playback funcs
