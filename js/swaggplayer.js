@@ -7,25 +7,20 @@
   Code provided under the MIT License:
   http://www.opensource.org/licenses/mit-license.php
 
-  v0.8.9.2
+  v0.9.0.0
 
   Change Log
-  - More steps away from jQuery
+  - No longer a jQuery plugin!
 */
 
-(function (factory) {
-  if (typeof define === 'function' && define.amd) {
-    // AMD. Register as an anonymous module.
-    define(['jquery'], factory);
-  } else {
-    // Browser globals
-    factory(jQuery);
-  }
-}(function ($) {
+(function () {
+
+    var SwaggPlayer = {};
+    var root = this;
 
     Function.prototype.func = function(name, func) {
-      if (!this[name]) {
-        this.prototype[name] = func;
+      if ( !this[ name ] ) {
+        this.prototype[ name ] = func;
       }
       return this;
     };
@@ -39,10 +34,10 @@
     //  BEGIN BROWSER DETECT
     var Browser = {
       isIe : function(){
-        return (navigator.userAgent.indexOf('MSIE') > -1) ? true : false;
+        return ( navigator.userAgent.indexOf( "MSIE" ) > -1 ) ? true : false;
       },
       isSafari : function(){
-        return (navigator.userAgent.indexOf('AppleWebKit') > -1 && navigator.userAgent.indexOf('Chrome') === -1);
+        return ( navigator.userAgent.indexOf( "AppleWebKit" ) > -1 && navigator.userAgent.indexOf( "Chrome" ) === -1 );
       }
     }; // END BROWSER DETECT
 
@@ -83,9 +78,11 @@
       }
     };
 
-    $.fn.SwaggPlayer = function (opts) {
-      opts.id = {};
-      opts.id = this.attr( "id" );
+    SwaggPlayer.init = function (opts) {
+
+      opts.id =
+        document.querySelector( opts.element )
+        .getAttribute( "id" );
 
       if ( opts.id ) {
         if ( !Browser.isIe( )) {
@@ -101,7 +98,7 @@
         player.init( opts );
 
       } else {
-        $.error( "Swagg Player element missing id attribute!" );
+        logger.error( "Swagg Player element missing id attribute!" );
       }
     };
 
@@ -168,8 +165,8 @@
     var Utils = function(){};
 
     Utils.func("timeString", function(str) {
-      var tmp = parseInt( str, 10 ),
-        t = tmp > 9 ? str : "0" + str;
+      var tmp = parseInt( str, 10 );
+      var t = tmp > 9 ? str : "0" + str;
       return t !== "60" ? t : "00";
     });
 
@@ -183,18 +180,17 @@
 
     SoundFactory.funcs({
       createSound : function(songObj) {
-        var  self = this;
-        var html = this.player._html;
+        var self   = this;
+        var html   = this.player._html;
         var config = this.player._config;
-        var songs = this.player._data.songs;
-        var id = songObj.id;
+        var songs  = this.player._data.songs;
+        var id     = songObj.id;
+        var myid   = this.player._html.player + '-song-' + id.toString();
+        var sm     = soundManager;
 
         if ( !songs[ songObj.id ] ) {
           this.player._data.songs.push( songObj );
         }
-
-        var myid = this.player._html.player + '-song-' + id.toString();
-        var sm = soundManager;
 
         sm.callback = function(scope, sound, first, next ) {
 
@@ -298,49 +294,23 @@
         var _html = player._html;
         var _config_ = player._config;
 
-
         // preload SONG album  and append an IDs to the songs - make configurable in the future
         // to avoid having to loop through JSON array
         for (var i = 0; i < size; i++) {
-          var tmp = new Song( theData[i], i);
+          var tmp = new Song( theData[ i ], i );
           _songs.push(tmp);
         }
         this.songs = _songs;
         this.last_song = this.songs.length - 1;
       },
 
-      getSongs : function() {
+      getSongs : function(callback) {
         var self = this;
         var config = this.PLAYER._config;
         var theData = config.props.data;
 
         this.processSongs( theData );
-        return;
-
-        // THIS IS ON IT'S WAY OUT!!
-        // Check if dataString points to a json file if so, fetch it.
-        // if not, assume string is a literal JSON object
-//         if (typeof theData === 'string') {
-//           $.ajax({
-//             type: "GET",
-//             url: theData,
-//             dataType: 'json',
-//             success: function(data){
-//               self.processSongs( data );
-//               return;
-//             },
-//             error: function(xhr, ajaxOptions, thrownError){
-//               var msg = 'There was a problem fetching your songs from the server: ' + thrownError;
-//               self.PLAYER._logger.error(msg);
-//               return msg;
-//             }
-//           });
-//           return;
-//         } // end if
-//         else {
-//           this.processSongs( theData );
-//           return;
-//         }
+        return callback();
       }
     });
 
@@ -362,7 +332,8 @@
           div
           .querySelectorAll('.swagg-player-progress-wrapper')[ 0 ];
 
-        this.controls_div = $('#' + this.player + ' .swagg-player-controls');
+        this.controls_div =
+          document.querySelectorAll( ".swagg-player-controls" )[ 0 ];
       },
 
       setupProgressBar : function() {
@@ -376,42 +347,51 @@
 
           // indicates how much of the sound has loaded
           loaded.className += "swagg-player-loaded";
+
           loaded.style.height = height + "px";
+
           loaded.style.width = 0 + "px";
+
           loaded.style.float = "left";
+
           loaded.style[ "margin-left" ] = 0;
+
           this.loaded = loaded;
+
           this.loaded.offset = function() {
             return this.getBoundingClientRect();
           }
+
           wrapper.appendChild( this.loaded );
 
 
           // indicates the progress of the currently playing sound
           bar.className += "swagg-player-bar";
+
           bar.style.height = height + "px";
+
           bar.style.width = 0 + "px";
+
           bar.style.float = "left";
+
           bar.style[ "margin-left" ] = "auto";
+
           this.bar = bar;
+
           this.bar.offset = function() {
             return this.getBoundingClientRect();
           }
+
           this.loaded.appendChild( this.bar );
         }
       }
     });
 
     /*
-      ============================================================= player controlls
-      Handles control specific stuff
+      Button controls
     */
     var Controls = function(p) {
       this.PLAYER = p;
-//       this.play = null;
-//       this.skip = null;
-//       this.back = null;
-//       this.stop = null;
     };
 
     Controls.funcs({
@@ -765,8 +745,7 @@
         // api
         this.setupApi();
 
-        $.when(this._data.getSongs()).done(function(err){
-
+        function onSongs(err) {
           if (err) {
             this.executeIfExists( "onError", this, [] );
           } else {
@@ -774,13 +753,14 @@
             // check for soundManager support and warn or inform accordingly
             if ( !soundManager.supported() ) {
               self._logger.warn("Support for SM2 was not found immediately! A reboot will probably occur. We shall see what happense after that.");
-            }
-            else {
+            } else {
               self._logger.info("SM2 support was found! It SHOULD be smooth sailing from here but hey, you never know - this web development stuff is tricky!");
             }
-
           } // end else
-        });
+        }
+
+        this._data.getSongs( onSongs );
+
       },
 
       _whileplaying : function(sound) {
@@ -812,7 +792,7 @@
 
         // if the song has already fully loaded the whileloading callback won't fire
         // so we need to just go ahead and fill the bar
-        if (this.loaded(sound) === true) {
+        if ( this.loaded( sound ) === true ) {
           this.fillLoaded();
         }
         if ( callback ) {
@@ -1183,4 +1163,17 @@
         }
       }; // end playback funcs
     }; // end api
-}));//(jQuery);
+
+    // AMD / RequireJS
+    if (typeof define !== 'undefined' && define.amd) {
+      define([], function () {
+        return async;
+      });
+    }
+    // included directly via <script> tag
+    else {
+      root.SwaggPlayer = SwaggPlayer;
+    }
+
+
+}());

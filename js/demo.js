@@ -15,14 +15,14 @@ module.controller("DemoCtrl", function ($scope) {
     totalSecs: "00"
   };
 
-  $scope.songs = 
+  $scope.songs =
     [
       {
         url: "sound/1.mp3",
         artist: "Artist1",
         title: "Song1",
         thumb:"images/1.jpg",
-        
+
         custom: "myCustomData1",
         position: 0
       },
@@ -45,7 +45,7 @@ module.controller("DemoCtrl", function ($scope) {
       } else {
         this.$apply(fn);
       }
-    };    
+    };
 });
 
 module
@@ -55,10 +55,11 @@ module
       restrict: "A",
       scope: "@",
       link: function(scope, el, attrs) {
-        el.SwaggPlayer({
-          id: el.attr("id"),
-          data: scope.songs, // <----- this is the ONLY required parameter!      
-          buttonsDir: 'images/',                
+
+        SwaggPlayer.init({
+          element: "#" + el.attr("id"),
+          data: scope.songs, // <----- this is the ONLY required parameter!
+          buttonsDir: 'images/',
           logging: ['all'],
           url: "/swf",
           whilePlaying: function(time){
@@ -80,7 +81,7 @@ module
           onPlay: function(data) {
             Utils.setCurrentSong( scope, data );
           }
-          });        
+          });
       }
     };
   })
@@ -90,7 +91,7 @@ var Utils = {
     scope.album_art = data.thumb;
     scope.artist = data.artist;
     scope.title = data.title;
-    scope.safeApply();    
+    scope.safeApply();
   },
 
   setTime: function(scope, time) {
@@ -102,6 +103,6 @@ var Utils = {
         totalSecs: "00"
       };
     scope.time = time;
-    scope.safeApply();    
+    scope.safeApply();
   }
 }
