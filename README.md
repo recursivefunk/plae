@@ -32,7 +32,7 @@ SwaggPlayer.init({
 
 | **Param**     | **Type**         | **default**     | **Description** |
 | :------------ | :--------------  | :-------------- | :-------------- |
-| data          | JSON Array       | n/a            | Song configuration |
+| data          | Array            | n/a            | Song configuration |
 | buttonHover   | boolean          | false          | Change button on button hover
 | eagerLoad     | boolean          | false          | Loads songs immediately on page load |
 | autoPlay      | boolean          | false          | Starts playing the first song when the player finishes initializing |
