@@ -51,37 +51,53 @@ module.controller("DemoCtrl", function ($scope) {
 module
 
   .directive("swaggPlayer", function(){
+
     return {
+
       restrict: "A",
+
       scope: "@",
+
       link: function(scope, el, attrs) {
 
         SwaggPlayer.init({
-          element: "#" + el.attr("id"),
-          data: scope.songs, // <----- this is the ONLY required parameter!
+
+          element: "#" + el.attr("id"),  // required
+
+          data: scope.songs, // required
+
           buttonsDir: 'images/',
+
           logging: ['all'],
+
           url: "/swf",
+
           whilePlaying: function(time){
             Utils.setTime( scope, time );
           },
+
           onStop: function(){
             Utils.setTime( scope );
           },
+
           onSeekPreview: function(event, time) {
             console.log(time.mins + ':' + time.secs)
           },
+
           onSetupComplete: function(swaggPlayerApiRef, firstSong) {
             scope.api = swaggPlayerApiRef;
             Utils.setCurrentSong( scope, firstSong );
           },
+
           whileLoading: function(percentLoaded) {
             $('#loadstatus').html(percentLoaded);
           },
+
           onPlay: function(data) {
             Utils.setCurrentSong( scope, data );
           }
-          });
+
+        });
       }
     };
   })

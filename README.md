@@ -1,3 +1,5 @@
+#### Alert! As of version 0.9.0 Swagg Player is no longer a jQuery plugin! If you update to this version from an older version it will break!!
+
 ### Basic Usage
 ```javascript
 
@@ -5,19 +7,21 @@ var api;
 
 var mysongs = [
   {
-    "url": "sound/1.mp3",
-    "artist": "Artist1",
-    "title": "Song1",
-    "thumb":"images/1.jpg",
-    "custom": "myCustomData1"
+    // required
+    url: "sound/1.mp3",
+    // optional
+    artist: "Artist1",
+    title: "Song1",
+    thumb:"images/1.jpg",
+    custom: "myCustomData1"
   }
   ,
   {
-    "url": "sound/2.mp3",
-    "artist": "Artist2",
-    "title": "Song2",
-    "thumb": "images/2.jpg",
-    "custom": "myCostomData2"
+    url: "sound/2.mp3",
+    artist: "Artist2",
+    title: "Song2",
+    thumb: "images/2.jpg",
+    custom: "myCostomData2"
   }
 ];
 
