@@ -26,7 +26,8 @@ var mysongs = [
 ];
 
 SwaggPlayer.init({
-  data: mysongs
+  data: mysongs,
+  element: "#swaggplayer"
   // other params go here. check
   // advanced config options below
 });
@@ -36,6 +37,7 @@ SwaggPlayer.init({
 
 | **Param**     | **Type**         | **default**     | **Description** |
 | :------------ | :--------------  | :-------------- | :-------------- |
+| element       | String           | n/a            | Id of the swagg player div |
 | data          | Array            | n/a            | Song configuration |
 | buttonHover   | boolean          | false          | Change button on button hover
 | eagerLoad     | boolean          | false          | Loads songs immediately on page load |
