@@ -1,9 +1,9 @@
 fs = require "fs"
 UglifyJS = require "uglify-js"
 
-min = UglifyJS.minify "js/jquery.swaggplayer.js"
+min = UglifyJS.minify "js/swaggplayer.js"
 
-out = fs.createWriteStream "js/jquery.swaggplayer.min.js"
+out = fs.createWriteStream "js/swaggplayer.min.js"
 
 out.write min.code
 
