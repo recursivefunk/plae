@@ -1,4 +1,5 @@
-#### Alert! As of version 0.9.0 Swagg Player is no longer a jQuery plugin! If you update to this version from an older version it will break!!
+#### No longer maintained
+### Alert! As of version 0.9.0 Swagg Player is no longer a jQuery plugin! If you update to this version from an older version it will break!!
 
 ### Basic Usage
 ```javascript
