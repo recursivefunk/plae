@@ -1,7 +1,7 @@
 
 /* global define:false, async: false */
 
-(function(soundManager){
+;(function( soundManager ) {
 
   'use strict';
 
@@ -14,6 +14,7 @@
     this.id       = opts.id;
   };
 
+  // various utility functions
   var Utils = {
 
     formId: function( index ) {
@@ -59,6 +60,7 @@
     // external API
     var _api = {};
 
+    // initialize the player with options
     function init( opts ) {
       _data._element = opts.el;
       _data.swfUrl  = opts.swf || '/swf';
@@ -74,6 +76,7 @@
       return _api;
     }
 
+    // create the sound manager sound instances
     function _load( opts ) {
       for ( var i = 0; i < _data.songs.length; i++ ) {
         _data.songs[ i ].id = i;
@@ -81,6 +84,8 @@
       }
     }
 
+    // creates a sound manager sound instance and configures
+    // all of it's options and registers callbacks
     function _createNewSong( songData, opts ) {
       opts = opts || {};
       var self = _data;
@@ -90,12 +95,14 @@
         art: songData.thumb
       };
       var fastPolling = ( opts.throttlePolling ) ? false : true;
+
       songData.raw = soundManager.createSound({
         id: Utils.formId( songData.id ),
         url: songData.url,
         autoLoad: true,
         autoPlay: false,
         useHighPerformance: fastPolling,
+
         onload: function() {
           console.log('The ' + songData.title + ' loaded!');
         },
@@ -134,6 +141,8 @@
       });
     } // end create sound
 
+    // determine how far along a song is in terms of how many bytes
+    // have been played in relation to the total bytes
     function _determineByteProgress( sound ) {
       // get current position of currently playing song
       var pos = sound.position;
@@ -153,6 +162,7 @@
       return ( positionRatio.toFixed( 2 ) * 100 ).toFixed( 0 );
     }
 
+    // determine the current song's position in time mm:ss / mm:ss
     function _determineTimeProgress( sound ) {
       var duration = sound.loaded === true ? sound.duration : sound.durationEstimate;
       var curr = Utils.millsToTime( sound.position );
@@ -170,7 +180,7 @@
       return time;
     }
 
-
+    // stop all playing sounds
     function _stop() {
       soundManager.stopAll();
       return _api;
@@ -194,17 +204,18 @@
         _stop();
         sound.raw.play();
       } else {
-        // sound.raw.resume( sound.raw.id )
         sound.raw.togglePause();
       }
       return _api;
     }
 
+    // pause all songs
     function _pause() {
       soundManager.pauseAll();
       return _api;
     }
 
+    // play the next song
     function _next() {
       _stop();
       _resetSound( _data.currentTrack );
@@ -215,6 +226,7 @@
       return _play();
     }
 
+    // play the previous song
     function _prev() {
       _stop();
       _resetSound( _data.currentTrack );
@@ -226,13 +238,6 @@
       return _play();
     }
 
-    function _onplay(cb) {
-      for ( var i = 0; i < _data.songs.length; i++ ) {
-        _data.songs[ i ].raw.onplay = cb;
-      }
-      return _api;
-    }
-
     // to be fired when the player is ready to go
     function _onReady(cb) {
       if ( cb ) {
@@ -241,6 +246,14 @@
       return _api;
     }
 
+    function _onError(cb) {
+      if ( cb ) {
+        soundManager.onerror( cb.bind( _api ) );
+      }
+      return _api;
+    }
+
+    // resets the current position for a song to 0
     function _resetSound( index ) {
       var id = Utils.formId( index );
       soundManager.getSoundById( id ).position = 0;
@@ -249,6 +262,7 @@
     // expose api
     _api.init     = init;
     _api.onReady  = _onReady;
+    _api.onError  = _onError;
     _api.stop     = _stop;
     _api.play     = _play;
     _api.pause    = _pause;
@@ -260,12 +274,10 @@
   };
 
 
-
-
   if ( window.module && module.exports ) {
     module.exports = SwaggPlayer;
   } else {
     window.SwaggPlayer = SwaggPlayer;
   }
 
-}(window.soundManager));
+}( window.soundManager ) );

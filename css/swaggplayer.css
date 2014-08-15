@@ -42,16 +42,21 @@ h2 {
   height:5px;
 }
 
-
+.time {
+  text-align: center;
+  font-weight: 100;
+}
 
 
 .sloaded {
   background:#ccc;
   height:100%;
+  /*width: 0px;*/
 }
 
 .sprogress {
   background:red;
+  /*width:0px;*/
   height: 100%;
 }
 

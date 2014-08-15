@@ -3,7 +3,6 @@
 
   'use strict';
 
-
   var player = SwaggPlayer().init({
     url: '/swf',
     el: document.querySelector( '#swagg-player' ),
@@ -57,9 +56,9 @@
     },
 
     whilePlaying: function( time, percentComplete ) {
-      document.querySelectorAll('.sprogress')[0].style.width = percentComplete + '%';
-      // console.log( percentComplete );
-      // console.log( time );
+      document.querySelectorAll('.sprogress')[ 0 ].style.width = percentComplete + '%';
+      document.querySelectorAll('.currMins')[ 0 ].innerHTML = timeFormat( time.current.min );
+      document.querySelectorAll('.currSecs')[ 0 ].innerHTML = timeFormat( time.current.sec );
     }
   })
 
@@ -68,28 +67,43 @@
       this.play();
     });
 
+
+  // ------------------------------- helpers
+
   function playButton( type ) {
     document.querySelectorAll('.swagg-player-play-button')[0].src = 'images/' + type + '.png';
   }
 
+  function timeFormat( time ) {
+    var timeStr = time.toString();
+    if ( timeStr.length === 1 ) {
+      return '0' + timeStr;
+    } else {
+      return time;
+    }
+  }
+
+  // ------------------------------- click events
+
   document
     .querySelectorAll( '.swagg-player-skip-button' )[ 0 ]
-    .addEventListener('click', function(e) {
-      player.next();
-    });
+      .addEventListener('click', function(e) {
+        player.next();
+      });
 
 
   document
     .querySelectorAll( '.swagg-player-back-button' )[ 0 ]
-    .addEventListener('click', function(e){
-      player.prev();
-    });
+      .addEventListener('click', function(e){
+        player.prev();
+      });
 
   document
     .querySelectorAll( '.swagg-player-play-button' )[ 0 ]
-    .addEventListener('click', function(e){
-      player.play();
-    });
+      .addEventListener('click', function(e){
+        player.play();
+      });
+
 
 }(window.SwaggPlayer));
 
