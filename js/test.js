@@ -56,10 +56,11 @@
       playButton( 'play' );
     },
 
-    // whilePlaying: function( time, percentComplete ) {
-    //   // console.log( percentComplete );
-    //   // console.log( time );
-    // }
+    whilePlaying: function( time, percentComplete ) {
+      document.querySelectorAll('.sprogress')[0].style.width = percentComplete + '%';
+      // console.log( percentComplete );
+      // console.log( time );
+    }
   })
 
     .onReady(function(){

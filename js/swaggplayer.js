@@ -89,11 +89,13 @@
         title: songData.title,
         art: songData.thumb
       };
+      var fastPolling = ( opts.throttlePolling ) ? false : true;
       songData.raw = soundManager.createSound({
         id: Utils.formId( songData.id ),
         url: songData.url,
         autoLoad: true,
         autoPlay: false,
+        useHighPerformance: fastPolling,
         onload: function() {
           console.log('The ' + songData.title + ' loaded!');
         },

@@ -45,12 +45,14 @@ h2 {
 
 
 
-.swagg-player-loaded {
+.sloaded {
   background:#ccc;
+  height:100%;
 }
 
-.swagg-player-bar {
+.sprogress {
   background:red;
+  height: 100%;
 }
 
 .center-text {
