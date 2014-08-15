@@ -1,5 +1,5 @@
 
-/* global define:false, async: false */
+/* global define:false */
 
 ;(function( soundManager ) {
 
@@ -10,7 +10,7 @@
     this.title    = opts.title;
     this.artist   = opts.artist;
     this.url      = opts.url;
-    this.thumb    = opts.thumb;
+    this.art      = opts.art;
     this.id       = opts.id;
   };
 
@@ -64,7 +64,7 @@
     function init( opts ) {
       _data._element = opts.el;
       _data.swfUrl  = opts.swf || '/swf';
-      _data.songs = opts.songs || [];
+      _data.songs = [];
       _data.currentTrack = 0;
       soundManager.setup({
         url: _data.swfUrl,
@@ -78,9 +78,12 @@
 
     // create the sound manager sound instances
     function _load( opts ) {
-      for ( var i = 0; i < _data.songs.length; i++ ) {
-        _data.songs[ i ].id = i;
-        _createNewSong( _data.songs[ i ], opts );
+      console.log( opts );
+      for ( var i = 0; i < opts.songs.length; i++ ) {
+        var song = new Song( opts.songs[ i ] );
+        song.id = i;
+        _data.songs.push( song );
+        _createNewSong( song, opts );
       }
     }
 
@@ -92,7 +95,7 @@
       var meta = {
         artist: songData.artist,
         title: songData.title,
-        art: songData.thumb
+        art: songData.art
       };
       var fastPolling = ( opts.throttlePolling ) ? false : true;
 

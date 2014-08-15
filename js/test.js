@@ -11,19 +11,19 @@
         url: 'sound/3.mp3',
         artist: 'Artist 3',
         title: 'Song 3',
-        thumb: 'images/3.jpg'
+        art: 'images/3.jpg'
       },
       {
         url: 'sound/1.mp3',
         artist: 'Artist 1',
         title: 'Song 1',
-        thumb: 'images/1.jpg'
+        art: 'images/1.jpg'
       },
       {
         url: 'sound/2.mp3',
         artist: 'Artist 2',
         title: 'Song 2',
-        thumb: 'images/2.jpg'
+        art: 'images/2.jpg'
       }
     ],
 
