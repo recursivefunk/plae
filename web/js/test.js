@@ -11,19 +11,19 @@
         url: 'sound/3.mp3',
         artist: 'Artist 3',
         title: 'Song 3',
-        art: 'images/3.jpg'
+        art: 'img/3.jpg'
       },
       {
         url: 'sound/1.mp3',
         artist: 'Artist 1',
         title: 'Song 1',
-        art: 'images/1.jpg'
+        art: 'img/1.jpg'
       },
       {
         url: 'sound/2.mp3',
         artist: 'Artist 2',
         title: 'Song 2',
-        art: 'images/2.jpg'
+        art: 'img/2.jpg'
       }
     ],
 
@@ -36,6 +36,8 @@
     onPlay: function( songData ) {
       console.log( '------------- song playing ------------' );
       console.log( songData );
+      document.querySelectorAll('.artist')[ 0 ].innerHTML = songData.artist;
+      document.querySelectorAll('.title')[ 0 ].innerHTML = songData.title;
       playButton( 'pause' );
     },
 
@@ -71,7 +73,7 @@
   // ------------------------------- helpers
 
   function playButton( type ) {
-    document.querySelectorAll('.swagg-player-play-button')[0].src = 'images/' + type + '.png';
+    document.querySelectorAll('.swagg-player-play-button')[0].src = 'img/' + type + '.png';
   }
 
   function timeFormat( time ) {
