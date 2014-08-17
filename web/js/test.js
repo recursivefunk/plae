@@ -3,27 +3,42 @@
 
   'use strict';
 
+  var adaptOpts      = {
+    selector:             '[data-adaptive-background="1"]',
+    parent:               'body',
+    exclude:              [ 'rgb(0,0,0)', 'rgba(255,255,255)' ],
+    normalizeTextColor:   false,
+    normalizedTextColors:  {
+      light:      "#fff",
+      dark:       "#000"
+    },
+    lumaClasses:  {
+      light:      "ab-light",
+      dark:       "ab-dark"
+    }
+  };
+
   var player = SwaggPlayer().init({
     url: '/swf',
     el: document.querySelector( '#swagg-player' ),
     songs: [
       {
-        url: 'sound/3.mp3',
-        artist: 'Artist 3',
-        title: 'Song 3',
-        art: 'img/3.jpg'
+        url: 'sound/the-good-life.mp3',
+        artist: 'Nancy Wilson',
+        title: 'The Good Life',
+        art: 'img/nancywilson.jpg'
       },
       {
-        url: 'sound/1.mp3',
-        artist: 'Artist 1',
-        title: 'Song 1',
-        art: 'img/1.jpg'
+        url: 'sound/miles-ahead.mp3',
+        artist: 'Miles Davis',
+        title: 'Miles Ahead',
+        art: 'img/miles-davis.jpg'
       },
       {
-        url: 'sound/2.mp3',
-        artist: 'Artist 2',
-        title: 'Song 2',
-        art: 'img/2.jpg'
+        url: 'sound/blue-monk.mp3',
+        artist: 'Thelonious Monk',
+        title: 'Blue Monk',
+        art: 'img/thelonious-monk.jpg'
       }
     ],
 
@@ -36,9 +51,11 @@
     onPlay: function( songData ) {
       console.log( '------------- song playing ------------' );
       console.log( songData );
-      document.querySelectorAll('.artist')[ 0 ].innerHTML = songData.artist;
-      document.querySelectorAll('.title')[ 0 ].innerHTML = songData.title;
+      changeMeta( songData );
       playButton( 'pause' );
+      setTimeout(function(){
+        $.adaptiveBackground.run( adaptOpts );
+      }, 700);
     },
 
     onPause: function( songData ) {
@@ -58,14 +75,18 @@
     },
 
     whilePlaying: function( time, percentComplete ) {
-      document.querySelectorAll('.sprogress')[ 0 ].style.width = percentComplete + '%';
-      document.querySelectorAll('.currMins')[ 0 ].innerHTML = timeFormat( time.current.min );
-      document.querySelectorAll('.currSecs')[ 0 ].innerHTML = timeFormat( time.current.sec );
+      document.querySelectorAll('.swagg-player-progress-bar__progress')[ 0 ].style.width = percentComplete + '%';
+      // document.querySelectorAll('.currMins')[ 0 ].innerHTML = timeFormat( time.current.min );
+      // document.querySelectorAll('.currSecs')[ 0 ].innerHTML = timeFormat( time.current.sec );
     }
   })
 
     .onReady(function(){
-      var self = this;
+      console.log( '-------------------- first track -----------------' );
+      // move the playlist cursor to the first position ( 0 by default )
+      // and get that track's metadata
+      var track = this.cursor();
+      changeMeta( track );
       this.play();
     });
 
@@ -73,7 +94,9 @@
   // ------------------------------- helpers
 
   function playButton( type ) {
-    document.querySelectorAll('.swagg-player-play-button')[0].src = 'img/' + type + '.png';
+    var el = document.querySelectorAll('.play-pause-toggle')[0];
+    el.className = 'icon-' + type + ' play-pause-toggle swagg-player-controls__button';
+
   }
 
   function timeFormat( time ) {
@@ -85,26 +108,51 @@
     }
   }
 
+  function changeMeta( data ) {
+    document.querySelectorAll('.swagg-player-info__artist')[ 0 ].innerHTML = data.artist;
+    document.querySelectorAll('.swagg-player-info__title')[ 0 ].innerHTML = data.title;
+    changeCover( data.art );
+  }
+
+  function changeCover( url ) {
+    document.querySelectorAll('.swagg-player__art')[ 0 ].style.backgroundImage = 'url(' + url  +')';
+    document.querySelectorAll('.swagg-player__art')[ 0 ].style.backgroundSize = 'cover';
+  }
+
   // ------------------------------- click events
 
   document
-    .querySelectorAll( '.swagg-player-skip-button' )[ 0 ]
+    .querySelectorAll( '.icon-skip' )[ 0 ]
       .addEventListener('click', function(e) {
         player.next();
       });
 
 
   document
-    .querySelectorAll( '.swagg-player-back-button' )[ 0 ]
+    .querySelectorAll( '.icon-back' )[ 0 ]
       .addEventListener('click', function(e){
         player.prev();
       });
 
   document
-    .querySelectorAll( '.swagg-player-play-button' )[ 0 ]
+    .querySelectorAll( '.icon-play' )[ 0 ]
       .addEventListener('click', function(e){
         player.play();
       });
+
+  $('.swagg-player__art').on('ab-color-found', function( ev, payload ){
+    var color = randomColor( payload.color );
+    document.querySelector( '.swagg-player-progress-bar__progress' ).style.backgroundColor = color;
+  });
+
+  function randomColor( color ) {
+    var highlight = tinycolor( color );
+    if ( highlight.isLight() ) {
+      return highlight.darken( 50 ).toString();
+    } else {
+      return highlight.lighten( 50 ).toString();
+    }
+  }
 
 
 }(window.SwaggPlayer));
