@@ -44,9 +44,7 @@ gulp.task('clean', function(){
 
 
 gulp.task('watch', function(){
-
   gulp.watch( 'lib/swaggplayer.js', [ 'build' ] );
-
 });
 
 
