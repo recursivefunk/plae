@@ -93,7 +93,7 @@ body:before {
   -ms-transform: rotate(45deg);
   -o-transform: rotate(45deg);
   transform: rotate(45deg);
-  z-index: 0;
+  z-index: 1;
 }
 
 body:after {
