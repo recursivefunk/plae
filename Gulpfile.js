@@ -1,13 +1,11 @@
 
 'use strict';
 
-var gulp    = require( 'gulp' );
-var uglify  = require( 'gulp-uglify' );
+var gulp       = require( 'gulp' );
+var uglify     = require( 'gulp-uglify' );
 var browserify = require( 'gulp-browserify' );
 var clean      = require( 'gulp-clean' );
 var rename     = require( 'gulp-rename' );
-// var watch      = require( 'gulp-watch' );
-// var plumber    = require( 'gulp-plumber' );
 
 var config = {
   dist: './dist',
@@ -20,6 +18,7 @@ var config = {
 // copy it dist
 // create a minified version
 // copy minified version to dist
+// profit
 function buildSrc() {
   gulp
     .src( 'lib/swaggplayer.js' )
@@ -31,6 +30,10 @@ function buildSrc() {
     .pipe( uglify() )
     .pipe( rename( { suffix: '.min' } ) )
     .pipe( gulp.dest( './dist' ) );
+
+  gulp
+    .src( 'swf/*.swf' )
+    .pipe( gulp.dest( config.swfDir ) );
 }
 
 
@@ -38,14 +41,12 @@ gulp.task( 'build', buildSrc );
 
 gulp.task('clean', function(){
   gulp
-    .src( [ config.dist, './web/js/swaggplayer.js' ] )
+    .src( [ config.swfDir, config.dist, './web/js/swaggplayer.js' ] )
     .pipe( clean() );
 });
-
 
 gulp.task('watch', function(){
   gulp.watch( 'lib/swaggplayer.js', [ 'build' ] );
 });
-
 
 gulp.task( 'default', [ 'clean', 'build' ] );

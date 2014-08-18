@@ -3,6 +3,7 @@
 
   'use strict';
 
+  // for the adaptive background stuff - not related to swagg player
   var adaptOpts      = {
     selector:             '[data-adaptive-background="1"]',
     parent:               'body',
@@ -18,6 +19,7 @@
     }
   };
 
+  // swagg player specific code starts here
   var player = SwaggPlayer().init({
     url: '/swf',
     el: document.querySelector( '#swagg-player' ),
@@ -85,8 +87,10 @@
       console.log( '-------------------- first track -----------------' );
       // move the playlist cursor to the first position ( 0 by default )
       // and get that track's metadata
-      var track = this.cursor();
+      var track = this.cursor( 0 );
+      // update the UI
       changeMeta( track );
+      // play the first track
       this.play();
     });
 
@@ -119,6 +123,15 @@
     document.querySelectorAll('.swagg-player__art')[ 0 ].style.backgroundSize = 'cover';
   }
 
+  function highlightColor( color ) {
+    var highlight = tinycolor( color );
+    if ( highlight.isLight() ) {
+      return highlight.darken( 50 ).toString();
+    } else {
+      return highlight.lighten( 50 ).toString();
+    }
+  }
+
   // ------------------------------- click events
 
   document
@@ -140,22 +153,14 @@
         player.play();
       });
 
+  // when the background color changes, grab an appropripate highlight color for the
+  // player's progress bar
   $('.swagg-player__art').on('ab-color-found', function( ev, payload ){
-    var color = randomColor( payload.color );
+    var color = highlightColor( payload.color );
     document.querySelector( '.swagg-player-progress-bar__progress' ).style.backgroundColor = color;
   });
 
-  function randomColor( color ) {
-    var highlight = tinycolor( color );
-    if ( highlight.isLight() ) {
-      return highlight.darken( 50 ).toString();
-    } else {
-      return highlight.lighten( 50 ).toString();
-    }
-  }
-
-
-}(window.SwaggPlayer));
+}( window.SwaggPlayer ) );
 
 
 

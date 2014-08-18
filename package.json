@@ -1,6 +1,6 @@
 {
   "name": "swaggplayer",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "### Basic Usage ```javascript",
   "main": "dist/swaggplayer.js",
   "dependencies": {

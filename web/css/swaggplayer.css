@@ -151,6 +151,7 @@ h2 {
   height: 5px;
   width: 100%;
   z-index: 10;
+  -webkit-transition: height 1s ease;
 }
 
 .swagg-player-progress-bar__loaded {
