@@ -6,6 +6,7 @@ var uglify     = require( 'gulp-uglify' );
 var browserify = require( 'gulp-browserify' );
 var clean      = require( 'gulp-clean' );
 var rename     = require( 'gulp-rename' );
+var livereload = require( 'gulp-livereload' );
 
 var config = {
   dist: './dist',
@@ -35,7 +36,6 @@ function buildSrc() {
     .src( 'swf/*.swf' )
     .pipe( gulp.dest( config.swfDir ) );
 }
-
 
 gulp.task( 'build', buildSrc );
 
