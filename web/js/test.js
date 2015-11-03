@@ -20,9 +20,9 @@
   };
 
   // swagg player specific code starts here
-  var player = SwaggPlayer().init({
+  var player = Plae().init({
     url: '/swf',
-    el: document.querySelector( '#swagg-player' ),
+    el: document.querySelector( '#plae' ),
     songs: [
       {
         url: 'sound/the-good-life.mp3',
@@ -77,7 +77,7 @@
     },
 
     whilePlaying: function( time, percentComplete ) {
-      document.querySelectorAll('.swagg-player-progress-bar__progress')[ 0 ].style.width = percentComplete + '%';
+      document.querySelectorAll('.plae-progress-bar__progress')[ 0 ].style.width = percentComplete + '%';
       // document.querySelectorAll('.currMins')[ 0 ].innerHTML = timeFormat( time.current.min );
       // document.querySelectorAll('.currSecs')[ 0 ].innerHTML = timeFormat( time.current.sec );
     }
@@ -99,7 +99,7 @@
 
   function playButton( type ) {
     var el = document.querySelectorAll('.play-pause-toggle')[0];
-    el.className = 'icon-' + type + ' play-pause-toggle swagg-player-controls__button';
+    el.className = 'icon-' + type + ' play-pause-toggle plae-controls__button';
 
   }
 
@@ -113,14 +113,14 @@
   }
 
   function changeMeta( data ) {
-    document.querySelectorAll('.swagg-player-info__artist')[ 0 ].innerHTML = data.artist;
-    document.querySelectorAll('.swagg-player-info__title')[ 0 ].innerHTML = data.title;
+    document.querySelectorAll('.plae-info__artist')[ 0 ].innerHTML = data.artist;
+    document.querySelectorAll('.plae-info__title')[ 0 ].innerHTML = data.title;
     changeCover( data.art );
   }
 
   function changeCover( url ) {
-    document.querySelectorAll('.swagg-player__art')[ 0 ].style.backgroundImage = 'url(' + url  +')';
-    document.querySelectorAll('.swagg-player__art')[ 0 ].style.backgroundSize = 'cover';
+    document.querySelectorAll('.plae__art')[ 0 ].style.backgroundImage = 'url(' + url  +')';
+    document.querySelectorAll('.plae__art')[ 0 ].style.backgroundSize = 'cover';
   }
 
   function highlightColor( color ) {
@@ -155,12 +155,12 @@
 
   // when the background color changes, grab an appropripate highlight color for the
   // player's progress bar
-  $('.swagg-player__art').on('ab-color-found', function( ev, payload ){
+  $('.plae__art').on('ab-color-found', function( ev, payload ){
     var color = highlightColor( payload.color );
-    document.querySelector( '.swagg-player-progress-bar__progress' ).style.backgroundColor = color;
+    document.querySelector( '.plae-progress-bar__progress' ).style.backgroundColor = color;
   });
 
-}( window.SwaggPlayer ) );
+}( window.Plae ) );
 
 
 

@@ -1,12 +1,12 @@
 @charset "UTF-8";
 
 @font-face {
-  font-family: "swagg-player";
-  src:url("../fonts/swagg-player.eot");
-  src:url("../fonts/swagg-player.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/swagg-player.woff") format("woff"),
-    url("../fonts/swagg-player.ttf") format("truetype"),
-    url("../fonts/swagg-player.svg#swagg-player") format("svg");
+  font-family: "plae";
+  src:url("../fonts/plae.eot");
+  src:url("../fonts/plae.eot?#iefix") format("embedded-opentype"),
+    url("../fonts/plae.woff") format("woff"),
+    url("../fonts/plae.ttf") format("truetype"),
+    url("../fonts/plae.svg#plae") format("svg");
   font-weight: normal;
   font-style: normal;
 
@@ -20,7 +20,7 @@
 }
 
 [data-icon]:before {
-  font-family: "swagg-player" !important;
+  font-family: "plae" !important;
   content: attr(data-icon);
   font-style: normal !important;
   font-weight: normal !important;
@@ -34,7 +34,7 @@
 
 [class^="icon-"]:before,
 [class*=" icon-"]:before {
-  font-family: "swagg-player" !important;
+  font-family: "plae" !important;
   font-style: normal !important;
   font-weight: normal !important;
   font-variant: normal !important;
@@ -111,12 +111,12 @@ h2 {
   font-weight:100;
 }
 
-.swagg-player {
+.plae {
   width: 400px;
   margin-top:100px;
 }
 
-.swagg-player__art {
+.plae__art {
   height: 400px;
   background-size: cover;
   -webkit-transition: background .5s ease;
@@ -125,21 +125,21 @@ h2 {
   transition: background .5s ease;
 }
 
-.swagg-player__info {
+.plae__info {
   padding: 20px;
   background: #34444b;
 }
 
-.swagg-player-info__title {
+.plae-info__title {
   margin-top:0;
 }
 
-.swagg-player__controls {
+.plae__controls {
   background: #4e6774;
   padding: 20px;
 }
 
-.swagg-player-controls__button {
+.plae-controls__button {
   font-size: 2em;
   position: relative;
   left: 50%;
@@ -147,19 +147,19 @@ h2 {
   z-index: 10;
 }
 
-.swagg-player__progress-bar {
+.plae__progress-bar {
   height: 5px;
   width: 100%;
   z-index: 10;
   -webkit-transition: height 1s ease;
 }
 
-.swagg-player-progress-bar__loaded {
+.plae-progress-bar__loaded {
   background: #ccc;
   height: 100%;
 }
 
-.swagg-player-progress-bar__progress {
+.plae-progress-bar__progress {
   height: 100%;
 }
 

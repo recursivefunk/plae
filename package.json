@@ -1,8 +1,8 @@
 {
-  "name": "swaggplayer",
+  "name": "plae",
   "version": "0.1.0",
-  "description": "### Basic Usage ```javascript",
-  "main": "dist/swaggplayer.js",
+  "description": "Easy to use JS library for playing music and such",
+  "main": "dist/plae.js",
   "dependencies": {
     "cli-color": "^0.1.6",
     "gulp-concat": "^2.3.4",
@@ -24,12 +24,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jrayaustin/swaggplayer.git"
+    "url": "https://github.com/jray/plae.git"
   },
   "author": "Johnny Ray Austin <johnny@johnnyray.me>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jrayaustin/swaggplayer/issues"
+    "url": "https://github.com/jray/plae/issues"
   },
-  "homepage": "https://github.com/jrayaustin/swaggplayer"
+  "homepage": "https://github.com/jray/plae"
 }
