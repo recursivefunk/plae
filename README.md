@@ -3,7 +3,7 @@
 ```javascript
 
   // swagg player specific code starts here
-  var player = SwaggPlayer().init({
+  var player = Plae().init({
     url: '/swf',
     songs: [
       {
@@ -47,7 +47,7 @@ via the url parameter.
 | prev()        | Plays the previous track | n/a | n/a
 | cursor()      | Makes the current the specified one without actually playing the track | Index of the target track | The track metadata (artist, title, art)
 
-See a working demo at http://jrayaustin.github.io/swaggplayer
+See a working demo at http://jray.github.io/plae
 
 The code for the demo is in the web/ folder
 
