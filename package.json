@@ -1,6 +1,6 @@
 {
   "name": "plae",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Easy to use JS library for playing music and such",
   "main": "dist/plae.js",
   "dependencies": {
