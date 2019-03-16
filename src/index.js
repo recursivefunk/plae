@@ -1,5 +1,5 @@
 
-import soundmanager2 from 'soundmanager2/script/soundmanager2-nodebug-jsmin'
+import soundManager from 'soundmanager2/script/soundmanager2-nodebug-jsmin'
 import Song from './lib/song'
 import Logger from './lib/log'
 import {
@@ -7,16 +7,19 @@ import {
   formId,
   determineBytesLoaded,
   determineByteProgress,
-  determineTimeProgress
+  determineTimeProgress,
+  volumeUp,
+  volumeDown
 } from './lib/utils'
 
 class Plae {
-  constructor(opts={}) {
+  constructor (opts = {}) {
     this._data = {}
     this._data.swfUrl = opts.swf || '/swf'
     this._data.songs = []
     this._data.currentTrack = 0
-    soundManager.setup({
+    this._sm = soundManager
+    this._sm.setup({
       url: this._data.swfUrl,
       useHighPerformance: true,
       useFastPolling: true,
@@ -24,6 +27,9 @@ class Plae {
     })
     this._log = Logger(opts)
     this._readyCb = typeof opts.onReady === 'function' ? opts.onReady : () => {}
+    if (this._sm) {
+      destroySMWindowInstance()
+    }
   }
 
   /**
@@ -58,7 +64,7 @@ class Plae {
    * all of it's options and registers callbacks
    *
    */
-  _createRawSong (songData, position, opts={}) {
+  _createRawSong (songData, position, opts = {}) {
     const self = this
     const meta = {
       artist: songData.artist,
@@ -69,12 +75,12 @@ class Plae {
     }
 
     // Registering callbacks for key events for each track
-    const raw = soundManager.createSound({
+    const raw = this._sm.createSound({
       id: meta.id,
       url: meta.url,
       autoPlay: false,
       autoLoad: true,
-      onload() {
+      onload () {
         self._log.debug(`Loaded: "${songData.title}"`)
       },
       onplay () {
@@ -123,19 +129,18 @@ class Plae {
           var percentComplete = determineByteProgress(this)
           opts.whilePlaying(timeProgress, percentComplete)
         }
-      },
+      }
     })
     songData.raw = raw
     return new Song(position, meta, raw)
   } // end createNewSong
-
 
   /**
    * Play the track at the given position. Positions start at 0. If no position
    * is specified, play the track at the current cursor position
    *
    */
-  play(index) {
+  async play (index) {
     if (Number.isInteger(index) && index > -1) {
       this._data.currentTrack = index
     } else {
@@ -150,24 +155,62 @@ class Plae {
       this.stop()
       sound.raw.play()
     } else {
-      sound.raw.togglePause()
+      const up = 1
+      const down = -1
+      if (!sound.raw.paused) {
+        await this.fadeVolume(sound.raw, down)
+        sound.raw.pause()
+      } else {
+        sound.raw.resume()
+        await this.fadeVolume(sound.raw, up)
+      }
     }
     return this
+  }
+
+  async fadeVolume (sound, direction = 1) {
+    if (direction === 1) {
+      while (sound.volume < 100) {
+        await this.volumeUp(sound)
+      }
+    } else if (direction === -1) {
+      while (sound.volume > 0) {
+        await this.volumeDown(sound)
+      }
+    } else {
+      this._log.error(`Invalid direction parameter: ${direction}. Need 1 or -1`)
+    }
+  }
+
+  async volumeUp (sound) {
+    if (!sound) {
+      sound = this._data.songs[this._data.currentTrack].raw
+    }
+    return volumeUp(sound)
+  }
+
+  async volumeDown (sound) {
+    if (!sound) {
+      sound = this._data.songs[this._data.currentTrack].raw
+    }
+    return volumeDown(sound)
   }
 
   /**
    * Hault playback
    */
   stop () {
-    soundManager.stopAll()
+    this._sm.stopAll()
     return this
   }
 
   /**
    * Pause playback
    */
-  pause() {
-    soundManager.pauseAll()
+  pause () {
+    const currentTrack = this._data.songs[this._data.currentTrack]
+    console.log(currentTrack)
+    this._sm.pauseAll()
     return this
   }
 
@@ -177,14 +220,14 @@ class Plae {
    * play whatever song at which we're pointing.
    *
    */
-  next() {
+  next () {
     this.stop()
     this._resetSound(this._data.currentTrack)
     this._data.currentTrack = this._data.currentTrack + 1
     if (this._data.currentTrack > (this._data.songs.length - 1)) {
       this._data.currentTrack = 0
     }
-    return this.play()
+    return this.play(this._data.currentTrack)
   }
 
   /**
@@ -213,20 +256,20 @@ class Plae {
   }
 
   setData (songPosition, attr, item) {
-    const song = _data.songs[songPosition]
+    const song = this._data.songs[songPosition]
     const changedItems = {}
 
     if (song) {
       song[ attr ] = item
       changedItems[ attr ] = item
-      _newDataCb(song, changedItems)
+      this._newDataCb(song, changedItems)
     }
   }
 
   setCursor (position) {
-    const index = (index > 0 && index < (_data.songs.length - 1)) ? index : 0
-    _data.currentTrack = index
-    const song = _data.songs[index]
+    const index = (position > 0 && position < (this._data.songs.length - 1)) ? position : 0
+    this._data.currentTrack = index
+    const song = this._data.songs[index]
     return {
       title: song.title,
       art: song.art,
@@ -238,9 +281,19 @@ class Plae {
   // resets the current position for a song to 0
   _resetSound (index) {
     const id = this._data.songs[index].id
-    soundManager.getSoundById(id).position = 0
+    this._sm.getSoundById(id).position = 0
   }
+}
 
+function destroySMWindowInstance () {
+  if (window && window.soundManager) {
+    let interval = setInterval(() => {
+      if (window && window.soundManager) {
+        delete window.soundManager
+        clearInterval(interval)
+      }
+    }, 10)
+  }
 }
 
 if (typeof window !== 'undefined') {

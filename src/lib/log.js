@@ -10,6 +10,9 @@ export default (opts) => {
       if (verbose) {
         console.log(`[play::debug] ${msg}`)
       }
+    },
+    error (msg) {
+      console.error(msg)
     }
   })
 }

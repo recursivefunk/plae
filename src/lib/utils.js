@@ -10,12 +10,12 @@ const timeString = str => {
 }
 
 const millsToTime = duration => {
-  const seconds = Math.floor(duration / 1000)
-  const minutes = 0
+  let seconds = Math.floor(duration / 1000)
+  let minutes = 0
 
   if (seconds > 60) {
-    minutes = Math.floor( seconds / 60 )
-    seconds = Math.round( seconds % 60 )
+    minutes = Math.floor(seconds / 60)
+    seconds = Math.round(seconds % 60)
   }
 
   if (seconds === 60) {
@@ -37,7 +37,7 @@ const determineTimeProgress = sound => {
   const time = {
     current: {
       min: curr.mins,
-      sec: curr.secs,
+      sec: curr.secs
     },
     total: {
       min: total.mins,
@@ -52,7 +52,7 @@ const determineTimeProgress = sound => {
 const determineByteProgress = sound => {
   // get current position of currently playing song
   const pos = sound.position
-  const loadedRatio = sound.bytesLoaded / sound.bytesTotal
+  // const loadedRatio = sound.bytesLoaded / sound.bytesTotal
   let duration = 0
 
   if (sound.loaded === false) {
@@ -62,7 +62,7 @@ const determineByteProgress = sound => {
   }
 
   // ratio of (current position / total duration of song)
-  const positionRatio = pos/duration
+  const positionRatio = pos / duration
 
   return (positionRatio.toFixed(2) * 100).toFixed(0)
 }
@@ -72,6 +72,25 @@ const determineBytesLoaded = sound => {
   return sound.bytesLoaded / sound.bytesTotal
 }
 
+const volumeDown = async (sound, howMuch = 2) => (
+  new Promise(resolve => {
+    const targetVol = sound.volume > 1 ? sound.volume - howMuch : 0
+    setTimeout(() => {
+      sound.setVolume(targetVol)
+      resolve(targetVol)
+    }, 0)
+  })
+)
+
+const volumeUp = async (sound, howMuch = 2) => (
+  new Promise(resolve => {
+    const targetVol = sound.volume < 99 ? sound.volume + howMuch : 0
+    setTimeout(() => {
+      sound.setVolume(targetVol)
+      resolve(targetVol)
+    }, 0)
+  })
+)
 
 export {
   formId,
@@ -80,5 +99,7 @@ export {
   determineTimeProgress,
   determineBytesLoaded,
   determineByteProgress,
-  millsToTime
+  millsToTime,
+  volumeUp,
+  volumeDown
 }
